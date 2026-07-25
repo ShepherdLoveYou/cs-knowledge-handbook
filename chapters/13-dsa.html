@@ -160,7 +160,13 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
     <p>"f(x) = O(g(x))" 的严格定义(维基百科)是:存在一个正实数 M,使得对足够大的 x,都有 |f(x)| ≤ M·|g(x)|。翻译成人话:只要能找到一个"放大倍数" M,让 g(x) 放大后从某个点开始永远盖住 f(x),就说 f(x) 是 O(g(x))。关键是"存在这样的 M"这件事本身,M 具体是多少无所谓——这也是为什么 O(2n) 和 O(n) 被视为同一复杂度:常数倍数在 Big-O 里被直接忽略。</p>
   </div>
 
-  <p>复杂度还分<strong>最好情况(best case)、平均情况(average case)、最坏情况(worst case)</strong>——比如冒泡排序如果输入已经是正序的,一轮就能提前结束(最好情况 O(n)),但如果是完全逆序,要跑满全部轮次(最坏情况 O(n²))。工程上做容量规划时,通常按<strong>最坏情况</strong>留余量,因为线上系统扛不住"运气不好就崩"。</p>
+  <p>复杂度还分<strong>最好情况(best case)、平均情况(average case)、最坏情况(worst case)</strong>——比如插入排序如果输入已经是正序的,每插入一个新元素只需和前一个比一次就知道不用挪动,几乎不做搬移(最好情况 O(n));但如果完全逆序,每个新元素都要一路搬到最前面(最坏情况 O(n²))。工程上做容量规划时,通常按<strong>最坏情况</strong>留余量,因为线上系统扛不住"运气不好就崩"。</p>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧩 类比 · 搬家:趟数重要,但"点箱子"本身也要花时间</div>
+    <p>把 n 想象成要搬的箱子数。笨办法是每次扛一箱来回跑,跑的趟数、花的总时间都随箱子数 n 线性增长,O(n);如果箱子实在太多,先花时间把箱子按房间分类、规划一条顺路的搬运路线,能让往后每一趟带得更有效率,长期看更划算——这类"先多想一步、换取整体更平缓的增长曲线"的思路,是不少更聪明的算法愿意多花的力气。</p>
+    <p>但"分类、规划路线"这一步本身也要花固定的时间——如果统共只搬 3 箱东西,直接扛着跑 3 趟,通常比先坐下来规划半天更快。这正是 Big-O 容易被误读的地方:它只承诺"箱子数量足够多之后,谁的增长趋势更平缓",不承诺"任何规模下都更快"。本章后面"工程视角"会提到,不少语言的内置排序在待排序片段很小时会主动切换成插入排序,原因和"3 箱东西不值得先规划路线"是同一个:O(n log n) 相对 O(n²) 的优势要等数据量爬过一个门槛才会显现,不是在任何规模下都成立的绝对排名。</p>
+  </div>
 
   <figure>
     <svg viewBox="0 0 720 400" width="100%" role="img" font-family="var(--font)" aria-label="Big-O 复杂度增长趋势示意图">
@@ -285,6 +291,12 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
   <div class="cx cx-practice">
     <div class="cx-t">🛠 实战锚点 · 你天天在用它们</div>
     <p>程序崩溃时打印出来的那一长串调用记录——<strong>调用栈(call stack)</strong>——就是一个真实的栈:函数 A 调用 B、B 调用 C,C 出错时,栈从顶部往下正好是 C→B→A 的调用顺序;<a href="08-windows-admin.html">08 章</a>任务管理器里排队等 CPU 时间片的进程、以及打印机的打印队列,都是货真价实的队列结构。</p>
+  </div>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">💡 场景 · 递归函数为什么会"爆栈"</div>
+    <p>写一个不设终止条件(或者终止条件写错)的递归函数,跑起来往往不是死循环卡住,而是很快报错退出——Python 抛 <code>RecursionError: maximum recursion depth exceeded</code>,Java 抛 <code>StackOverflowError</code>,C/C++ 这类没有运行时兜底的语言甚至可能直接段错误(segmentation fault)崩溃。原因就在上一段"调用栈是一个真实的栈"里:每多一层函数调用,栈上就要多压一帧(保存这层函数的局部变量、返回地址等信息),而调用栈能用的内存空间是有限的——不是可以无限叠高的一摞盘子,是叠到房顶就会塌的一摞盘子。递归迟迟不返回,就是不停往这摞盘子上加,加到触顶,程序只能报错退出。</p>
+    <p>这也是为什么"能用循环就不硬上深递归"是工程上的常见取舍:循环靠一个变量反复更新,不额外占用调用栈空间;递归写起来更贴近数学定义、更好懂,但每一层都有真实的内存代价。真需要深递归时,常见做法是把遍历改造成显式用一个栈/队列模拟(把原本交给调用栈隐式做的事自己接管),或者查清楚所用语言/运行时是否支持"尾调用优化"这类机制——但这类优化在不同语言间支持并不一致(比如主流 Python 实现就没有),不能默认所有语言都有。</p>
   </div>
 
   <h2 id="tree">树:层级结构、二叉搜索树与堆</h2>
@@ -474,6 +486,12 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
   <h2 id="hash">哈希表:用空间换时间的 O(1) 魔法</h2>
   <p>前面树结构最好也只能做到 O(log n)——因为它始终要"比较"着往下走。<strong>哈希表(hash table)</strong>换了个思路:不比较,直接算。给定一个 key,用<strong>哈希函数(hash function)</strong>算出一个下标(哈希值,也叫哈希码),直接跳到那个下标去存 / 取——只要哈希函数够好,不管表里有多少数据,查找的平均耗时几乎不随数据量变化。维基百科的说法是:"In a well-dimensioned hash table, the average time complexity for each lookup is independent of the number of elements stored in the table."(维基百科 Hash table 词条)</p>
 
+  <div class="cx cx-theory">
+    <div class="cx-t">🧩 类比 · 图书馆怎么在几十万本书里几秒钟抽出一本</div>
+    <p>笨办法是从第一排书架开始一本本比对书名,直到翻到目标——这是线性查找 O(n);聪明一点的图书馆按书名拼音顺序把书排好,你可以像本章开头的二分查找一样,每次翻到中间判断目标在前半段还是后半段——这是 O(log n)。而按"首字母直接对应书架分区"摆放(A 区、B 区……),你几乎不用翻找、不用一路比较,拿到书名的第一个字就知道该冲向哪个分区——这才是哈希表的思路:哈希函数就是那条"字→分区"的换算规则,直接算出目标在哪,不需要一路比较着找。</p>
+    <p>冲突对应的场景也很好想:两本书名首字相同的书,理应挤进同一个分区——图书馆的解法是把它们紧挨着排在一起,翻到这一小片后再一本本比对着找。哈希表的链地址法本质上是同一件事,只是"紧挨着排"的手段换成了链表:先靠哈希函数一步跳到对应坑位,再在那一小撮挂在同一坑位的元素里顺着链找完——比起完全没分区、从头找到尾,还是快了一大截。不过撞进同一分区的书太多时,这一小撮就不小了,查找也会跟着变慢。</p>
+  </div>
+
   <h3>冲突:两个 key 算出同一个坑怎么办</h3>
   <p>哈希函数的值域是有限的(比如表大小只有 8),但 key 可能有无数种,<strong>冲突(collision)</strong>——两个不同的 key 算出同一个下标——是必然会发生的,不是"运气差"。维基百科总结了两种主流解法:"Common strategies to handle hash collisions include chaining, which stores multiple elements in the same slot using linked lists, and open addressing, which searches for the next available slot according to a probing sequence."(维基百科 Hash table 词条)——即<strong>链地址法(separate chaining)</strong>,每个坑位挂一条链表;<strong>开放寻址法(open addressing)</strong>,冲突时按某种探测规则去找表里下一个空位。</p>
 
@@ -611,13 +629,24 @@ hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0  
 
   <div class="cx cx-warn">
     <div class="cx-t">⚠️ 避坑 · 快速排序标称 O(n log n),最坏会退化到 O(n²)</div>
-    <p>快速排序平均性能通常是几种 O(n log n) 排序里最快的(常数因子小、原地排序),但如果每次选的"基准值(pivot)"恰好都是当前子数组里最大或最小的(比如输入本来就是正序 / 逆序,又选了固定的第一个元素当 pivot),每次划分只能排除 1 个元素而不是"劈成两半",退化成 O(n²)——这正是上表里快速排序"最坏"一栏单独标 O(n²) 的原因。现代实现通常用"随机选 pivot"或"三数取中"规避这种最坏情况。</p>
+    <p>快速排序平均性能通常是几种 O(n log n) 排序里最快的(常数因子小、原地排序),但如果每次选的"基准值(pivot)"恰好都是当前子数组里最大或最小的(比如输入本来就是正序 / 逆序,又选了固定位置的元素当 pivot,比如永远选第一个或永远选最后一个),每次划分只能排除 1 个元素而不是"劈成两半",退化成 O(n²)——这正是上表里快速排序"最坏"一栏单独标 O(n²) 的原因。现代实现通常用"随机选 pivot"或"三数取中"规避这种最坏情况。</p>
   </div>
 
   <div class="cx cx-dig">
     <div class="cx-t">🔍 深挖 · 复杂度不是纸上谈兵:一次实测的真实秒数</div>
     <p>维基百科整理过一次实际测量(排序同一份数据,不同算法耗时):冒泡排序 128.84 秒、选择排序 58.34 秒、插入排序 50.74 秒、希尔排序 7.08 秒、堆排序 2.22 秒、归并排序 2.06 秒、快速排序(递归)1.22 秒(维基百科 Sorting algorithm 词条"Table of running times of popular algorithms";Lilith 计算机对 2048 个随机数排序的历史测量,重点看算法间的相对倍数而非绝对秒数)。冒泡排序和快速排序之间差了约 100 倍——这就是 O(n²) 与 O(n log n) 之间的理论差距,变成秒表上能读出来的真实数字。</p>
   </div>
+
+  <h3>亲手排一排:同一组数字,四种算法的比较/交换次数差多少</h3>
+  <p>下面这个控件把前面表格里的冒泡、选择、插入、快速排序做成了柱状图动画:选一种算法点「开始」,柱子会一边比较一边交换,直到全部变绿(已就位),旁边同步统计比较次数和交换/移动次数。</p>
+  <div id="p5sort" class="hb-widget" style="width:100%"></div>
+  <p>切换算法、多跑几轮时,有几件事值得留意——它们把前面几节的结论串了起来:</p>
+  <ul>
+    <li>切换算法下拉框不会重新打乱数据(只有点「打乱」才会换一批新数字),所以可以在同一组数字上依次跑一遍冒泡、选择、插入、快速排序,做一次公平对比。这种对比下,快速排序的比较次数通常明显少于另外三种——O(n log n) 相对 O(n²) 的差距,在这里 30~50 个数的规模下已经用肉眼就能看出来,不用等到成千上万条数据才有感觉。</li>
+    <li>冒泡排序和选择排序的比较次数只取决于数据个数 n,不管数据顺序如何都要扫完固定的次数;但两者的交换次数天差地别——选择排序每一轮最多只交换一次(总数不超过 n−1),冒泡排序的交换次数则等于数据里"顺序颠倒的数对"(逆序对)总数,数据越乱换得越多。比较次数和交换/移动次数是两个彼此独立的成本,这也是为什么某些对"写入"代价敏感的场景里,选择排序反而比看起来更聪明的算法更划算。</li>
+    <li>插入排序是四个里唯一会视数据情况"提前收手"的——内层循环一旦找到该插入的位置就立刻停止比较,不会像冒泡、选择那样不管数据形状如何都扫完固定次数。它的"移动"计数,对应的正是前面"数组 vs 链表"一节说的"数组中间插入要搬动后面元素"那个 O(n) 代价,在这里你能看着它随数据形态实时变化。</li>
+  </ul>
+  <p>提示:控件里的冒泡排序没有做「一轮零交换就提前退出」这个常见优化(上面复杂度表格「最好情况 O(n)」那一栏假设的是做了优化的版本),所以你会看到它和选择排序一样,比较次数固定是 n(n−1)/2,不随数据看起来多整齐而减少——真正会「看数据形状提前收手」的只有插入排序。</p>
 
   <details>
     <summary>延伸:排序也能不比较——计数排序与基数排序</summary>
@@ -659,19 +688,6 @@ hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0  
     <p>复杂度(Big-O)量的是<strong>增长趋势</strong>、不是秒表读数,同一渐进复杂度下常数因子仍能差出数倍(<a href="12-comparch.html">12 章</a>缓存局部性)。<strong>数组</strong>下标访问 O(1)、插入 O(n);<strong>链表</strong>正好反过来。<strong>树</strong>靠"每步排除一半"换来 O(log n),但不平衡会退化成 O(n)(<a href="07-filesystems.html">07 章</a>文件系统靠 B 树规避)。<strong>堆</strong>只求"当前最值",O(log n) 增删换 O(1) 取值(<a href="11-os.html">11 章</a>调度器的原型)。<strong>图</strong>放宽了"只能一个父节点"的限制,邻接表 + BFS/DFS 做到 O(V+E)(<a href="16-devops-selfhost.html">16 章</a> Git 的 DAG,<a href="10-networking.html">10 章</a>路由选路)。<strong>哈希表</strong>不比较、直接算,平均 O(1),代价是要管好负载因子和哈希函数质量(<a href="15-crypto-security.html">15 章</a>安全哈希是完全不同的另一套要求)。<strong>排序</strong>没有免费午餐:比较排序理论下限是 O(n log n),非比较排序能更快但要满足"值域已知且较小"这类前提。工程上最重要的技能不是背熟每种算法的实现,而是养成"看到嵌套循环就下意识估一下复杂度"的反射弧。</p>
   </div>
 
-  <h2 class="hb-course-h"><span class="hb-tag">互动</span>动手练一练</h2>
-  <p class="lead">前面把"数据怎么摆、步骤怎么走"讲了一遍理论,这里动手验证:亲眼看几种排序算法怎么一步步把一排乱柱子理出秩序,再用自测题和闪卡巩固本章的关键概念。</p>
-
-  <h3>排序算法可视化</h3>
-  <p>选一种算法,点「开始」看它逐步比较、交换,直到整排柱子全部变绿(已就位)。留意不同算法比较次数、交换次数的差异,以及标注的平均复杂度。</p>
-  <div id="p5sort" class="hb-widget" style="width:100%"></div>
-
-  <h3>自测题</h3>
-  <div id="quiz13"></div>
-
-  <h3>闪卡复习</h3>
-  <div id="fc13"></div>
-
   <div class="foot">
     <div class="foot-nav">
       <a href="12-comparch.html">← 上一章:12 计算机组成原理 + 数电基础</a>
@@ -693,36 +709,14 @@ hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0  
   </div>
 </div>
 <style id="hb-course-css">
-.hb-course-h{display:flex;align-items:center;gap:10px;margin:34px 0 6px}
-.hb-course-h .hb-tag{font-size:12px;font-weight:700;letter-spacing:.05em;color:#fff;background:var(--accent);border-radius:20px;padding:3px 12px}
-.hb-quiz,.hb-widget{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
-.hb-q{margin:14px 0;padding-bottom:12px;border-bottom:1px dashed var(--line)}
-.hb-q:last-of-type{border-bottom:none;padding-bottom:0}
-.hb-qtext{font-weight:600;margin-bottom:8px}
-.hb-opt{display:block;padding:8px 12px;margin:6px 0;border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.12s;user-select:none}
-.hb-opt:hover{border-color:var(--brand)}
-.hb-opt.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,transparent)}
-.hb-opt.correct{border-color:var(--practice);background:var(--practice-bg)}
-.hb-opt.wrong{border-color:var(--warn);background:var(--warn-bg)}
-.hb-opt input{margin-right:8px;pointer-events:none}
-.hb-explain{display:none;margin-top:8px;font-size:14px;color:var(--ink-soft);border-left:3px solid var(--brand);padding-left:10px}
-.hb-explain.show{display:block}
-.hb-quiz-btn,.hb-fc-ctrl button,.hb-widget button{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px;font-family:inherit}
-.hb-fc-ctrl button{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:6px 14px}
-.hb-quiz-result{margin-top:12px;font-weight:700;color:var(--brand)}
-.hb-fc{perspective:1000px;height:170px;margin:14px 0;cursor:pointer}
-.hb-fc-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
-.hb-fc.flip .hb-fc-inner{transform:rotateY(180deg)}
-.hb-fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:15px;line-height:1.5}
-.hb-fc-back{transform:rotateY(180deg);background:var(--theory-bg)}
-.hb-fc-ctrl{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:8px;font-size:14px;color:var(--ink-soft)}
-.hb-fc-hint{text-align:center;font-size:12px;color:var(--ink-soft);margin-top:4px}
+.hb-widget{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.hb-widget button{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px;font-family:inherit}
 .hb-widget label{display:block;font-size:13px;color:var(--ink-soft);margin:10px 0 4px}
 .hb-widget input[type=number],.hb-widget input[type=text],.hb-widget select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
 .hb-widget .hb-out{margin-top:12px;font-size:15px;line-height:1.8}
 .hb-widget .hb-out b{color:var(--brand)}
 .hb-progress-pill{position:fixed;bottom:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.12);text-decoration:none}
-@media print{.hb-progress-pill{display:none}}
+@media print{.hb-progress-pill{display:none}.hb-widget{page-break-inside:avoid}}
 </style>
 <script id="hb-course-js">
 (function(){
@@ -735,46 +729,8 @@ hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0  
   window.HBcourse={
     progress:P,
     TOTAL:16,
-    renderQuiz:function(id,questions,chapter){
-      var el=document.getElementById(id); if(!el) return;
-      var h='<div class="hb-quiz">';
-      questions.forEach(function(q,i){
-        h+='<div class="hb-q"><div class="hb-qtext">'+(i+1)+'. '+q.q+'</div>';
-        q.opts.forEach(function(o,j){ h+='<label class="hb-opt" data-q="'+i+'" data-o="'+j+'"><input type="radio" name="'+id+'-'+i+'">'+o+'</label>'; });
-        h+='<div class="hb-explain" data-i="'+i+'">'+(q.explain||'')+'</div></div>';
-      });
-      h+='<button class="hb-quiz-btn">提交</button><div class="hb-quiz-result"></div></div>';
-      el.innerHTML=h;
-      el.querySelectorAll('.hb-opt').forEach(function(l){ l.addEventListener('click',function(){
-        var qi=l.getAttribute('data-q');
-        el.querySelectorAll('.hb-opt[data-q="'+qi+'"]').forEach(function(x){x.classList.remove('sel')});
-        l.classList.add('sel'); var r=l.querySelector('input'); if(r) r.checked=true;
-      });});
-      el.querySelector('.hb-quiz-btn').addEventListener('click',function(){
-        var score=0;
-        questions.forEach(function(q,i){
-          el.querySelectorAll('.hb-opt[data-q="'+i+'"]').forEach(function(x){x.classList.remove('correct','wrong')});
-          var right=el.querySelector('.hb-opt[data-q="'+i+'"][data-o="'+q.answer+'"]'); if(right) right.classList.add('correct');
-          var sel=el.querySelector('.hb-opt[data-q="'+i+'"].sel');
-          if(sel){ if((+sel.getAttribute('data-o'))===q.answer){score++;} else {sel.classList.add('wrong');} }
-          var ex=el.querySelector('.hb-explain[data-i="'+i+'"]'); if(ex) ex.classList.add('show');
-        });
-        el.querySelector('.hb-quiz-result').textContent='得分 '+score+' / '+questions.length+(score===questions.length?'  🎉 满分!':'');
-        P.mark(chapter,{quiz:{score:score,total:questions.length}}); HBcourse.updatePill();
-      });
-    },
-    renderFlashcards:function(id,cards,chapter){
-      var el=document.getElementById(id); if(!el) return; var idx=0;
-      el.innerHTML='<div class="hb-fc"><div class="hb-fc-inner"><div class="hb-fc-face hb-fc-front"></div><div class="hb-fc-face hb-fc-back"></div></div></div><div class="hb-fc-ctrl"><button class="hb-prev">‹ 上一张</button><span class="hb-fc-n"></span><button class="hb-next">下一张 ›</button></div><div class="hb-fc-hint">点卡片翻面</div>';
-      var fc=el.querySelector('.hb-fc'),f=el.querySelector('.hb-fc-front'),b=el.querySelector('.hb-fc-back'),n=el.querySelector('.hb-fc-n');
-      function show(){fc.classList.remove('flip');f.textContent=cards[idx].front;b.textContent=cards[idx].back;n.textContent=(idx+1)+' / '+cards.length;}
-      fc.addEventListener('click',function(){fc.classList.toggle('flip');});
-      el.querySelector('.hb-prev').addEventListener('click',function(){idx=(idx-1+cards.length)%cards.length;show();});
-      el.querySelector('.hb-next').addEventListener('click',function(){idx=(idx+1)%cards.length;show();P.mark(chapter,{cards:cards.length});});
-      show();
-    },
     markRead:function(ch){P.mark(ch,{read:true});HBcourse.updatePill();},
-    updatePill:function(){var o=P.get();var done=0;for(var k in o){if(o[k]&&o[k].read)done++;}var pill=document.querySelector('.hb-progress-pill');if(pill){pill.textContent='📚 学习进度 '+done+'/'+HBcourse.TOTAL+' 章';pill.href='../index.html';}}
+    updatePill:function(){var o=P.get();var done=0;for(var k in o){if(o[k]&&o[k].read)done++;}var pill=document.querySelector('.hb-progress-pill');if(pill){pill.textContent='📖 已读 '+done+'/'+HBcourse.TOTAL+' 章';pill.href='../index.html';}}
   };
   document.addEventListener('DOMContentLoaded',function(){
     var ch=document.body.getAttribute('data-chapter'); if(!ch) return;
@@ -800,30 +756,6 @@ hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0  
 </style>
 <script id="ch13-sort-js">
 (function(){
-
-  var QUESTIONS_13 = [
-    { q:'在一个已经排好序、长度为 n 的数组里做二分查找,最坏情况的时间复杂度是?', opts:['O(1)','O(log n)','O(n)','O(n²)'], answer:1,
-      explain:'二分查找每比较一次就排除一半候选,最坏情况约需 log₂n 次比较,即 O(log n)——正是本章开篇「100 万条记录、约 20 步定位」那个例子。' },
-    { q:'以下四种排序算法中,哪一种平均时间复杂度是 O(n log n),并且是稳定排序(相等元素的相对顺序排序前后不变)?', opts:['快速排序 Quicksort','选择排序 Selection Sort','归并排序 Merge Sort','堆排序 Heapsort'], answer:2,
-      explain:'快速排序平均 O(n log n) 但不稳定;选择排序是 O(n²);堆排序 O(n log n) 但也不稳定;只有归并排序同时满足平均 O(n log n) 且稳定,代价是需要 O(n) 额外空间。' },
-    { q:'把 1,2,3,4,5 按顺序依次插入一棵普通二叉搜索树(BST,不做自动平衡),查找操作的最坏时间复杂度会退化成?', opts:['仍是 O(log n)','O(n)','O(1)','O(n log n)'], answer:1,
-      explain:'有序数据依次插入会让 BST 只往一侧长成一条链,退化成链表,查找也跟着退化成 O(n)。数据库索引、文件系统目录因此改用 AVL 树/红黑树/B 树等自平衡结构;堆则靠维持"完全二叉树"的形状规避了同样的问题。' },
-    { q:'哈希表里,两个不同的 key 通过哈希函数算出了同一个坑位下标,这种情况叫什么?', opts:['溢出 overflow','冲突 collision','退化 degeneration','抖动 thrashing'], answer:1,
-      explain:'这叫冲突(collision)——坑位数量有限、key 可能无限,冲突是必然会发生的常态,不是运气差。常见解法是链地址法(每个坑位挂一条链表)和开放寻址法(按探测规则找下一个空位)。' },
-    { q:'程序出错时打印的调用栈(call stack),函数调用与返回遵循的是哪种规则?', opts:['先进先出 FIFO','后进先出 LIFO','随机顺序','按优先级从高到低'], answer:1,
-      explain:'调用栈是一个真实的栈(Stack):A 调用 B、B 调用 C,最后被调用的 C 最先返回、最先出现在栈顶——这就是后进先出(LIFO)。任务队列、打印队列这类先来先服务的场景用的才是队列(FIFO)。' }
-  ];
-
-  var CARDS_13 = [
-    { front:'O(1) / O(log n) / O(n) / O(n log n) / O(n²) 分别叫什么名字?', back:'常数 / 对数 / 线性 / 线性对数 / 平方——按这个顺序从快到慢,n 越大差距越悬殊。' },
-    { front:'数组和链表,"随机访问"和"插入一个元素"哪个更快?', back:'数组按下标随机访问 O(1),插入需要搬动后续元素 O(n);链表插入(已知位置)O(1),但访问要从头顺指针走 O(n)——两者优劣正好相反。' },
-    { front:'栈(Stack)和队列(Queue)的核心区别是什么?', back:'栈是后进先出 LIFO(像叠盘子,只从最上面进出);队列是先进先出 FIFO(像排队,先来的先服务)。核心操作都是 O(1)。' },
-    { front:'二叉搜索树(BST)的核心规则是什么?', back:'对任意节点,左子树所有值都比它小、右子树所有值都比它大——这条规则让查找能像二分查找一样每次排除一半,理想情况下是 O(log n)。' },
-    { front:'堆(heap)最擅长回答什么问题?取值 / 插入 / 删除的复杂度各是多少?', back:'最擅长回答"当前最大/最小是谁"。取最大/最小值 O(1),插入、删除最大/最小值都是 O(log n)——是优先级队列的标准实现。' },
-    { front:'图(graph)比树(tree)放宽了什么限制?', back:'树规定每个节点只能有一个父节点;图不做这个限制,一个节点能连向任意多个节点。Git 的合并提交(一个提交对应两个父提交)就是图突破树限制的真实例子。' },
-    { front:'哈希表凭什么能做到平均 O(1) 查找?', back:'不靠比较,靠哈希函数把 key 直接算成一个坑位下标、直接跳过去存取——只要哈希函数分布均匀、负载因子控制得当,平均查找耗时几乎不随数据量增长。' },
-    { front:'"比较排序"(靠两两比较大小的排序)理论上最快能到多少?', back:'O(n log n) 是比较排序的理论下限(有数学证明),归并排序、堆排序已摸到这条天花板;要更快需改用计数排序/基数排序等非比较排序,但要满足"值域已知且较小"的前提。' }
-  ];
 
   var ALGO_INFO = {
     bubble:    { label:'冒泡排序 Bubble Sort',    complexity:'平均 O(n²)' },
@@ -1112,9 +1044,6 @@ hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0  
       }
     };
   }, document.getElementById('p5sort'));
-
-  HBcourse.renderQuiz('quiz13', QUESTIONS_13, '13');
-  HBcourse.renderFlashcards('fc13', CARDS_13, '13');
 
 })();
 </script>

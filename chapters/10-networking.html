@@ -243,6 +243,11 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
     </table>
   </div>
 
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 类比 · 拆包裹得按顺序,少一层都不行</div>
+    <p>每层加的头部不是随手糊上去的信封,而是写着「这里面装的是什么」的标签。以太网帧头里有一个 EtherType 字段,标注里面装的是 IPv4(<code>0x0800</code>)、ARP(<code>0x0806</code>)还是 IPv6(<code>0x86DD</code>);IP 头里有一个 Protocol 字段,标注里面是 TCP(编号 6)、UDP(编号 17)还是 ICMP(编号 1);TCP/UDP 头里的目的端口号,再标注这段数据该转交给本机上的哪个应用程序。这一路「标签指向下一层标签」,正是解封装必须从外到内、一层都不能跳的原因——协议栈得先看懂链路层的标签,才知道要不要往上剥 IP 头;看懂 IP 头里的标签,才知道该往上剥 TCP 头还是 UDP 头;看懂端口号,才知道该把最里面的数据交给浏览器还是别的进程。就像拆一个套了好几层包装的快递:最外层箱子上的地址标签只负责把箱子送到你家门口,里面下一层包装是什么、该转交给家里谁,还得一层层拆开才知道。</p>
+  </div>
+
   <h2 id="network-layer">网络层:IP · 子网 · 路由</h2>
   <p>网络层要解决的问题是:「整个互联网这么大,怎么知道往哪个方向送」。核心工具是 <strong>IP 地址</strong>加<strong>路由表</strong>。IPv4 地址是 32 位、点分十进制(如 <code>192.168.1.2</code>),分成「网络位」和「主机位」两段,分界线由<strong>子网掩码</strong>(或 CIDR 记法 <code>/24</code>)决定——<code>/24</code> 表示前 24 位是网络位,剩下 8 位是主机位。</p>
 
@@ -261,6 +266,11 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
   <div class="cx cx-dig">
     <div class="cx-t">🔍 深挖 · NAT 不是安全设备</div>
     <p>私网地址不能直接出现在公网包里,所以旁路由 / 主路由要做<strong>网络地址转换(NAT)</strong>,把内网私有地址换成一个公网地址再转发。NAT 设计的初衷是缓解 IPv4 地址不够用,不是安全机制;它只是顺带产生了「外部无法主动对内网私有地址发起连接」的副作用,才常被误当成防火墙用。真正的边界防护需要单独的防火墙规则。IPv6 地址空间够大,理论上不再需要 NAT,但现实中双栈和 NAT64 仍然常见共存。</p>
+  </div>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 类比 · NAT 像公司总机转分机</div>
+    <p>NAT 具体怎么让好几台内网设备共用一个公网 IP?靠的是记一张「对应表」,原理很像公司总机转分机——不过方向是「内部员工往外打」:员工要拨出去,总机给这次通话临时分配一个对外线路号,前台记下「3 号员工占用了对外 62000 这条线」;外面接电话的人只看到公司总机号 + 这个临时线路号,回电时前台一查线路号就知道该转回哪个员工——线路号是总机自己分配、自己记住的,不是外部主叫指定的。NAT 网关做的是同一件事,只是区分「员工」靠的不是人工记线路号,而是<strong>端口号</strong>。笔记本和手机同时访问网站,源端口不同,旁路由就在转换表里记下类似「内网 <code>192.168.1.5:51000</code> ↔ 公网出口 <code>62000</code>」「内网 <code>192.168.1.6:51001</code> ↔ 公网出口 <code>62001</code>」这样的对应关系,回包再按端口号分别转回正确的设备。这也是为什么家用路由器严格来说做的是 <strong>NAPT</strong>(Network Address and Port Translation,也叫 PAT),而不是「一个私网 IP 死死对一个公网 IP」的最简单形式 NAT。这张转换表还顺带解释了前面说的「防护副作用」是怎么来的:表项只在内网设备主动发起连接时才会建立,外部主机没有现成表项可查,自然没法主动找上门。</p>
   </div>
 
   <div class="cx cx-warn">
@@ -285,6 +295,21 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
     </div>
     <p>可用主机数 = 2^主机位 − 2,减去的 2 个是网络地址和广播地址。</p>
   </details>
+
+  <h3>动手算一算:CIDR 子网计算器</h3>
+  <p>把上面的手算过程交给下面这个计算器验证一遍,顺手换几个前缀长度,感受一下「前缀越长、可用主机越少」的规律。</p>
+  <div class="hb-widget">
+    <label for="cidrIp">IPv4 地址</label>
+    <input type="text" id="cidrIp" value="192.168.1.2" placeholder="如 192.168.1.2" autocomplete="off">
+    <label for="cidrPrefix">前缀长度 CIDR(0–32)</label>
+    <input type="number" id="cidrPrefix" value="24" min="0" max="32" step="1">
+    <div class="hb-out" id="cidrOut"></div>
+  </div>
+  <ul>
+    <li>把前缀从 <code>/24</code> 一路调到 <code>/28</code>、<code>/30</code>,可用主机数会跟着往下跳(254→126→62→30→14→…→2)——前缀每 +1,主机位就少 1 位,可用数量近似减半,这和「主机位决定地址空间大小」是同一件事,能对照前面的子网掩码速查表逐档验证。</li>
+    <li>输入同一个 <code>/24</code> 子网里任意一个地址(比如把 <code>192.168.1.2</code> 换成 <code>192.168.1.200</code>),算出来的网络地址和广播地址应该完全不变——这就是「网关必须和主机在同一子网」这条规则的可验证版本。</li>
+    <li>试试 <code>/31</code> 和 <code>/32</code> 两个极端:<code>/31</code> 是点对点链路专用(两个地址都能用,没有网络/广播地址之分),<code>/32</code> 干脆就是一条指向单一主机的路由——这是子网计算里最容易被忽略的两个特例。</li>
+  </ul>
 
   <h2 id="transport-layer">传输层:TCP 三次握手 vs UDP</h2>
   <p>网络层只保证「送到那台主机」,传输层还要解决两个新问题:① 送到主机上的哪个进程(靠<strong>端口号</strong>);② 要不要保证可靠送达。TCP 和 UDP 是这层的两个代表性协议,分别对应「打电话先确认对方在线」和「寄明信片、不要求回执」。</p>
@@ -342,9 +367,14 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
 —— 只有握手完成、连接进入 ESTABLISHED,才会发下面这条 ——
 ④ Client → Server   PSH, ACK       "GET / HTTP/1.1 ..."</code></pre>
 
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 场景 · 打电话确认「你听得到我,我也听得到你」</div>
+    <p>两次握手行不行?打电话时你会说「喂,听得到吗」,对方答「听得到,你听得到我吗」,你还得再回一句「听得到」——这来回三句不是啰嗦。放到 TCP 连接建立上对应:① 客户端发 SYN,只能证明「客户端能把包发出去」;② 服务器回 SYN+ACK,同时证明了「服务器能发包」和「服务器确实收到了客户端的 SYN」——但这时服务器还不知道,自己刚发的这个 SYN+ACK 客户端到底收没收到;③ 客户端再发一个 ACK,补上服务器唯一还缺的信息。这一步真正要防的,是网络里滞留的、早已作废的重复 SYN 包突然又送到:如果服务器一收到 SYN 就单方面确立连接(也就是只握两次),遇到这种迟到的旧包,会白白建立一个没有真实客户端在场的「半开连接」,占着资源空等一个不会再来的确认。第三次 ACK 的意义,就是让服务器只有在确认「对方真的在、也认领了这次连接」之后,才正式进入 ESTABLISHED。</p>
+  </div>
+
   <div class="cx cx-theory">
     <div class="cx-t">🧭 原理 · TCP 头部与状态机</div>
-    <p>TCP 头部最少 20 字节,携带源 / 目的端口、序号(seq)、确认号(ack)、控制位(<code>SYN</code>/<code>ACK</code>/<code>FIN</code>/<code>RST</code> 等)、窗口大小、校验和。连接建立过程在 <code>RFC 9293</code> 里被正式建模成状态机:<code>LISTEN</code> → <code>SYN-SENT</code>/<code>SYN-RECEIVED</code> → <code>ESTABLISHED</code>,这也是 408 统考里常考的状态转换图。</p>
+    <p>TCP 头部最少 20 字节,携带源 / 目的端口、序号(seq)、确认号(ack)、控制位(<code>SYN</code>/<code>ACK</code>/<code>FIN</code>/<code>RST</code> 等)、窗口大小、校验和。连接建立过程在 <code>RFC 9293</code> 里被正式建模成状态机:<code>LISTEN</code> → <code>SYN-SENT</code>/<code>SYN-RECEIVED</code> → <code>ESTABLISHED</code>,这也是 408 统考里常考的状态转换图。下文图示与动画沿用其常见缩写 <code>SYN-RCVD</code>。</p>
   </div>
 
   <div class="cx cx-warn">
@@ -361,8 +391,26 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
       <li>B → A:<code>FIN</code>(B 也发完了才关自己这一侧——这一步和上一步分开,是因为 B 收到 A 的 FIN 后可能还有数据没发完,不能立刻关)</li>
       <li>A → B:<code>ACK</code>(A 确认,进入 <code>TIME_WAIT</code>,等待 2 倍最大报文寿命(2MSL)后才彻底释放)</li>
     </ol>
-    <p><code>TIME_WAIT</code> 的意义是防止旧连接里滞留在网络中的延迟包,被新连接误收当成自己的数据。</p>
+    <p><code>TIME_WAIT</code> 有两个经典理由:一是防止旧连接里滞留在网络中的延迟包,被新连接误收当成自己的数据;二是确保第④步 A 发出的这个 <code>ACK</code> 真的送达 B——如果这个 ACK 在网络中丢了,B 收不到确认会重传 <code>FIN</code>,只有 A 还处于 <code>TIME_WAIT</code> 才能收到这次重传并重新回复一次 ACK,否则连接可能无法正常关闭。</p>
   </details>
+
+  <h3>动手看一遍:三次握手动画</h3>
+  <p>光看时序图还是有点抽象,下面这个动画把三次握手拆成三步,点「下一步」或「播放」,跟着走一遍每一步实际发生的事。</p>
+  <div class="hb-widget">
+    <div id="p5tcp" style="width:100%"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
+      <button type="button" id="tcpNext">下一步</button>
+      <button type="button" id="tcpPlay">播放</button>
+      <button type="button" id="tcpReset">重置</button>
+      <span id="tcpStatus" style="font-size:13px;color:var(--ink-soft)">状态:CLOSED / LISTEN</span>
+    </div>
+    <div class="hb-out" id="tcpDesc">点击「下一步」或「播放」,观察 TCP 三次握手的完整过程。</div>
+  </div>
+  <ul>
+    <li>留意状态那一行:握手没走完之前,客户端停在 <code>SYN-SENT</code>,服务器停在 <code>SYN-RCVD</code>——都还不是 <code>ESTABLISHED</code>,这时候谁都不能发应用层数据。</li>
+    <li>第②步 <code>SYN+ACK</code> 其实是两件事叠在一条消息里:服务器一边确认收到客户端的 SYN(<code>ack=x+1</code>),一边发出自己的 SYN(<code>seq=y</code>)——这正是为什么明明要同步两个方向,却只需要三条消息而不是四条。</li>
+    <li>第③步 ACK 发完的瞬间,双方才同时进入 <code>ESTABLISHED</code>——在这之前的任何一步,只要包在网络上丢了,连接就建立不起来,得重新来过(呼应前面「避坑」里说的 <code>SYN-SENT</code> 卡住反复重传的现象)。</li>
+  </ul>
 
   <h3>UDP:不握手、不保证,但足够快</h3>
   <p>UDP 头部只有 8 字节(源端口、目的端口、长度、校验和),发送前不需要建立连接,发出去也不管有没有到达。<a href="03-dns-adblock.html">03 章</a>里 DNS 查询走 <code>dnsmasq:53</code>、再转发给 <code>AdGuard:5335</code> 解析,用的就是 UDP——每次查询都是独立的一问一答,没有握手开销,查询短、丢了重发一次成本也很低,这正是 DNS(以及视频通话、DHCP)选 UDP 而不是 TCP 的原因。</p>
@@ -462,7 +510,7 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
   </figure>
 
   <ol class="steps">
-    <li><strong>链路层 + 网络层:</strong>笔记本关联 WiFi(见 <a href="04-wifi-radio.html">04 章</a>)后发 <code>DHCP Discover</code>,旁路由的 DHCP 服务按 <strong>DORA</strong>(Discover → Offer → Request → Acknowledge)流程分配一个 <code>192.168.1.0/24</code> 内的地址,同时把自己(<code>192.168.1.2</code>)登记成网关;笔记本再用 <code>ARP</code> 把网关 IP 解析成网关 MAC 地址,才知道"下一跳"往哪块网卡送。</li>
+    <li><strong>链路层 + 网络层:</strong>笔记本关联 WiFi(见 <a href="04-wifi-radio.html">04 章</a>)后发 <code>DHCP Discover</code>(DHCP 本身是应用层协议,这里因为它配置的是网络层参数,才和链路层的 WiFi 关联放在一起讲),旁路由的 DHCP 服务按 <strong>DORA</strong>(Discover → Offer → Request → Acknowledge)流程分配一个 <code>192.168.1.0/24</code> 内的地址,同时把自己(<code>192.168.1.2</code>)登记成网关;笔记本再用 <code>ARP</code> 把网关 IP 解析成网关 MAC 地址,才知道"下一跳"往哪块网卡送。</li>
     <li><strong>应用层(DNS):</strong>浏览器要把域名换成 IP,查询走 UDP 目的端口 53 送到旁路由上的 <code>dnsmasq</code>,再按<a href="03-dns-adblock.html">03 章</a>配置转发给 <code>AdGuard:5335</code> 做过滤 / 解析,拿到目标网站的公网 IP。</li>
     <li><strong>网络层(NAT):</strong>笔记本的包源地址是私网的 <code>192.168.1.x</code>,旁路由(或主路由)做 NAT,把它替换成一个公网 IP,记录一条转换表项,再转发到公网。</li>
     <li><strong>传输层(TCP):</strong>包在公网上经过若干路由器的最长前缀匹配转发,到达目标服务器,双方先完成图 2 那套<strong>三次握手</strong>,在 443 端口建立起 TCP 连接。</li>
@@ -490,38 +538,8 @@ Test-NetConnection example.com -Port 443        # L4:目标端口是否可达(Po
 
   <div class="cx cx-key">
     <div class="cx-t">📌 本章要点</div>
-    <p>分层的本质是<strong>接口隔离、各层可独立演化</strong>:OSI 七层是理论坐标系,TCP/IP 五层(教材 / 408 口径)是工程实现,二者对应关系明确、只是颗粒度不同。网络层靠 <strong>IP 地址 + 子网掩码</strong>划分网段,靠<strong>路由表 + 最长前缀匹配</strong>找路,靠 <strong>NAT</strong> 让私网地址能上公网。传输层里 <strong>TCP</strong> 用三次握手换可靠交付,<strong>UDP</strong> 不握手换速度和低开销。链路层的<strong>交换机</strong>认 MAC 在同一网段内转发,<strong>路由器</strong>认 IP 能跨网段转发。一次网页请求,实际是 <strong>DHCP → ARP → DNS → NAT → TCP 三次握手 → HTTP/TLS</strong> 一整条链路——本手册 Part I 里旁路由(<a href="02-router-bypass.html">02</a>)、DNS(<a href="03-dns-adblock.html">03</a>)、WiFi(<a href="04-wifi-radio.html">04</a>)、dBm(<a href="05-dbm-signal.html">05</a>)、SMB(<a href="06-smb-fileshare.html">06</a>)的实战操作,都是这条链路上的具体节点。往下分别对应<a href="11-os.html">11 操作系统</a>(网卡中断怎么被内核处理)和<a href="14-signals-systems.html">14 信号与系统</a>(电磁波怎么被调制成比特)。</p>
+    <p>分层的本质是<strong>接口隔离、各层可独立演化</strong>:OSI 七层是理论坐标系,TCP/IP 五层(教材 / 408 口径)是工程实现,二者对应关系明确、只是颗粒度不同。封装时靠 <strong>EtherType → IP 协议号 → 端口号</strong>这条「标签链」逐层指明下一层该交给谁,这正是解封装能一路拆到底的原因。网络层靠 <strong>IP 地址 + 子网掩码</strong>划分网段(常规用法之外,<code>/31</code> 按 RFC 3021 用于点对点链路、<code>/32</code> 是单一主机路由,是两个容易被忽略的特例),靠<strong>路由表 + 最长前缀匹配</strong>找路,靠 <strong>NAT</strong> 让私网地址能上公网——家用路由器严格来说做的是 <strong>NAPT/PAT</strong>,靠端口号复用同一个公网 IP。传输层里 <strong>TCP</strong> 用三次握手换可靠交付,<strong>UDP</strong> 不握手换速度和低开销。链路层的<strong>交换机</strong>认 MAC 在同一网段内转发,<strong>路由器</strong>认 IP 能跨网段转发。一次网页请求,实际是 <strong>DHCP → ARP → DNS → NAT → TCP 三次握手 → HTTP/TLS</strong> 一整条链路——本手册 Part I 里旁路由(<a href="02-router-bypass.html">02</a>)、DNS(<a href="03-dns-adblock.html">03</a>)、WiFi(<a href="04-wifi-radio.html">04</a>)、dBm(<a href="05-dbm-signal.html">05</a>)、SMB(<a href="06-smb-fileshare.html">06</a>)的实战操作,都是这条链路上的具体节点。往下分别对应<a href="11-os.html">11 操作系统</a>(网卡中断怎么被内核处理)和<a href="14-signals-systems.html">14 信号与系统</a>(电磁波怎么被调制成比特)。</p>
   </div>
-
-  <h2 class="hb-course-h"><span class="hb-tag">互动</span>动手练一练</h2>
-  <p class="lead">把前面讲的子网计算、三次握手变成能亲手拨一拨的控件,最后用自测题和闪卡巩固记忆。</p>
-
-  <h3>CIDR 子网计算器</h3>
-  <div class="hb-widget">
-    <label for="cidrIp">IPv4 地址</label>
-    <input type="text" id="cidrIp" value="192.168.1.2" placeholder="如 192.168.1.2" autocomplete="off">
-    <label for="cidrPrefix">前缀长度 CIDR(0–32)</label>
-    <input type="number" id="cidrPrefix" value="24" min="0" max="32" step="1">
-    <div class="hb-out" id="cidrOut"></div>
-  </div>
-
-  <h3>TCP 三次握手动画</h3>
-  <div class="hb-widget">
-    <div id="p5tcp" style="width:100%"></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
-      <button type="button" id="tcpNext">下一步</button>
-      <button type="button" id="tcpPlay">播放</button>
-      <button type="button" id="tcpReset">重置</button>
-      <span id="tcpStatus" style="font-size:13px;color:var(--ink-soft)">状态:CLOSED / LISTEN</span>
-    </div>
-    <div class="hb-out" id="tcpDesc">点击「下一步」或「播放」,观察 TCP 三次握手的完整过程。</div>
-  </div>
-
-  <h3>自测题</h3>
-  <div id="quiz10"></div>
-
-  <h3>闪卡复习</h3>
-  <div id="fc10"></div>
 
   <div class="foot">
     <div class="foot-nav">
@@ -540,41 +558,21 @@ Test-NetConnection example.com -Port 443        # L4:目标端口是否可达(Po
         <li><a href="https://en.wikipedia.org/wiki/Network_address_translation">Network address translation — Wikipedia</a></li>
         <li><a href="https://en.wikipedia.org/wiki/Carrier-sense_multiple_access_with_collision_avoidance">Carrier-sense multiple access with collision avoidance (CSMA/CA) — Wikipedia</a></li>
         <li><a href="https://gaia.cs.umass.edu/kurose_ross/online_lectures.htm">Computer Networking: A Top-Down Approach(Kurose & Ross)配套讲义</a></li>
+        <li><a href="https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml">Protocol Numbers(IP 协议号:TCP=6 · UDP=17 · ICMP=1;EtherType 见 IANA 的 IEEE 802 Numbers 登记表)— IANA</a></li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc3021">RFC 3021 — Using 31-Bit Prefixes on IPv4 Point-to-Point Links (RFC Editor)</a></li>
       </ol>
     </div>
   </div>
 </div>
 <style id="hb-course-css">
-.hb-course-h{display:flex;align-items:center;gap:10px;margin:34px 0 6px}
-.hb-course-h .hb-tag{font-size:12px;font-weight:700;letter-spacing:.05em;color:#fff;background:var(--accent);border-radius:20px;padding:3px 12px}
-.hb-quiz,.hb-widget{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
-.hb-q{margin:14px 0;padding-bottom:12px;border-bottom:1px dashed var(--line)}
-.hb-q:last-of-type{border-bottom:none;padding-bottom:0}
-.hb-qtext{font-weight:600;margin-bottom:8px}
-.hb-opt{display:block;padding:8px 12px;margin:6px 0;border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.12s;user-select:none}
-.hb-opt:hover{border-color:var(--brand)}
-.hb-opt.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,transparent)}
-.hb-opt.correct{border-color:var(--practice);background:var(--practice-bg)}
-.hb-opt.wrong{border-color:var(--warn);background:var(--warn-bg)}
-.hb-opt input{margin-right:8px;pointer-events:none}
-.hb-explain{display:none;margin-top:8px;font-size:14px;color:var(--ink-soft);border-left:3px solid var(--brand);padding-left:10px}
-.hb-explain.show{display:block}
-.hb-quiz-btn,.hb-fc-ctrl button,.hb-widget button{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px;font-family:inherit}
-.hb-fc-ctrl button{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:6px 14px}
-.hb-quiz-result{margin-top:12px;font-weight:700;color:var(--brand)}
-.hb-fc{perspective:1000px;height:170px;margin:14px 0;cursor:pointer}
-.hb-fc-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
-.hb-fc.flip .hb-fc-inner{transform:rotateY(180deg)}
-.hb-fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:15px;line-height:1.5}
-.hb-fc-back{transform:rotateY(180deg);background:var(--theory-bg)}
-.hb-fc-ctrl{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:8px;font-size:14px;color:var(--ink-soft)}
-.hb-fc-hint{text-align:center;font-size:12px;color:var(--ink-soft);margin-top:4px}
+.hb-widget{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.hb-widget button{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px;font-family:inherit}
 .hb-widget label{display:block;font-size:13px;color:var(--ink-soft);margin:10px 0 4px}
 .hb-widget input[type=number],.hb-widget input[type=text],.hb-widget select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
 .hb-widget .hb-out{margin-top:12px;font-size:15px;line-height:1.8}
 .hb-widget .hb-out b{color:var(--brand)}
 .hb-progress-pill{position:fixed;bottom:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.12);text-decoration:none}
-@media print{.hb-progress-pill{display:none}}
+@media print{.hb-progress-pill{display:none}.hb-widget{page-break-inside:avoid}}
 </style>
 <script id="hb-course-js">
 (function(){
@@ -587,46 +585,8 @@ Test-NetConnection example.com -Port 443        # L4:目标端口是否可达(Po
   window.HBcourse={
     progress:P,
     TOTAL:16,
-    renderQuiz:function(id,questions,chapter){
-      var el=document.getElementById(id); if(!el) return;
-      var h='<div class="hb-quiz">';
-      questions.forEach(function(q,i){
-        h+='<div class="hb-q"><div class="hb-qtext">'+(i+1)+'. '+q.q+'</div>';
-        q.opts.forEach(function(o,j){ h+='<label class="hb-opt" data-q="'+i+'" data-o="'+j+'"><input type="radio" name="'+id+'-'+i+'">'+o+'</label>'; });
-        h+='<div class="hb-explain" data-i="'+i+'">'+(q.explain||'')+'</div></div>';
-      });
-      h+='<button class="hb-quiz-btn">提交</button><div class="hb-quiz-result"></div></div>';
-      el.innerHTML=h;
-      el.querySelectorAll('.hb-opt').forEach(function(l){ l.addEventListener('click',function(){
-        var qi=l.getAttribute('data-q');
-        el.querySelectorAll('.hb-opt[data-q="'+qi+'"]').forEach(function(x){x.classList.remove('sel')});
-        l.classList.add('sel'); var r=l.querySelector('input'); if(r) r.checked=true;
-      });});
-      el.querySelector('.hb-quiz-btn').addEventListener('click',function(){
-        var score=0;
-        questions.forEach(function(q,i){
-          el.querySelectorAll('.hb-opt[data-q="'+i+'"]').forEach(function(x){x.classList.remove('correct','wrong')});
-          var right=el.querySelector('.hb-opt[data-q="'+i+'"][data-o="'+q.answer+'"]'); if(right) right.classList.add('correct');
-          var sel=el.querySelector('.hb-opt[data-q="'+i+'"].sel');
-          if(sel){ if((+sel.getAttribute('data-o'))===q.answer){score++;} else {sel.classList.add('wrong');} }
-          var ex=el.querySelector('.hb-explain[data-i="'+i+'"]'); if(ex) ex.classList.add('show');
-        });
-        el.querySelector('.hb-quiz-result').textContent='得分 '+score+' / '+questions.length+(score===questions.length?'  🎉 满分!':'');
-        P.mark(chapter,{quiz:{score:score,total:questions.length}}); HBcourse.updatePill();
-      });
-    },
-    renderFlashcards:function(id,cards,chapter){
-      var el=document.getElementById(id); if(!el) return; var idx=0;
-      el.innerHTML='<div class="hb-fc"><div class="hb-fc-inner"><div class="hb-fc-face hb-fc-front"></div><div class="hb-fc-face hb-fc-back"></div></div></div><div class="hb-fc-ctrl"><button class="hb-prev">‹ 上一张</button><span class="hb-fc-n"></span><button class="hb-next">下一张 ›</button></div><div class="hb-fc-hint">点卡片翻面</div>';
-      var fc=el.querySelector('.hb-fc'),f=el.querySelector('.hb-fc-front'),b=el.querySelector('.hb-fc-back'),n=el.querySelector('.hb-fc-n');
-      function show(){fc.classList.remove('flip');f.textContent=cards[idx].front;b.textContent=cards[idx].back;n.textContent=(idx+1)+' / '+cards.length;}
-      fc.addEventListener('click',function(){fc.classList.toggle('flip');});
-      el.querySelector('.hb-prev').addEventListener('click',function(){idx=(idx-1+cards.length)%cards.length;show();});
-      el.querySelector('.hb-next').addEventListener('click',function(){idx=(idx+1)%cards.length;show();P.mark(chapter,{cards:cards.length});});
-      show();
-    },
     markRead:function(ch){P.mark(ch,{read:true});HBcourse.updatePill();},
-    updatePill:function(){var o=P.get();var done=0;for(var k in o){if(o[k]&&o[k].read)done++;}var pill=document.querySelector('.hb-progress-pill');if(pill){pill.textContent='📚 学习进度 '+done+'/'+HBcourse.TOTAL+' 章';pill.href='../index.html';}}
+    updatePill:function(){var o=P.get();var done=0;for(var k in o){if(o[k]&&o[k].read)done++;}var pill=document.querySelector('.hb-progress-pill');if(pill){pill.textContent='📖 已读 '+done+'/'+HBcourse.TOTAL+' 章';pill.href='../index.html';}}
   };
   document.addEventListener('DOMContentLoaded',function(){
     var ch=document.body.getAttribute('data-chapter'); if(!ch) return;
@@ -849,27 +809,6 @@ Test-NetConnection example.com -Port 443        # L4:目标端口是否可达(Po
     };
   }, container);
 })();
-
-/* B. 自测题 + C. 闪卡 —— 调用 hb-course-js 引擎提供的渲染器 */
-var HB10_QUESTIONS = [
-  {q:'教材 / 408 统考采用的 TCP/IP 五层模型,自上而下的正确顺序是?', opts:['应用层→传输层→网络层→链路层→物理层','应用层→网络层→传输层→链路层→物理层','物理层→链路层→网络层→传输层→应用层(自下而上)','应用层→表示层→会话层→传输层→网络层'], answer:0, explain:'五层口径自上而下为:应用层、传输层、网络层、链路层、物理层。选项 D 其实是 OSI 七层最上面几层,不是五层口径。'},
-  {q:'关于 TCP 和 UDP 的区别,下列描述正确的是?', opts:['TCP 无连接,UDP 面向连接','TCP 头部固定 8 字节,UDP 最少 20 字节','TCP 提供确认重传和按序交付,UDP 尽力而为、不保证到达顺序','UDP 有拥塞控制机制,TCP 没有'], answer:2, explain:'TCP 面向连接、可靠交付、头部至少 20 字节,并有滑动窗口和拥塞控制;UDP 无连接、尽力而为、头部固定 8 字节,一般不做拥塞控制。'},
-  {q:'TCP 三次握手中,若客户端第一步 SYN 报文的 seq=x,服务器第二步 SYN+ACK 报文里的 ack 字段应该是?', opts:['ack = x','ack = x + 1','ack = x − 1','ack 由服务器随意指定,与 x 无关'], answer:1, explain:'确认号 ack 的语义是"期望收到的下一个字节序号",服务器收到 seq=x 后要回 ack=x+1。'},
-  {q:'192.168.1.2/24 这个网段里,除去网络地址和广播地址,可用主机数是多少?', opts:['256','255','254','128'], answer:2, explain:'/24 的主机位是 32−24=8 位,可用主机数 = 2^8 − 2 = 254,减去网络地址 192.168.1.0 和广播地址 192.168.1.255。'},
-  {q:'关于交换机(switch)和路由器(router)的转发方式,下列说法正确的是?', opts:['交换机依据 IP 地址转发,路由器依据 MAC 地址转发','交换机能跨广播域转发,路由器不能','交换机依据 MAC 地址在同一网段内转发,路由器依据 IP 地址可以跨网段转发','两者转发依据完全相同,只是使用场景不同'], answer:2, explain:'交换机是链路层设备,靠 MAC 地址表在同一广播域/网段内转发;路由器是网络层设备,靠 IP 地址和路由表转发,能跨网段,自身就是广播域边界。'}
-];
-var HB10_CARDS = [
-  {front:'封装 Encapsulation', back:'每层往下传数据时,在前面加上本层自己的头部(信封);到对端后从下往上逐层拆开叫「解封装」。'},
-  {front:'OSI 七层 vs TCP/IP 五层', back:'OSI 是 ISO/IEC 7498-1 定义的理论参照系(7 层);TCP/IP 是 IETF 工程实现,RFC 1122/1123 官方定义为 4 层,教材 / 408 口径再把链路层拆出物理层,凑成 5 层。'},
-  {front:'各层 PDU 名称', back:'应用层叫「数据 Data」;传输层叫「报文段/数据报 Segment」;网络层叫「分组/包 Packet」;链路层叫「帧 Frame」;物理层叫「比特 Bits」。'},
-  {front:'TCP 三次握手', back:'① Client→Server SYN,seq=x  ② Server→Client SYN+ACK,seq=y,ack=x+1  ③ Client→Server ACK,ack=y+1 —— 完成后进入 ESTABLISHED 才能传数据。'},
-  {front:'最长前缀匹配', back:'路由器同时匹配多条路由规则时,选前缀最长(掩码位数最多)、范围最精确的那一条转发。'},
-  {front:'NAT 的本质', back:'网络地址转换,设计初衷是缓解 IPv4 地址不够用,把私网地址换成公网地址转发;不是安全机制,只是顺带让外部无法主动对内网发起连接。'},
-  {front:'CSMA/CD vs CSMA/CA', back:'以太网用 CSMA/CD(碰撞检测,边发边听);WiFi 用 CSMA/CA(碰撞避免)——无线网卡发射时听不到自己的接收信号,只能靠随机退避尽量避免碰撞。'},
-  {front:'RFC 1918 私有地址段', back:'10.0.0.0/8、172.16.0.0/12、192.168.0.0/16 三段地址不会被公网路由,可在内网随意重复使用,是家用路由器几乎都用 192.168.x.x 的原因。'}
-];
-HBcourse.renderQuiz('quiz10', HB10_QUESTIONS, '10');
-HBcourse.renderFlashcards('fc10', HB10_CARDS, '10');
 </script>
 </body>
 </html>
