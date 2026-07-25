@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>16 运维与自托管工程</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+  details{page-break-inside:avoid}
+  details>*:not(summary){display:block!important}
+  details summary{list-style:none}
+  details summary::-webkit-details-marker{display:none}
+}
+
+/* --- 本章补充(与设计系统同一套变量,不引入新配色) --- */
+details{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 16px;margin:16px 0}
+details summary{cursor:pointer;font-weight:700;color:var(--brand-2)}
+details[open] summary{margin-bottom:8px}
+details summary::-webkit-details-marker{color:var(--brand-2)}
+.steps{list-style:none;padding-left:0;counter-reset:step}
+.steps>li{counter-increment:step;margin:12px 0;padding-left:38px;position:relative}
+.steps>li::before{content:counter(step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;line-height:26px;text-align:center}
+.steps>li>strong{color:var(--brand-2)}
+</style>
+</head>
+<body>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 16 章</p>
+    <h1>运维与自托管工程</h1>
+    <p>把散落在前面十五章里的旁路由、AdGuard、SMB、Windows 服务,升级成一套有工程方法支撑的基础设施——用容器打包服务、反向代理统一入口、监控与备份兜底故障、CI/CD 让每一次改动都可回滚。</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="crumbs"><a href="../index.html">← 返回首页</a></p>
+
+  <p class="lead">这本手册前面的章节里,你已经手动运维过一整台机器:改 iStoreOS 的 dnsmasq 配置文件、装 AdGuard Home、给 Windows 服务掰扳手腕、跟 Secure Boot 打过交道。这些操作有一个共同的短板——全靠你记得住、改得对、出故障能第一时间发现。这一章把"手动"升级成"工程":容器把一个服务和它的全部依赖打包成一个可搬动、可复制的单元;反向代理把一堆服务收敛成一个入口;监控让故障在影响到人之前被发现;3-2-1 备份保证一块硬盘或一次误删不会让数据归零;CI/CD 和 Git 让每一次改动都有记录、能退回。六件事拼起来,就是一台真正"有人运维"的自托管盒子。</p>
+
+  <div class="toc">
+    <b>目录</b>
+    <ol>
+      <li><a href="#why-ops">为什么需要「运维工程」</a></li>
+      <li><a href="#container-fundamentals">容器怎么运作:namespace + cgroup</a></li>
+      <li><a href="#images-layers">镜像与层:写时复制</a></li>
+      <li><a href="#volumes-networks">卷与网络:持久化与互通</a></li>
+      <li><a href="#reverse-proxy">反向代理:一个入口</a></li>
+      <li><a href="#worked-example">实例:AdGuard Home 容器化 + Caddy</a></li>
+      <li><a href="#observability">监控与可观测性</a></li>
+      <li><a href="#backup-321">备份:3-2-1 法则</a></li>
+      <li><a href="#cicd-git">CI/CD 与 Git</a></li>
+      <li><a href="#blueprint">整台盒子的运维蓝图</a></li>
+    </ol>
+  </div>
+
+  <h2 id="why-ops">为什么需要「运维工程」,不只是「跑起来」</h2>
+  <p>一个服务"能跑起来"和"能稳定运维"是两件事。能跑起来:装上、启动、能访问,今天你在,它就在。稳定运维要多问几个问题:你离开电脑十二小时,它崩了谁知道?硬盘坏了,配置还在不在?想把服务搬到另一台机器,是要从头装一遍,还是复制几个文件就好?改了一处配置,能不能十秒内退回改之前的状态?这些问题的答案,决定了一个自托管的盒子是"玩具"还是"基础设施"。</p>
+  <p>本章按这几个问题展开:容器(§2-3)解决"怎么打包、怎么搬";卷与网络(§4)解决"数据怎么留住、服务怎么互通";反向代理(§5-6)解决"一堆服务怎么共用一个入口";监控(§7)解决"怎么知道坏没坏";备份(§8)解决"怎么保证数据不会没";CI/CD 与 Git(§9)解决"怎么让改动可控、可回滚"。最后用一张蓝图(§10)把它们和前面章节里你已经搭出来的那台盒子拼在一起。</p>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 实战锚点 · 你已经在"手动运维"了</div>
+    <p>改 dnsmasq 配置转发给 AdGuard(见〈<a href="03-dns-adblock.html">03 DNS 与去广告</a>〉)、给 Windows 服务掰手腕、调 <code>powercfg</code> 电源计划(见〈<a href="08-windows-admin.html">08 Windows 系统管理与提权</a>〉)——这些都是运维动作,只是还停留在"打开文件手改、出问题肉眼查"的阶段。本章不是介绍一个新领域,是给你已经在做的事配一套方法论。</p>
+  </div>
+
+  <h2 id="container-fundamentals">容器怎么运作:namespace 管"看见什么",cgroup 管"用多少"</h2>
+  <p>容器常被简化成"轻量级虚拟机",这个说法方便理解但不准确,还会让你对它的隔离强度产生错误的信任。</p>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 原理 · 容器和虚拟机的真实区别</div>
+    <p>微软官方文档对二者架构差异的定义很清楚:虚拟机在硬件之上跑一个完整的 Hypervisor,每个 VM 里都装着自己独立的操作系统内核;容器则是同一个宿主机内核上跑的一组被隔离的进程,所有容器共享宿主机唯一的那个内核。共享内核带来的直接好处是容器启动是毫秒级的(不用像 VM 那样启动一整个操作系统),镜像体积也小得多;代价是隔离强度理论上弱于 VM——内核层面的漏洞可能牵连到所有容器。</p>
+  </div>
+
+  <p>让"共享一个内核却还感觉彼此独立"成立的,是两个 Linux 内核原语:<strong>namespace</strong> 和 <strong>cgroup</strong>。它们分工非常明确,记住这一句就抓住了容器的本质:<strong>namespace 决定一个进程能看见什么,cgroup 决定它能用多少</strong>。</p>
+
+  <h3>namespace:决定"一个进程能看见什么"</h3>
+  <p>Linux 内核文档把 namespace 定义为对全局系统资源的一层包装,让一组进程以为自己独享这份资源,而系统里实际上可能同时存在好几份、分别属于不同的进程组。通俗说:namespace 给每个容器发一副"眼罩",它只能看到分配给自己的那一份东西,看不到宿主机上其他容器和进程。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>namespace 类型</th><th>隔离的资源</th><th>容器里的体验</th></tr></thead>
+      <tbody>
+        <tr><td><code>pid</code></td><td>进程 ID 空间</td><td>容器里第一个进程的 PID 是 1,看不到宿主机或其他容器的进程</td></tr>
+        <tr><td><code>net</code></td><td>网络接口 / 路由表 / 端口</td><td>容器有自己的 <code>eth0</code>、自己的 IP、自己的一整套端口空间</td></tr>
+        <tr><td><code>mnt</code></td><td>文件系统挂载点</td><td>容器的 <code>/</code> 只是镜像内容,看不到宿主机真实目录树</td></tr>
+        <tr><td><code>uts</code></td><td>主机名 / 域名</td><td>容器可以有自己的 hostname,不影响宿主机</td></tr>
+        <tr><td><code>ipc</code></td><td>进程间通信(信号量 / 消息队列)</td><td>容器间默认不能用 System V IPC 直接通信</td></tr>
+        <tr><td><code>cgroup</code></td><td>容器自己在 cgroup 目录树里看到的根路径</td><td>容器里看到的 cgroup 路径以 <code>/</code> 为根,看不到宿主机上真实的完整路径和其他容器的配置</td></tr>
+        <tr><td><code>user</code></td><td>用户 / 组 ID</td><td>容器里的 root(UID 0)可以映射成宿主机上一个无特权 UID</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Docker 默认为每个容器创建 <code>mnt</code>、<code>uts</code>、<code>ipc</code>、<code>pid</code>、<code>net</code> 这 5 种 namespace 是恒定的;<code>cgroup</code> namespace 是否默认创建则取决于宿主机的 cgroup 版本——Docker 官方文档对 <code>--cgroupns</code> 的说明是:未显式指定时跟随 dockerd 的 <code>default-cgroupns-mode</code>,在 <strong>cgroup v1</strong> 宿主机上默认值是 <code>host</code>(容器与宿主机共享同一个 cgroup namespace),在 <strong>cgroup v2</strong> 宿主机上默认值是 <code>private</code>(每个容器再拿到一个独立的 cgroup namespace)。也就是说,在当下已普遍升级到 cgroup v2 的宿主机上(见下节),Docker 默认其实一共创建 <strong>6 种</strong> namespace,而不是 5 种。<code>user</code> namespace 不受这个影响,任何情况下都默认不开启,需要显式配置(如 <code>--userns-remap</code>)才会做二次隔离——它才是真正唯一"默认关闭、必须自己开"的一种。</p>
+
+  <details>
+    <summary>延伸:Linux 目前支持的全部 namespace 种类</summary>
+    <p>除了上表 7 种,Linux 内核文档里还记录了 <code>time</code> namespace(允许容器拥有和宿主机不同的系统启动时间 / 单调时钟偏移,常用于迁移热备场景)。八种 namespace 共同的设计哲学是同一句话:把某个全局资源"包一层",让容器组看到的是自己专属的一份。</p>
+  </details>
+
+  <h3>cgroup:决定"一个进程能用多少"</h3>
+  <p>namespace 解决了"看不看得见",但没解决"用多少"——如果没有限制,一个容器里失控的进程一样能把宿主机的 CPU 或内存吃满,拖垮同一台机器上的其他容器。这是 <strong>cgroup</strong>(control group)的工作:Linux 内核用它限制、统计、隔离一组进程的 CPU、内存、磁盘 I/O、网络等资源用量。</p>
+
+  <pre><code># 手动演示 cgroup 在做什么(Docker 平时会替你自动完成这几步)
+# 下面是 cgroup v2(统一层级)的路径——当前主流发行版的默认状态,见下方避坑说明
+mkdir -p /sys/fs/cgroup/myapp
+echo 500000000 > /sys/fs/cgroup/myapp/memory.max        # 内存上限约 500MB
+echo 12345 > /sys/fs/cgroup/myapp/cgroup.procs           # 12345 换成实际要限制的进程 PID</code></pre>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · cgroup v1 与 v2 的路径、文件名都不一样</div>
+    <p>上面这份是 <strong>cgroup v2</strong>(统一层级,unified hierarchy)的写法:没有独立的 <code>memory/</code> 子目录,文件名以 <code>.max</code> 结尾。Ubuntu 21.10+、Debian 11+、Fedora 31+、RHEL 9+ 等主流发行版自 2021-2022 年前后起已默认启用 cgroup v2,Docker 20.10+ 在这些宿主机上也默认走 v2。老资料里常见的是 <strong>cgroup v1</strong> 的写法——每种资源单独一棵目录树、文件名也不同,例如同样限制内存要写成 <code>mkdir -p /sys/fs/cgroup/memory/myapp</code> 配 <code>memory.limit_in_bytes</code>。想确认自己机器用的是哪一版,看 <code>/sys/fs/cgroup/cgroup.controllers</code> 这个文件存不存在——存在就是 v2。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 720 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="f1t f1d">
+      <title id="f1t">namespace 与 cgroup 分工示意图</title>
+      <desc id="f1d">两个容器共享同一个宿主机内核。namespace 让每个容器只能看到自己的进程、网络和文件系统;cgroup 则从内核实际分配的 CPU 与内存资源里,给每个容器划定互不影响的配额上限。</desc>
+      <defs>
+        <marker id="f1arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+
+      <text x="360" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink-soft)">namespace:每个容器都以为自己独享整台机器</text>
+
+      <rect x="50" y="50" width="290" height="300" rx="14" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+      <text x="195" y="76" text-anchor="middle" font-size="14" font-weight="700" fill="var(--theory)">容器 A</text>
+      <line x1="68" y1="88" x2="322" y2="88" stroke="var(--line)" stroke-width="1"/>
+      <text x="68" y="110" font-size="12" fill="var(--ink)">pid ns:自己的 PID 1</text>
+      <text x="68" y="132" font-size="12" fill="var(--ink)">net ns:自己的 eth0 = 172.17.0.2</text>
+      <text x="68" y="154" font-size="12" fill="var(--ink)">mnt ns:/ 只是镜像内容</text>
+      <text x="68" y="176" font-size="12" fill="var(--ink)">uts ns:hostname 自己定</text>
+
+      <rect x="68" y="196" width="254" height="128" rx="10" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="1.2"/>
+      <text x="195" y="218" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--warn)">cgroup 配额</text>
+      <text x="195" y="240" text-anchor="middle" font-size="12" fill="var(--ink)">CPU ≤ 50% · 内存 ≤ 512MB</text>
+      <text x="195" y="260" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">超限:被限速 / OOM Kill,</text>
+      <text x="195" y="276" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">不影响容器 B</text>
+
+      <rect x="380" y="50" width="290" height="300" rx="14" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="525" y="76" text-anchor="middle" font-size="14" font-weight="700" fill="var(--practice)">容器 B</text>
+      <line x1="398" y1="88" x2="652" y2="88" stroke="var(--line)" stroke-width="1"/>
+      <text x="398" y="110" font-size="12" fill="var(--ink)">pid ns:自己的 PID 1</text>
+      <text x="398" y="132" font-size="12" fill="var(--ink)">net ns:自己的 eth0 = 172.17.0.3</text>
+      <text x="398" y="154" font-size="12" fill="var(--ink)">mnt ns:/ 只是镜像内容</text>
+      <text x="398" y="176" font-size="12" fill="var(--ink)">uts ns:hostname 自己定</text>
+
+      <rect x="398" y="196" width="254" height="128" rx="10" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="1.2"/>
+      <text x="525" y="218" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--warn)">cgroup 配额</text>
+      <text x="525" y="240" text-anchor="middle" font-size="12" fill="var(--ink)">CPU ≤ 30% · 内存 ≤ 256MB</text>
+      <text x="525" y="260" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">超限:被限速 / OOM Kill,</text>
+      <text x="525" y="276" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">不影响容器 A</text>
+
+      <line x1="195" y1="350" x2="195" y2="398" stroke="var(--ink-soft)" stroke-width="1.5" marker-end="url(#f1arrow)"/>
+      <line x1="525" y1="350" x2="525" y2="398" stroke="var(--ink-soft)" stroke-width="1.5" marker-end="url(#f1arrow)"/>
+      <text x="360" y="380" text-anchor="middle" font-size="11" fill="var(--ink-soft)">宿主机按配额分配真实 CPU / 内存</text>
+
+      <rect x="50" y="400" width="620" height="42" rx="8" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="360" y="426" text-anchor="middle" font-size="12.5" fill="var(--ink)">宿主机 Linux 内核(只有一份,namespace / cgroup 都由它提供)</text>
+    </svg>
+    <figcaption>图 1:namespace 让容器 A、B 互相看不见对方的进程 / 网络 / 文件系统;cgroup 则从宿主机唯一的那个内核里,给每个容器划出互不挤占的资源配额。</figcaption>
+  </figure>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · Windows 上的 <code>docker run</code> 其实是……</div>
+    <p>namespace 和 cgroup 都是 Linux 内核的能力,Windows 的 NT 内核并没有这两样东西。所以 Docker Desktop 在 Windows 上默认走 <strong>WSL 2</strong>(Windows Subsystem for Linux 2)——微软官方文档在"Full Linux kernel"一节里写得很直接:"The Linux kernel in WSL 2 is built by Microsoft from the latest stable branch, based on the source available at kernel.org."(WSL 2 里的 Linux 内核由微软基于 kernel.org 上的最新稳定分支自行构建)——偷偷养一个真正的 Linux 内核,你在 PowerShell 里敲的 <code>docker run</code>,容器实际养在这个 Linux 内核里,只是外壳做得让你感觉不到。这也是为什么 Docker Desktop 分"Linux containers"和"Windows containers"两种模式:后者用的是 Windows 自己的隔离机制(Job Object),和本节讲的 namespace/cgroup 是完全不同的两套东西。内核态 / 用户态和这些隔离机制更底层的关系,见〈<a href="11-os.html">11 操作系统</a>〉。</p>
+  </div>
+
+  <h2 id="images-layers">镜像与层:为什么容器秒起,镜像还能"共享"</h2>
+  <p>一个 Docker 镜像不是一个整体文件,而是若干只读"层"(layer)叠在一起;从镜像启动一个容器时,Docker 会在最上面再加一层可写的"容器层"。官方文档把这套设计总结为<strong>写时复制</strong>(copy-on-write,CoW)策略:容器里的进程第一次要修改一个属于只读层的文件时,存储驱动不会去动那个只读层,而是先把这个文件整份复制到可写层,再在副本上修改。镜像本体永远不会被写坏,这也是为什么同一个镜像能被无数容器同时启动而互不干扰——大家共享同一份只读层,各自的改动只发生在自己的可写层里。</p>
+  <p>Linux 上最常用的 <code>overlay2</code> 存储驱动把这个模型落到磁盘上:镜像的只读层叫 <code>lowerdir</code>,容器自己的可写层叫 <code>upperdir</code>,OverlayFS 内核模块把它们叠成一个叫 <code>merged</code> 的统一视图交给容器里的进程——进程完全感觉不到自己面对的是好几层叠出来的假象,以为这就是一个普通、完整的文件系统。官方文档还指出这套设计"促成更小的镜像"(sharing promotes smaller images):如果两个镜像都基于同一个基础镜像,Docker 在磁盘上只存一份那些公共层,后续镜像只需要多存自己独有的层。</p>
+
+  <pre><code>$ docker image inspect --format "{{json .RootFS.Layers}}" python:3.12-slim
+["sha256:72e830a4dff5f0d5225cdc0a320e85ab1ce06ea5673acfe8d83a7645cbd0e9cf",
+ "sha256:07b4a9068b6af337e8b8f1f1dae3dd14185b2c0003a9a1f0a6fd2587495b204a"]</code></pre>
+  <p>(你本地跑出来的哈希值会不一样——这是正常的,<code>python:3.12-slim</code> 这个 tag 会随镜像重新构建而重新指向新的层;这里要看的是"只有两层"这个结构,不是具体数值。)</p>
+
+  <figure>
+    <svg viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="f2t f2d">
+      <title id="f2t">镜像分层与写时复制示意图</title>
+      <desc id="f2d">两个正在运行的容器 A、B 各自基于不同的上层依赖和代码,但共享同一份底层的基础系统与运行时只读层;每个容器顶部还有一层专属的可写层,用来存放运行期间产生的改动。</desc>
+
+      <rect x="60" y="328" width="600" height="48" rx="8" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+      <text x="360" y="357" text-anchor="middle" font-size="13" fill="var(--ink)">L2 运行时环境(只读,如 node:20)</text>
+
+      <rect x="60" y="382" width="600" height="48" rx="8" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+      <text x="360" y="411" text-anchor="middle" font-size="13" fill="var(--ink)">L1 基础系统(只读,如 debian:bookworm-slim)</text>
+
+      <text x="200" y="158" text-anchor="middle" font-size="13" font-weight="700" fill="var(--warn)">容器 A(运行中)</text>
+      <rect x="70" y="180" width="260" height="44" rx="8" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="1.5"/>
+      <text x="200" y="207" text-anchor="middle" font-size="11.5" fill="var(--ink)">容器可写层(运行时产生的改动)</text>
+      <rect x="70" y="232" width="260" height="42" rx="8" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="200" y="258" text-anchor="middle" font-size="12" fill="var(--ink)">L4 App A 代码(只读)</text>
+      <rect x="70" y="280" width="260" height="42" rx="8" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="200" y="306" text-anchor="middle" font-size="12" fill="var(--ink)">L3 App A 依赖(只读)</text>
+
+      <text x="520" y="158" text-anchor="middle" font-size="13" font-weight="700" fill="var(--warn)">容器 B(运行中)</text>
+      <rect x="390" y="180" width="260" height="44" rx="8" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="1.5"/>
+      <text x="520" y="207" text-anchor="middle" font-size="11.5" fill="var(--ink)">容器可写层(运行时产生的改动)</text>
+      <rect x="390" y="232" width="260" height="42" rx="8" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="520" y="258" text-anchor="middle" font-size="12" fill="var(--ink)">L4 App B 代码(只读)</text>
+      <rect x="390" y="280" width="260" height="42" rx="8" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="520" y="306" text-anchor="middle" font-size="12" fill="var(--ink)">L3 App B 依赖(只读)</text>
+
+      <text x="360" y="458" text-anchor="middle" font-size="12" fill="var(--ink-soft)">L1 / L2 两个容器共用同一份磁盘空间,只多存各自的 L3 / L4 和可写层</text>
+    </svg>
+    <figcaption>图 2:overlay2 把只读的镜像层(lowerdir)叠加成一份统一视图(merged),容器自己的可写层(upperdir)盖在最上面;两个容器共享相同的底层,只有各自独有的层和可写层单独占用空间。</figcaption>
+  </figure>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 容器可写层没了就真没了</div>
+    <p>这是自托管新手最常摔的一跤:把数据库、配置、上传的文件直接写在容器内部(可写层),测试很顺利,直到你 <code>docker rm</code> 或重建这个容器——可写层跟着容器一起消失,里面的数据没有第二份拷贝,直接归零。任何你想活过 <code>docker rm -f</code>、活过重建、活过换机器的数据,必须放进下一节讲的<strong>卷</strong>,而不是留在容器可写层里。</p>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · 每一层的"名字"都是它内容的哈希</div>
+    <p>上面 <code>docker image inspect</code> 打印出的是一串 <code>sha256:…</code> 值——每一层的标识就是它内容的哈希。内容变了,哈希跟着变;Docker 靠比较哈希就知道两层是不是完全相同的内容,判断能不能共享磁盘空间,不需要逐字节比较文件。这和〈<a href="13-dsa.html">13 数据结构与算法</a>〉里哈希表的寻址思路是同一件事——按内容算出的哈希直接当"地址"用,业内称为<strong>内容寻址存储</strong>(content-addressable storage)。§9 讲 Git 内部结构时还会再碰到同一套思路。</p>
+  </div>
+
+  <h2 id="volumes-networks">卷与网络:数据怎么活下来,容器怎么互相说话</h2>
+  <h3>卷:让数据活过容器的生命周期</h3>
+  <p>官方文档对<strong>卷</strong>(volume)的定义是:由 Docker 创建和管理的持久化数据存储,专门保存容器产生、需要长期保留的数据。它和另一种常见方式——<strong>绑定挂载</strong>(bind mount,直接把宿主机某个目录路径塞进容器)最大的区别在于:绑定挂载依赖宿主机那个目录本来就存在、路径结构不能变;卷则完全由 Docker 管理存放位置,你不需要关心它具体存在磁盘哪个角落。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>场景</th><th>推荐方式</th><th>原因</th></tr></thead>
+      <tbody>
+        <tr><td>直接编辑宿主机上的配置文件,让容器读取</td><td>bind mount</td><td>改宿主机文件立刻生效,路径自己掌控</td></tr>
+        <tr><td>数据库数据、容器自己生成的运行数据</td><td>volume</td><td>Docker 管理生命周期,不依赖宿主机目录结构,备份 / 迁移更规整</td></tr>
+        <tr><td>开发时把源代码挂进容器实时预览</td><td>bind mount</td><td>编辑器改代码,容器里立刻同步看到</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>网络:容器怎么找到对方</h3>
+  <p>容器默认自带网络隔离(<code>net</code> namespace),但完全孤立就没法协作了。Docker 的解法是创建一个软件网桥(bridge)——默认桥接网络就叫 <code>bridge</code>,新建容器不指定网络时自动挂上去;但更推荐的做法是自己建一个<strong>用户自定义桥接网络</strong>,因为在这种网络里,Docker 内置的 DNS 服务会让容器之间可以直接用容器名(或 compose 里的服务名)互相访问,不需要硬编码 IP——下一节的实例会直接用到这一点。容器默认只能被同一网络里的其他容器访问;要让宿主机之外的世界连进来,需要显式<strong>发布端口</strong>(<code>-p 宿主机端口:容器端口</code>),Docker 才会把宿主机对应端口的流量转发进容器。</p>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 实战锚点 · 又是同一套"私网 + 网关"逻辑</div>
+    <p>旁路由(见〈<a href="02-router-bypass.html">02 软路由与旁路由</a>〉)给局域网设备发的是 <code>192.168.1.0/24</code> 网段的地址,靠 NAT 出公网;Docker 的 bridge 网络给容器发的是它自己那个私有网段(常见 <code>172.17.0.0/16</code>)的地址,靠端口发布决定谁能从外面连进来。同一套"私网 + 网关 + 按需开放"的思路,只是这次的"局域网"被压缩到了一台电脑内部——概念对照见〈<a href="10-networking.html">10 计算机网络体系</a>〉。</p>
+  </div>
+
+  <h2 id="reverse-proxy">反向代理:一个入口,任意后端</h2>
+  <p>Cloudflare 官方的定义很干脆:<strong>反向代理</strong>是一台立在一个或多个后端服务器前面、拦截客户端请求的服务器——客户端只知道、只连接反向代理,完全不知道真正处理请求的服务器是谁、在哪。这和更常见的<strong>正向代理</strong>刚好镜像对称:正向代理立在客户端前面,代表客户端向外发请求;反向代理立在服务器前面,代表服务器接收请求。当你在一台机器上塞了不止一个服务——管理页、静态站、别的什么 web 应用——反向代理能把它们全部收敛到 80/443 两个端口,按域名或路径分发到正确的后端,不需要给每个服务单独开一个奇怪的端口号让别人记。</p>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 原理 · 你已经搭过一条逻辑一模一样的转发链</div>
+    <p>回到〈<a href="03-dns-adblock.html">03 DNS 与去广告</a>〉那条链路:客户端只认 dnsmasq 的 53 端口,dnsmasq 把没有命中内网主机名的查询转发给背后监听 5335 端口的 AdGuard Home 去处理——查询方完全不需要知道、也不关心背后真正干活的是谁。这正是反向代理"统一入口,后端可以随时更换"的核心逻辑,只是那条链发生在 DNS 协议层,这一节说的反向代理发生在 HTTP/HTTPS 层,原理完全一致。</p>
+  </div>
+
+  <p>本章示例用 <strong>Caddy</strong>,因为它有一个特别适合自托管的官方卖点——"Caddy 是第一个默认就自动开启 HTTPS 的 web 服务器":只要配置里写清楚域名,Caddy 会自动申请、续期 TLS 证书,不需要手动跑 certbot 或记得证书什么时候过期。</p>
+
+  <pre><code># Caddyfile —— 一个完整、能跑的反向代理配置
+adguard.example.com {
+    reverse_proxy 127.0.0.1:3000
+}</code></pre>
+  <p>这几行就是完整配置:凡是发到 <code>adguard.example.com</code> 的请求,Caddy 自动拿到证书、终结 TLS,再把请求转发给本机 3000 端口。证书怎么签发、TLS 握手具体在谈判什么,留到〈<a href="15-crypto-security.html">15 密码学与网络安全</a>〉细讲。</p>
+
+  <h2 id="worked-example">实例:把 AdGuard Home 装进容器,配 Caddy 反代出 HTTPS</h2>
+  <p>把前面几节的概念拼成一个能真正跑起来的例子——不是要你现在就去换掉旁路由上跑得好好的那份 AdGuard Home,而是理解"容器 + 卷 + 网络 + 反向代理"这套组合具体怎么落地成几个文件。</p>
+
+  <pre><code># docker-compose.yml
+services:
+  adguardhome:
+    image: adguard/adguardhome
+    restart: unless-stopped
+    volumes:
+      - ./adguard/work:/opt/adguardhome/work
+      - ./adguard/conf:/opt/adguardhome/conf
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "3000:3000/tcp"   # 仅首次安装向导用
+    networks: [lan]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+    networks: [lan]
+
+networks:
+  lan:
+
+volumes:
+  caddy_data:</code></pre>
+
+  <pre><code># Caddyfile
+adguard.example.com {
+    reverse_proxy adguardhome:3000
+}</code></pre>
+
+  <p>注意 Caddyfile 里写的是 <code>adguardhome:3000</code>,不是某个 IP——因为 <code>caddy</code> 和 <code>adguardhome</code> 两个容器被 compose 自动放进同一个用户自定义网络 <code>lan</code>,Docker 内置 DNS 让 caddy 直接用服务名 <code>adguardhome</code> 就能解析到对方的容器 IP,不需要硬编码、也不怕 IP 重启后变化(呼应上一节§4的网络机制)。</p>
+
+  <figure>
+    <svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="f3t f3d">
+      <title id="f3t">AdGuard Home 容器化 + Caddy 反向代理架构图</title>
+      <desc id="f3d">客户端的 HTTPS 请求经 Caddy 容器自动终结 TLS 后,通过 docker 用户自定义网络转发给 adguardhome 容器的管理端口;而 DNS 查询流量走另一条独立路径,直接发布到 adguardhome 容器,不经过 Caddy。</desc>
+      <defs>
+        <marker id="f3arrowT" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--theory)"/>
+        </marker>
+        <marker id="f3arrowW" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--warn)"/>
+        </marker>
+      </defs>
+
+      <text x="470" y="26" text-anchor="middle" font-size="12" fill="var(--ink-soft)">Docker 宿主机(旁路由 192.168.1.2,或任意常开的机器)</text>
+      <rect x="210" y="46" width="520" height="334" rx="16" fill="none" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+      <rect x="238" y="86" width="464" height="256" rx="12" fill="none" stroke="var(--brand)" stroke-width="1.3" stroke-dasharray="4 3"/>
+      <text x="470" y="106" text-anchor="middle" font-size="11.5" fill="var(--brand)">docker network: lan(用户自定义 bridge)</text>
+
+      <rect x="20" y="150" width="130" height="72" rx="10" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="85" y="182" text-anchor="middle" font-size="13" fill="var(--ink)">客户端</text>
+      <text x="85" y="202" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">(浏览器 / 设备)</text>
+
+      <rect x="270" y="150" width="180" height="110" rx="10" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+      <text x="360" y="176" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--theory)">caddy 容器</text>
+      <text x="360" y="197" text-anchor="middle" font-size="11.5" fill="var(--ink)">监听 :80 / :443</text>
+      <text x="360" y="216" text-anchor="middle" font-size="11" fill="var(--ink)">自动申请 / 续期 HTTPS</text>
+      <text x="360" y="235" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">卷:caddy_data(证书缓存)</text>
+
+      <rect x="530" y="150" width="180" height="110" rx="10" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="620" y="176" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--practice)">adguardhome 容器</text>
+      <text x="620" y="197" text-anchor="middle" font-size="11" fill="var(--ink)">管理页 :3000(向导用)</text>
+      <text x="620" y="216" text-anchor="middle" font-size="11" fill="var(--ink)">DNS :53 tcp/udp</text>
+      <text x="620" y="235" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">卷:./work ./conf(持久化)</text>
+
+      <text x="470" y="136" text-anchor="middle" font-size="10.5" fill="var(--theory)">reverse_proxy adguardhome:3000(服务名由 docker 内置 DNS 解析)</text>
+      <line x1="450" y1="200" x2="530" y2="200" stroke="var(--theory)" stroke-width="2" marker-end="url(#f3arrowT)"/>
+
+      <line x1="130" y1="168" x2="270" y2="185" stroke="var(--theory)" stroke-width="2" marker-end="url(#f3arrowT)"/>
+      <text x="195" y="158" text-anchor="middle" font-size="11" fill="var(--theory)">HTTPS :443</text>
+
+      <path d="M85,222 C 150,330 470,340 610,262" fill="none" stroke="var(--warn)" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#f3arrowW)"/>
+      <text x="340" y="332" text-anchor="middle" font-size="11" fill="var(--warn)">DNS :53 tcp/udp(不经过 Caddy)</text>
+    </svg>
+    <figcaption>图 3:HTTPS 管理流量走客户端 → Caddy(自动终结 TLS)→ 按服务名转发给 adguardhome;DNS 查询走另一条独立路径,直接发布到 adguardhome 容器,两条路径互不干扰。</figcaption>
+  </figure>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 反向代理搬不动 DNS 协议</div>
+    <p>Caddyfile 里的 <code>reverse_proxy</code> 指令面向的是 HTTP(S) 流量,AdGuard Home 真正对外提供 DNS 服务的 53 端口(UDP 为主、TCP 兜底大响应)不需要、也不能塞给 Caddy 转——上面的 compose 文件里 53 端口是直接从 <code>adguardhome</code> 容器发布到宿主机的,和走 Caddy 的管理页是两条完全独立的路径。反向代理统一的是"网页 / API 这一类 HTTP 流量",不是所有网络协议。</p>
+  </div>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 实战锚点 · 端口 3000 只是"新手引导"</div>
+    <p>AdGuard Home 官方镜像文档专门把 3000 标成"初次安装向导"端口——第一次启动时用它走一遍设置流程(选管理员账号、选正式监听端口),设置完成后 AdGuard Home 会切到向导里选定的正式端口。上面的 Caddyfile 为了示例简单统一写 3000;真实部署时把 <code>reverse_proxy</code> 后面的端口换成向导里最终确定的那个即可。</p>
+  </div>
+
+  <h2 id="observability">监控与可观测性:在故障影响到人之前发现它</h2>
+  <p>行业里把<strong>可观测性</strong>(observability)拆成三大支柱:指标(metrics)、日志(logs)、追踪(traces)。三者解决的问题不同,配合起来才完整——指标负责第一时间告诉你"有问题",追踪负责展示请求走过的路径,日志负责提供定位问题所需要的具体上下文。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>支柱</th><th>是什么</th><th>回答的问题</th><th>例子</th></tr></thead>
+      <tbody>
+        <tr><td>指标 metrics</td><td>随时间变化的数字时间序列</td><td>现在状态怎么样?有没有异常?</td><td>CPU 占用 92%、请求延迟 p99 = 800ms</td></tr>
+        <tr><td>日志 logs</td><td>按时间顺序记录发生的具体事件</td><td>具体发生了什么、报了什么错?</td><td>"容器 adguardhome 因内存超限被杀"</td></tr>
+        <tr><td>追踪 traces</td><td>一次请求跨多个服务 / 容器的完整路径与耗时</td><td>慢在哪一环?哪个环节拖了后腿?</td><td>请求经 Caddy → AdGuard → 上游 DoH,各段耗时分布</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 实战锚点 · Windows 自带的"本地版"可观测性</div>
+    <p>〈<a href="08-windows-admin.html">08 Windows 系统管理与提权</a>〉里用过的任务管理器实时 CPU/内存图表,就是最朴素的"指标";事件查看器(Event Viewer)按时间顺序记录的系统 / 应用事件,就是最朴素的"日志"。它们唯一缺的是:集中化(多台机器只能一台台点开看)、历史存档(重启就可能被冲掉)、自动告警(不会在你不看屏幕时主动喊你)——这正是 Prometheus(采集 + 存储指标)、Grafana(可视化 + 告警)这类自托管可观测性工具要补上的。</p>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 告警太多 = 没有告警</div>
+    <p>如果每一次 CPU 抖动、每一次容器重启都发一条告警,人很快会学会"已读不回";等真正的故障发生,那条关键告警混在几十条噪音里被一起划掉。告警要少而准,只对"需要人立刻处理"的情况响,这比接入更多监控指标本身更重要。</p>
+  </div>
+
+  <h2 id="backup-321">备份:3-2-1 法则</h2>
+  <p><strong>3-2-1 法则</strong>是数据备份行业最广泛引用的经验法则,常被追溯到摄影师 Peter Krogh 在《The DAM Book: Digital Asset Management for Photographers》一书中的表述:保留 <strong>3</strong> 份数据拷贝(1 份原始 + 2 份备份),存在 <strong>2</strong> 种不同类型的存储介质上,其中至少 <strong>1</strong> 份放在异地。"2 种介质"防的是同一类介质集体失效——比如同批买的移动硬盘一起进入寿命末期,或只依赖一家云盘账号被盗;"1 份异地"防的是整个现场一起出事——失火、被盗、勒索软件加密了当前网络能碰到的所有东西。两个风险的性质完全不同,缺一个防护都不完整。</p>
+
+  <p>拿这本手册的产出练手:① 原始文件放在 Windows 笔记本本地磁盘;② 第二份拷贝放进局域网里一块外接硬盘或 NAS(不同介质);③ 第三份同步到云端网盘或代码仓库(异地)——三份、两种介质、一份不在本地,就是完整的 3-2-1。</p>
+
+  <figure>
+    <svg viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="f4t f4d">
+      <title id="f4t">3-2-1 备份法则示意图</title>
+      <desc id="f4d">同一份文件保留三份拷贝:原始文件和第一份备份都在本地现场,但分处两种不同的存储介质;第二份备份放在异地。三份、两种介质、一份异地,任何单一介质失效或单一现场事故都不会让数据归零。</desc>
+      <defs>
+        <marker id="f4arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+
+      <text x="360" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink-soft)">同一份文件的三份拷贝——两种介质,一份异地</text>
+
+      <rect x="34" y="46" width="440" height="284" rx="14" fill="none" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <text x="254" y="68" text-anchor="middle" font-size="12.5" fill="var(--ink-soft)">本地现场(你人在的地方)</text>
+
+      <rect x="58" y="86" width="188" height="220" rx="12" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+      <text x="152" y="114" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--theory)">① 原始文件</text>
+      <line x1="76" y1="126" x2="228" y2="126" stroke="var(--line)" stroke-width="1"/>
+      <text x="152" y="154" text-anchor="middle" font-size="12" fill="var(--ink)">Windows 笔记本</text>
+      <text x="152" y="174" text-anchor="middle" font-size="12" fill="var(--ink)">本地磁盘</text>
+      <text x="152" y="204" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">介质类型 A</text>
+      <text x="152" y="222" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">(内置磁盘)</text>
+
+      <rect x="266" y="86" width="188" height="220" rx="12" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="360" y="114" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--practice)">② 第二份拷贝</text>
+      <line x1="284" y1="126" x2="436" y2="126" stroke="var(--line)" stroke-width="1"/>
+      <text x="360" y="154" text-anchor="middle" font-size="12" fill="var(--ink)">局域网 NAS</text>
+      <text x="360" y="174" text-anchor="middle" font-size="12" fill="var(--ink)">或外接硬盘</text>
+      <text x="360" y="204" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">介质类型 B</text>
+      <text x="360" y="222" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">(与①不同介质)</text>
+
+      <rect x="510" y="46" width="176" height="284" rx="14" fill="none" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <text x="598" y="68" text-anchor="middle" font-size="12.5" fill="var(--warn)">异地</text>
+
+      <rect x="524" y="86" width="148" height="220" rx="12" fill="var(--dig-bg)" stroke="var(--dig)" stroke-width="1.5"/>
+      <text x="598" y="114" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--dig)">③ 第三份拷贝</text>
+      <line x1="542" y1="126" x2="654" y2="126" stroke="var(--line)" stroke-width="1"/>
+      <text x="598" y="154" text-anchor="middle" font-size="12" fill="var(--ink)">云端网盘</text>
+      <text x="598" y="174" text-anchor="middle" font-size="12" fill="var(--ink)">或代码仓库</text>
+      <text x="598" y="204" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">不在本地现场</text>
+
+      <line x1="454" y1="196" x2="524" y2="196" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#f4arrow)"/>
+      <text x="489" y="186" text-anchor="middle" font-size="10" fill="var(--ink-soft)">定期同步</text>
+
+      <rect x="34" y="346" width="652" height="34" rx="8" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="360" y="368" text-anchor="middle" font-size="12.5" fill="var(--ink)">3 份拷贝 · 2 种不同介质 · 至少 1 份不在本地现场</text>
+    </svg>
+    <figcaption>图 4:原始文件与第二份拷贝同在本地现场,但分处两种不同介质(内置磁盘 / NAS 或外接硬盘),防的是单一介质集体失效;第三份拷贝放在异地(云盘或代码仓库),防的是现场整体出事——两类风险各有对应的那一份拷贝兜底。</figcaption>
+  </figure>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · 勒索软件时代的 3-2-1-1-0</div>
+    <p>Veeam 等备份厂商近年在经典 3-2-1 后面又加了两位:多一个"1"要求至少 1 份拷贝是<strong>不可变或离线隔离</strong>的(immutable / air-gapped)——防的是勒索软件连你的备份服务器一起加密;多一个"0"要求定期做恢复演练、验证 <strong>0</strong> 个错误——一份从没试过恢复的备份,你并不真的知道它能不能用。</p>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 没测试过恢复的备份,等于没有备份</div>
+    <p>很多人的"备份"做到"按时把文件复制走"就停了,从没实际试过用它把系统恢复回来。压缩包损坏、云同步半途中断、脚本悄悄从某天起就没再跑——这些故障只有在你真正需要恢复的那一刻才会暴露,而那时候往往已经太晚。定期挑一份备份,真的拿它做一次完整恢复演练。</p>
+  </div>
+
+  <h2 id="cicd-git">CI/CD 与 Git:让每一次改动可控、可回滚</h2>
+  <p>Git 的核心思想是把每一次改动存成一个不可变的快照(commit),每个 commit 指向它的上一个 commit,连成一条(或分叉成多条,即分支 branch)历史链。这条链不仅是"版本历史",也是接下来整条 CI/CD 流水线的触发起点——一次 <code>git push</code>,理想情况下应该能自动导向一次安全的线上更新,而不需要手动 SSH 上服务器改文件。</p>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · Git 内部是一棵哈希寻址的树</div>
+    <p>Git 存储的每个对象(commit / 目录树 tree / 文件内容 blob)都用它内容的 SHA 哈希作为唯一标识,对象之间用哈希互相指向,整体组成一个有向无环图(DAG)——这和 §3 提到的镜像层哈希是同一套"内容寻址"思路,也是〈<a href="13-dsa.html">13 数据结构与算法</a>〉里哈希表和树结构在真实工程系统里最直接的应用之一。</p>
+  </div>
+
+  <p><strong>CI</strong>(持续集成,Continuous Integration):每次有人往共享仓库推代码,自动拉取、构建、跑测试,尽早发现"这段代码和别人那段代码合不到一起"的问题。CD 这个字母通常有两种含义:<strong>持续交付</strong>(Continuous Delivery)是自动走完构建和测试,但最后一步"推上生产环境"留给人工点一下确认;<strong>持续部署</strong>(Continuous Deployment)是连最后这一步也自动化,测试一过直接上线,没有人工卡点。GitHub 官方把 GitHub Actions 定义为构建在仓库上的持续集成 / 持续交付平台:一个 YAML 文件描述"什么事件触发"(比如 push 到 main 分支)和"触发后按顺序执行哪些步骤"。</p>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 说"CI/CD"时,"CD"不一定是全自动上线</div>
+    <p>这是最常被混用的一对术语——很多人说"我们做了持续部署",实际做的是持续交付(测试过了但仍要人点一下才上线)。混着说不影响自己用,但和别人对接协作时最好先确认清楚:"合并到主分支"和"用户已经用上新版本"中间,到底还隔不隔着一次人工确认。</p>
+  </div>
+
+  <p>把整条流水线摊开,自托管场景下典型的样子是这样——注意第 3、5 步正好呼应本章前半讲的镜像与容器:</p>
+  <ol class="steps">
+    <li><strong>提交并推送:</strong><code>git push</code> 触发流水线。</li>
+    <li><strong>CI 跑测试:</strong>拉取代码,自动跑单元测试 / 集成测试。</li>
+    <li><strong>构建镜像:</strong>测试全部通过后,构建一个新的容器镜像(见 §3〈镜像与层〉)。</li>
+    <li><strong>推送镜像:</strong>把新镜像推送到镜像仓库(registry)。</li>
+    <li><strong>CD 上线:</strong>自动或经人工确认后,在目标机器上把旧容器换成跑新镜像的容器——本质上就是 §6 那个 compose 文件里的 <code>image</code> 版本变了,重新 <code>docker compose up -d</code>。</li>
+  </ol>
+
+  <figure>
+    <svg viewBox="0 0 760 165" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="f5t f5d">
+      <title id="f5t">CI/CD 五步流水线示意图</title>
+      <desc id="f5d">git push 依次触发五个自动步骤:CI 跑测试、构建镜像、推送镜像到仓库、CD 把目标机器上的容器换成新镜像;第 3 步构建镜像和第 5 步 CD 上线分别呼应本章 §3 镜像与层、§6 worked example 里的 compose 文件。</desc>
+      <defs>
+        <marker id="f5arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+
+      <text x="380" y="20" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink-soft)">git push → 五步自动流水线 → 目标机器上的容器换新</text>
+
+      <rect x="15" y="40" width="130" height="86" rx="10" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="80" y="88" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">提交并推送</text>
+
+      <rect x="165" y="40" width="130" height="86" rx="10" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="230" y="88" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">CI 跑测试</text>
+
+      <rect x="315" y="40" width="130" height="86" rx="10" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+      <text x="380" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="var(--theory)">构建镜像</text>
+      <text x="380" y="101" text-anchor="middle" font-size="10.5" fill="var(--theory)">呼应 §3</text>
+
+      <rect x="465" y="40" width="130" height="86" rx="10" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="530" y="88" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">推送镜像</text>
+
+      <rect x="615" y="40" width="130" height="86" rx="10" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+      <text x="680" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="var(--theory)">CD 上线</text>
+      <text x="680" y="101" text-anchor="middle" font-size="10.5" fill="var(--theory)">呼应 §6</text>
+
+      <line x1="145" y1="83" x2="165" y2="83" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#f5arrow)"/>
+      <line x1="295" y1="83" x2="315" y2="83" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#f5arrow)"/>
+      <line x1="445" y1="83" x2="465" y2="83" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#f5arrow)"/>
+      <line x1="595" y1="83" x2="615" y2="83" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#f5arrow)"/>
+
+      <circle cx="33" cy="40" r="12" fill="var(--brand)"/>
+      <text x="33" y="44.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">1</text>
+      <circle cx="183" cy="40" r="12" fill="var(--brand)"/>
+      <text x="183" y="44.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">2</text>
+      <circle cx="333" cy="40" r="12" fill="var(--brand)"/>
+      <text x="333" y="44.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">3</text>
+      <circle cx="483" cy="40" r="12" fill="var(--brand)"/>
+      <text x="483" y="44.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">4</text>
+      <circle cx="633" cy="40" r="12" fill="var(--brand)"/>
+      <text x="633" y="44.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">5</text>
+    </svg>
+    <figcaption>图 5:五步流水线拉直看就是一条链——第 3 步构建镜像呼应 §3〈镜像与层〉,第 5 步 CD 上线本质是把 §6 那份 compose 文件里的 <code>image</code> 版本换新、重新 <code>docker compose up -d</code>。</figcaption>
+  </figure>
+
+  <details>
+    <summary>延伸:除了 GitHub Actions,常见的 CI/CD 工具还有哪些</summary>
+    <p>GitLab CI/CD(和代码托管深度绑定)、Jenkins(自托管、插件生态最老最全)、CircleCI、Drone CI(轻量、原生面向容器)都是同一套"事件触发 → 按步骤自动执行"思路的不同实现,选择通常取决于代码托管在哪、要不要自己维护执行环境。</p>
+  </details>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 实战锚点 · 对比〈08〉里的手动模式</div>
+    <p>〈<a href="08-windows-admin.html">08 Windows 系统管理与提权</a>〉里"改完文件、手动重启服务"的模式,本质上就是没有 CI/CD 时唯一的部署方式——好处是简单直接,坏处是没有测试关卡(改错了要等它炸了才知道)、没有历史记录(想退回上一个能用的版本,得自己记得上一次改了什么)。CI/CD 把这两样短板都补上了。</p>
+  </div>
+
+  <h2 id="blueprint">整台盒子的运维蓝图</h2>
+  <p>把本手册前面章节里你亲手搭出来的那台机器,和这一章新加的能力拼在一张表里:</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>层</th><th>组件</th><th>本手册章节</th><th>本章新增能力</th></tr></thead>
+      <tbody>
+        <tr><td>硬件 / 固件</td><td>Chromebox 刷机改造</td><td><a href="01-flashing-firmware.html">01</a></td><td>——</td></tr>
+        <tr><td>网络</td><td>iStoreOS 旁路由(192.168.1.2)+ DHCP/NAT</td><td><a href="02-router-bypass.html">02</a>、<a href="10-networking.html">10</a></td><td>容器内部的私有桥接网络是同一套逻辑的缩小版(§4)</td></tr>
+        <tr><td>DNS / 过滤</td><td>dnsmasq:53 → AdGuard Home:5335</td><td><a href="03-dns-adblock.html">03</a></td><td>反向代理(§5)把同一个"统一入口"思路搬到 HTTP 层</td></tr>
+        <tr><td>文件共享</td><td>SMB / Samba</td><td><a href="06-smb-fileshare.html">06</a>、<a href="07-filesystems.html">07</a></td><td>卷(§4)解决的是容器版的"持久化数据放哪"</td></tr>
+        <tr><td>本机运维</td><td>Windows 服务 / UAC / powercfg</td><td><a href="08-windows-admin.html">08</a></td><td>CI/CD(§9)把"手动改、手动重启"自动化、加测试关卡</td></tr>
+        <tr><td>固件安全</td><td>Secure Boot / 驱动签名</td><td><a href="09-secureboot-drivers.html">09</a></td><td>镜像与代码签名是同一逻辑搬到容器供应链</td></tr>
+        <tr><td>新增层</td><td>容器化 + 反代 + 监控 + 3-2-1 备份 + CI/CD</td><td>本章</td><td>把以上所有东西升级成有工程方法支撑的基础设施</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-key">
+    <div class="cx-t">📌 本章要点</div>
+    <p>容器不是轻量 VM——它是共享宿主机同一个内核、靠 <strong>namespace</strong>(决定看得见什么)+ <strong>cgroup</strong>(决定能用多少)做隔离的进程组;Windows 上的 Docker Desktop 实际靠 WSL2 养一个真 Linux 内核来提供这两样东西。镜像是叠起来的只读层,容器在最上面加一层可写层,<strong>写时复制</strong>(CoW)保证镜像本体永远不被写坏、还能被多个容器共享;可写层随容器一起消失,任何要保留的数据必须放进<strong>卷</strong>。容器网络默认靠用户自定义 bridge + Docker 内置 DNS 用服务名互相找到对方,发布端口才能被外部访问——和旁路由的私网 + NAT 是同一套思路的缩小版。<strong>反向代理</strong>(如 Caddy)把多个服务收敛成一个入口、统一签发续期 HTTPS 证书,但只搬得动 HTTP(S) 流量,DNS 这类协议仍需直接发布端口。可观测性三支柱——指标告警、日志定位、追踪溯源——配合起来才知道"坏没坏"和"坏在哪"。<strong>3-2-1 备份法则</strong>(3 份拷贝、2 种介质、1 份异地)是应对数据丢失最基本的纪律,且必须定期演练恢复。<strong>CI/CD</strong> 把 <code>git push</code> 到线上更新之间的"测试关卡"和"变更记录"自动化,持续交付和持续部署的区别在于最后一步要不要人工点头。这六件事拼在一起,把手册前面章节里那台靠你手动运维的盒子,升级成一套有工程方法支撑、能自己扛住常见故障的自托管基础设施。</p>
+  </div>
+
+  <div class="foot">
+    <div class="foot-nav">
+      <a href="15-crypto-security.html">← 上一章:15 密码学与网络安全</a>
+      <a href="../index.html">回首页 →</a>
+    </div>
+    <div class="sources">
+      <b>本章来源(MCP 联网取证)</b>
+      <ol>
+        <li><a href="https://blog.nginx.org/blog/what-are-namespaces-cgroups-how-do-they-work">What Are Namespaces and cgroups, and How Do They Work? — NGINX 官方博客</a></li>
+        <li><a href="https://www.kernel.org/doc/html/latest/admin-guide/namespaces/index.html">Namespaces — The Linux Kernel documentation</a></li>
+        <li><a href="https://docs.kernel.org/admin-guide/cgroup-v2.html">Control Group v2(统一层级 / <code>memory.max</code> 等文件命名)— The Linux Kernel documentation</a></li>
+        <li><a href="https://github.com/opencontainers/runc/blob/main/docs/cgroup-v2.md">cgroup v2(各发行版默认启用版本一览)— opencontainers/runc 官方文档</a></li>
+        <li><a href="https://docs.docker.com/reference/cli/docker/container/run/">docker container run CLI reference(<code>--cgroupns</code> 默认值:v1 host / v2 private)— Docker 官方文档</a></li>
+        <li><a href="https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-2/">Container security fundamentals part 2: Isolation — Datadog Security Labs</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/containers-vs-vm">Containers vs. virtual machines — Microsoft Learn</a></li>
+        <li><a href="https://docs.docker.com/engine/storage/drivers/overlayfs-driver/">OverlayFS storage driver — Docker 官方文档</a></li>
+        <li><a href="https://docs.docker.com/engine/storage/drivers/">Storage drivers(镜像层与写时复制)— Docker 官方文档</a></li>
+        <li><a href="https://docs.docker.com/engine/storage/volumes/">Volumes — Docker 官方文档</a></li>
+        <li><a href="https://docs.docker.com/engine/network/drivers/bridge/">Bridge network driver — Docker 官方文档</a></li>
+        <li><a href="https://docs.docker.com/engine/network/">Networking overview — Docker 官方文档</a></li>
+        <li><a href="https://docs.docker.com/compose/">Docker Compose — Docker 官方文档</a></li>
+        <li><a href="https://hub.docker.com/r/adguard/adguardhome">adguard/adguardhome — Docker Hub 官方镜像页(端口 / Quick Start)</a></li>
+        <li><a href="https://docs.docker.com/desktop/features/wsl/">Docker Desktop WSL 2 backend on Windows — Docker 官方文档</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">Comparing WSL Versions("Full Linux kernel" 一节原文引用出处)— Microsoft Learn</a></li>
+        <li><a href="https://caddyserver.com/docs/automatic-https">Automatic HTTPS — Caddy 官方文档</a></li>
+        <li><a href="https://caddyserver.com/docs/quick-starts/reverse-proxy">Reverse proxy quick-start — Caddy 官方文档</a></li>
+        <li><a href="https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/">What Is A Reverse Proxy? — Cloudflare Learning Center</a></li>
+        <li><a href="https://www.ibm.com/think/insights/observability-pillars">Three Pillars of Observability: Logs, Metrics and Traces — IBM Think</a></li>
+        <li><a href="https://www.veeam.com/blog/321-backup-rule.html">3-2-1 Backup Rule Explained — Veeam</a></li>
+        <li><a href="https://www.hycu.com/blog/3-2-1-backup-rule-explained-how-it-works-why-it-matters">3-2-1 Backup Rule Explained(Peter Krogh 溯源)— HYCU</a></li>
+        <li><a href="https://github.com/resources/articles/ci-cd">What is CI/CD? — GitHub 官方资源</a></li>
+        <li><a href="https://docs.github.com/articles/getting-started-with-github-actions">Understanding GitHub Actions — GitHub 官方文档</a></li>
+      </ol>
+    </div>
+  </div>
+</div>
+</body>
+</html>

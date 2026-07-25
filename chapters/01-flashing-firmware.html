@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01 从 Chromebox 到 UEFI:刷机与固件</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --hero-grad-1:#0a5ab1; --hero-grad-2:#6d28d9; /* hero 渐变固定用深色值,不随暗色模式变浅,保证白字对比度 */
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--hero-grad-1),var(--hero-grad-2));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+
+/* 第 01 章补充:折叠细节块 + 键位标签,复用设计系统变量,不引入新色板 */
+details.fold{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin:16px 0}
+details.fold summary{cursor:pointer;font-weight:600;color:var(--brand);list-style:revert}
+details.fold summary::marker{color:var(--brand)}
+details.fold[open] summary{margin-bottom:8px}
+details.fold ul,details.fold ol{margin:6px 0}
+.kbd{display:inline-block;background:var(--code-bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;font-family:var(--mono);font-size:.85em}
+</style>
+</head>
+<body>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 01 章</p>
+    <h1>从 Chromebox 到 UEFI:刷机与固件</h1>
+    <p>一台被 Google 判了「过期」的 Chromebox,拆开来看 CPU、内存、硬盘都还年轻——真正被判死刑的,只是它头顶那一小片锁死的固件。本章拆开「刷机」这件事的三层积木:写保护、coreboot、UEFI,讲清楚一台专用设备如何变回一台普通的 x86 电脑。</p>
+    <p class="crumbs"><a href="../index.html">← 返回首页</a></p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <b>本章目录</b>
+    <ol>
+      <li><a href="#why">为什么要刷机:一台被判「过期」的好电脑</a></li>
+      <li><a href="#layers">固件是什么:BIOS → UEFI → coreboot 三层积木</a></li>
+      <li><a href="#gates">ChromeOS 的三道门:恢复 / 开发者模式 / 写保护</a></li>
+      <li><a href="#howto">怎么刷:从 RW_LEGACY 到 UEFI Full ROM</a></li>
+      <li><a href="#pitfalls">避坑清单</a></li>
+      <li><a href="#key">本章要点</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="why">为什么要刷机:一台被判「过期」的好电脑</h2>
+  <p class="lead">Chromebox / Chromebook 是一类刻意把智能都放在云端和自动更新上的廉价电脑,代价是出厂那天起就写好了一个到期日。</p>
+  <p>Google 官方把这个到期日叫 <strong>AUE</strong>(Automatic Update Expiration,自动更新到期日)。过了这一天,Google 停止推送 ChromeOS 和 Chrome 浏览器的安全更新,设备照样能开机,但系统层面已经没人维护——MrChromebox 官方文档把这类机器直接称为 <strong>EOL</strong>(End of Life)设备。</p>
+  <p>问题是,到期的只是「操作系统的保修单」,不是硬件。CPU、内存、SPI Flash 芯片、网卡都是实打实的硅片,不会在某个日期集体失效。一台 2014 年 Haswell 平台的 Chromebox,算力和同代普通 x86 迷你主机没有本质区别,完全够格干很多轻量的事——比如整本手册接下来要用到的角色:一台常年开机的旁路由主机(见 <a href="02-router-bypass.html">[[02]] 软路由与旁路由</a>)。</p>
+  <p>真正拦住这条路的,是写在主板 SPI Flash 芯片里的那一小段代码,也就是<strong>固件</strong>。出厂状态下它只认一件事:验证并启动 ChromeOS。「刷机」的本质,就是把这段固件换掉,换成一段谁都认的固件。这正是本章要拆开讲的内容。</p>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🔧 实战锚点</div>
+    <p>本手册里的旁路由主机,就来自一台这样「过期」的 Chromebox。走的是 MrChromebox 官方文档里最常被引用的范例机型——ASUS Chromebox CN60(内部代号 <strong>PANTHER</strong>,Haswell 平台)——之后的标准流程:开发者模式 → 拆机移除写保护螺丝 → 刷入 UEFI Full ROM 固件 → 装 Linux 发行版。刷完之后,它就是 <a href="02-router-bypass.html">[[02]]</a> 里那台旁路由主机的物理载体。</p>
+  </div>
+
+  <h2 id="layers">固件是什么:BIOS → UEFI → coreboot 三层积木</h2>
+  <p>把固件想象成剧场的舞台监督:观众(操作系统)登场之前,得先有人确认电源、灯光、麦克风都通着,幕布挂对了位置,然后才把话筒交给主角。CPU 通电的一瞬间,内存是空的,硬盘还没被认出来,连「第一条指令去哪读」都需要有人钦定——这条钦定的路径,就藏在主板上一颗几毫米见方的 SPI Flash 芯片里,这正是固件。CPU 上电后从固定地址(复位向量)取第一条指令,是计算机组成原理里「自举」(bootstrap)问题的起点,<a href="12-comparch.html">[[12]] 计算机组成原理</a> 会从冯诺依曼架构的角度把这一层继续往下讲。</p>
+
+  <p><strong>传统 BIOS</strong>(Basic Input/Output System)是这份工作最早的标准答案,可追溯到 IBM PC 时代:16 位实模式汇编代码,做完硬件自检(POST)就把控制权交给硬盘第一个扇区里的引导代码。它撑了 30 年,但也背着 30 年前的枷锁——寻址能力有限、只能用汇编写、和 x86 深度捆绑。</p>
+
+  <p><strong>UEFI</strong>(Unified Extensible Firmware Interface,统一可扩展固件接口)是 <a href="https://uefi.org/faq" target="_blank" rel="noopener">UEFI 论坛</a>(由 Intel 发起后移交给行业联盟)定义的下一代标准:用高级语言(通常是 C)实现、模块化、按官方 FAQ 的说法「处理器架构无关」——不仅支持 x86/x64,也支持 ARM 和历史上的 Itanium。UEFI 官方 FAQ 里有一句常被误读的话值得原文引用:<strong>「UEFI 规范定义的是一个接口,而 BIOS 特指一种具体的固件实现」</strong>——也就是说,UEFI 取代 BIOS 不是简单的新版本换旧版本,而是「标准接口」取代了「一种具体做法」。</p>
+
+  <figure>
+    <svg viewBox="0 0 730 460" role="img" aria-labelledby="fig1title" xmlns="http://www.w3.org/2000/svg">
+      <title id="fig1title">固件层次对比:出厂状态 vs 刷入 UEFI Full ROM 后</title>
+      <line x1="365" y1="55" x2="365" y2="452" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 6"/>
+      <text x="185" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="var(--warn)">出厂状态</text>
+      <text x="545" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="var(--practice)">刷入 UEFI Full ROM 后</text>
+
+      <rect x="40" y="90" width="290" height="54" rx="10" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2"/>
+      <text x="185" y="123" text-anchor="middle" font-size="14" fill="var(--ink)">只能启动 ChromeOS</text>
+      <rect x="400" y="90" width="290" height="54" rx="10" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="2"/>
+      <text x="545" y="123" text-anchor="middle" font-size="14" fill="var(--ink)">Windows / Linux 任选</text>
+
+      <line x1="185" y1="188" x2="185" y2="156" stroke="var(--ink-soft)" stroke-width="2"/>
+      <polygon points="185,144 179,156 191,156" fill="var(--ink-soft)"/>
+      <line x1="545" y1="188" x2="545" y2="156" stroke="var(--ink-soft)" stroke-width="2"/>
+      <polygon points="545,144 539,156 551,156" fill="var(--ink-soft)"/>
+
+      <rect x="40" y="190" width="290" height="54" rx="10" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2"/>
+      <text x="185" y="211" text-anchor="middle" font-size="14" fill="var(--ink)">payload:depthcharge</text>
+      <text x="185" y="229" text-anchor="middle" font-size="12" fill="var(--ink-soft)">(ChromeOS 验证启动专用)</text>
+      <rect x="400" y="190" width="290" height="54" rx="10" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="2"/>
+      <text x="545" y="211" text-anchor="middle" font-size="14" fill="var(--ink)">payload:edk2</text>
+      <text x="545" y="229" text-anchor="middle" font-size="12" fill="var(--ink-soft)">(开源 UEFI 参考实现)</text>
+
+      <line x1="185" y1="288" x2="185" y2="256" stroke="var(--ink-soft)" stroke-width="2"/>
+      <polygon points="185,244 179,256 191,256" fill="var(--ink-soft)"/>
+      <line x1="545" y1="288" x2="545" y2="256" stroke="var(--ink-soft)" stroke-width="2"/>
+      <polygon points="545,244 539,256 551,256" fill="var(--ink-soft)"/>
+
+      <rect x="40" y="290" width="290" height="54" rx="10" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2"/>
+      <text x="185" y="322" text-anchor="middle" font-size="14" fill="var(--ink)">coreboot(硬件初始化)</text>
+      <rect x="400" y="290" width="290" height="54" rx="10" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="2"/>
+      <text x="545" y="322" text-anchor="middle" font-size="14" fill="var(--ink)">coreboot(同项目重新编译)</text>
+
+      <line x1="185" y1="388" x2="185" y2="356" stroke="var(--ink-soft)" stroke-width="2"/>
+      <polygon points="185,344 179,356 191,356" fill="var(--ink-soft)"/>
+      <line x1="545" y1="388" x2="545" y2="356" stroke="var(--ink-soft)" stroke-width="2"/>
+      <polygon points="545,344 539,356 551,356" fill="var(--ink-soft)"/>
+
+      <rect x="40" y="390" width="650" height="54" rx="10" fill="var(--code-bg)" stroke="var(--line)" stroke-width="2"/>
+      <text x="365" y="422" text-anchor="middle" font-size="14" fill="var(--ink)">共用硬件:CPU / RAM / SPI Flash 芯片(同一块主板)</text>
+    </svg>
+    <figcaption>图 1-1:同一块主板,固件栈的 payload 从 depthcharge 换成 edk2,设备就从「ChromeOS 专用机」变成了「通用 x86 PC」。从下到上是开机的时间顺序。</figcaption>
+  </figure>
+
+  <p>这里藏着一个反直觉的事实:<strong>coreboot</strong> 是一个开源项目,只做「让硬件能被使用」这件刚好够用的事,然后把控制权交给一个叫 <strong>payload(负载程序)</strong> 的独立模块——常见的 payload 包括提供传统 BIOS 服务的 SeaBIOS、提供 UEFI 服务的开源实现 <a href="https://doc.coreboot.org/" target="_blank" rel="noopener">edk2</a>(也叫 Tianocore)、Linux 常用的引导器 GRUB2,以及 Chromebook/Chromebox 专用的验证启动引导器 <strong>depthcharge</strong>。<strong>ChromeOS 设备出厂时就已经在跑 coreboot 了</strong>——Google 没有另起炉灶,只是把 payload 换成了自家锁死的 depthcharge。所谓刷机,在多数机型上并不是把 coreboot 换掉,而是<strong>把 payload 从 depthcharge 换成 edk2</strong>:同一个地基,换一间屋子。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>维度</th><th>传统 BIOS</th><th>UEFI</th></tr></thead>
+      <tbody>
+        <tr><td>代码实现</td><td>16 位实模式汇编</td><td>通常为 C 语言,模块化、可复用</td></tr>
+        <tr><td>处理器架构</td><td>基本绑定 x86</td><td>架构无关:x86、x64、ARM、(历史上的)Itanium</td></tr>
+        <tr><td>分区表</td><td>MBR(容量与分区数有历史局限)</td><td>GPT</td></tr>
+        <tr><td>安全启动</td><td>无对应机制</td><td>可选的 Secure Boot,详见 <a href="09-secureboot-drivers.html">[[09]]</a></td></tr>
+        <tr><td>与彼此的关系</td><td colspan="2">UEFI 论坛官方 FAQ 原话:「UEFI 规范定义的是一个接口,而 BIOS 特指一种具体的固件实现」——两者不是简单的新旧版本关系</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">📐 原理 · 408 / 系统</div>
+    <p>「CPU 上电后先执行谁」在计算机组成原理里有标准答案:复位信号把程序计数器(PC)拉到一个厂商写死的固定地址(复位向量),那个地址上的代码就是固件的入口。固件做完硬件初始化后,再把控制权「移交」给下一层——这正是 payload 机制的通用形态。这条移交链(硬件 → 固件 → 引导器 → 内核 → 用户态)在 <a href="12-comparch.html">[[12]] 计算机组成原理</a> 会配合流水线、存储层次继续展开。</p>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · coreboot 的工程哲学</div>
+    <p>coreboot 官方文档把项目哲学写得很直白:「尽量不留驻内存」(no resident services if possible)——理想状态下 coreboot 完全交棒给 payload,自己不留一兵一卒;现实中 x86 上仍有一小段代码常驻在 SMM(System Management Mode,系统管理模式)里提供有限服务,但项目会把这部分范围压到最小。coreboot 本身不发布二进制固件,只发布源码;遇到硬件初始化必须依赖厂商私有代码(blob)的情况,会由社区评审「值不值得引入」——这也是为什么 MrChromebox、Purism 这类「发行版」要在 coreboot 之上再打包一层,才能变成普通用户可以直接刷的成品固件。</p>
+  </div>
+
+  <h2 id="gates">ChromeOS 的三道门:恢复模式 / 开发者模式 / 写保护</h2>
+  <p>光知道 payload 可以换掉还不够快——ChromeOS 出厂时用三道相互独立的门保护自己,缺一道都进不了刷 Full ROM 固件的门。三道门各管一段,先看一眼全貌,再逐一展开:</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>门</th><th>保护什么</th><th>怎么触发 / 怎么过</th><th>要不要拆机</th></tr></thead>
+      <tbody>
+        <tr><td>门一:恢复模式</td><td>让设备始终能回到出厂干净状态,兜底任何改坏的情况</td><td>Chromebook:<span class="kbd">Esc</span>+<span class="kbd">Refresh</span>+<span class="kbd">Power</span>;Chromebox:回形针捅 recovery 按钮通电</td><td>不需要</td></tr>
+        <tr><td>门二:开发者模式</td><td>验证启动(verified boot)的强制性;放开后才能拿到 root shell、改内核/根文件系统、走 Legacy Boot</td><td>恢复/警告界面按 <span class="kbd">Ctrl</span>+<span class="kbd">D</span>,等约 5 分钟状态分区擦除</td><td>通常不需要(部分早期机型的物理开关例外)</td></tr>
+        <tr><td>门三:写保护</td><td>固件只读(RO)区能不能被重写</td><td>拆下 WP 螺丝(2013–2017 世代)/ 拔电池排线(CR50 起)/ 短接跳线或 SuzyQable 走 CCD</td><td>需要</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>门一:恢复模式(Recovery Mode)</h3>
+  <p>这是「无论如何都能回到安全状态」的门:在 Chromebook 上按住 <span class="kbd">Esc</span>+<span class="kbd">Refresh</span>+<span class="kbd">Power</span>,或在 Chromebox 上用回形针按住机身的 recovery 按钮通电,设备就会只信任 Google 签过名的恢复镜像,从 U 盘重新安装一份干净的 ChromeOS。按 Google 官方说明,这个操作会清空硬盘上的一切,U 盘至少需要 8GB 且会被完全抹除来制作。</p>
+
+  <details class="fold">
+    <summary>折叠:官方 ChromeOS 恢复 U 盘怎么做</summary>
+    <ol>
+      <li>准备一台能装 Chrome 浏览器的其它电脑,以及一根 ≥8GB、可以被完全抹掉的 U 盘。</li>
+      <li>在这台好用的电脑上给 Chrome 装「Chromebook 恢复实用程序」(Chromebook Recovery Utility)扩展。</li>
+      <li>打开扩展,从型号列表里选中(或手动输入)故障机的具体型号,插入 U 盘并点击创建。</li>
+      <li>回到故障机,进入恢复模式(见正文按键组合),选择「使用外部磁盘恢复」,按提示走完流程。</li>
+      <li>恢复完成后设备自动重启;U 盘若要挪作他用,需要先在扩展里「擦除恢复介质」再正常格式化。</li>
+    </ol>
+  </details>
+
+  <h3>门二:开发者模式(Developer Mode)</h3>
+  <p>开发者模式放松的是「验证启动」——给你 VT2 虚拟终端的 root shell、允许修改内核与根文件系统、允许通过 Legacy Boot 菜单启动其它系统,同时也是后续几乎所有固件改动的前置条件。进入方式很直白:在恢复/警告界面按 <span class="kbd">Ctrl</span>+<span class="kbd">D</span>。这不是随手加的彩蛋——按 Chromium 官方设计文档,这恰恰是 Google 明确批准的「开发者开关」几种实现之一(另外两种是螺丝盖下的物理开关,或者藏在电池仓里必须拆开才能碰到的开关)。</p>
+  <p>切换进/出开发者模式都会触发一次<strong>长达 5 分钟</strong>的状态分区擦除延迟,这是刻意设计:目的是把「顺手攻击一台无人看管的设备」的成本,拉高到接近「物理拆机攻击」的水平。警告界面本身也有精确的时间设计——「OS verification is OFF」白屏 20 秒后会响一声提示音,30 秒无操作则自动继续启动开发者签名的系统;按 <span class="kbd">Ctrl</span>+<span class="kbd">D</span> 可以立即跳过等待。</p>
+
+  <p>写保护更像自来水表外壳上的铅封:光有开发者模式这把「房子钥匙」,不代表你能合法拆开电表——拆封本身是另一个独立的物理动作,而且拆过就是拆过,装回去也瞒不住检查的人。</p>
+
+  <h3>门三:写保护(Write Protection,WP)</h3>
+  <p>这是真正决定「固件的只读区能不能被重写」的门,和开发者模式完全独立。它分两层:<strong>软件写保护</strong>是刷写芯片上的一组特殊寄存器,可以把若干地址区间标记为只读;而这组寄存器本身能不能被改动,又由<strong>硬件写保护</strong>——一个电路层面的开关——把关,通常做法是把 Flash 芯片的 <code>!WP</code> 引脚接地。</p>
+
+  <figure>
+    <svg viewBox="0 0 730 300" role="img" aria-labelledby="fig2title" xmlns="http://www.w3.org/2000/svg">
+      <title id="fig2title">写保护(WP)电路示意:螺丝在位 vs 螺丝已拆</title>
+      <line x1="365" y1="10" x2="365" y2="290" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 6"/>
+
+      <text x="150" y="22" text-anchor="middle" font-size="15" font-weight="700" fill="var(--warn)">螺丝在位</text>
+      <rect x="70" y="40" width="160" height="90" rx="8" fill="var(--code-bg)" stroke="var(--ink-soft)" stroke-width="2"/>
+      <text x="150" y="90" text-anchor="middle" font-size="13" fill="var(--ink)">SPI Flash 芯片</text>
+      <line x1="150" y1="130" x2="150" y2="176" stroke="var(--ink-soft)" stroke-width="2"/>
+      <text x="172" y="155" text-anchor="start" font-size="12" fill="var(--ink-soft)">!WP</text>
+      <circle cx="150" cy="190" r="14" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2"/>
+      <line x1="136" y1="190" x2="164" y2="190" stroke="var(--warn)" stroke-width="2"/>
+      <line x1="150" y1="204" x2="150" y2="222" stroke="var(--warn)" stroke-width="2"/>
+      <line x1="120" y1="228" x2="180" y2="228" stroke="var(--warn)" stroke-width="2"/>
+      <line x1="130" y1="236" x2="170" y2="236" stroke="var(--warn)" stroke-width="2"/>
+      <line x1="140" y1="244" x2="160" y2="244" stroke="var(--warn)" stroke-width="2"/>
+      <text x="150" y="270" text-anchor="middle" font-size="13" fill="var(--warn)">螺丝在位 → !WP 接地 → 硬件写保护 ON</text>
+
+      <text x="545" y="22" text-anchor="middle" font-size="15" font-weight="700" fill="var(--practice)">螺丝已拆</text>
+      <rect x="465" y="40" width="160" height="90" rx="8" fill="var(--code-bg)" stroke="var(--ink-soft)" stroke-width="2"/>
+      <text x="545" y="90" text-anchor="middle" font-size="13" fill="var(--ink)">SPI Flash 芯片</text>
+      <line x1="545" y1="130" x2="545" y2="180" stroke="var(--ink-soft)" stroke-width="2"/>
+      <text x="567" y="155" text-anchor="start" font-size="12" fill="var(--ink-soft)">!WP</text>
+      <circle cx="545" cy="180" r="5" fill="var(--panel)" stroke="var(--practice)" stroke-width="2"/>
+      <text x="545" y="205" text-anchor="middle" font-size="12.5" fill="var(--practice)">(悬空,未接地)</text>
+      <text x="545" y="270" text-anchor="middle" font-size="13" fill="var(--practice)">螺丝已拆 → !WP 悬空 → 硬件写保护 OFF</text>
+    </svg>
+    <figcaption>图 1-2:多数 2013–2017 年机型靠一颗螺丝把 SPI Flash 芯片的 !WP 引脚接地;拧下螺丝,引脚悬空,硬件写保护随之解除,螺丝不用装回去。2017 年后的 CR50/Ti50 机型把同一个开关搬进了安全芯片,常见做法是拔掉主板电池排线。</figcaption>
+  </figure>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>时期 / 世代</th><th>硬件写保护机制</th><th>如何解除</th></tr></thead>
+      <tbody>
+        <tr><td>2011–2013(截至 2013 Chromebook Pixel 之前的早期机型)</td><td>物理开关 / 跳线</td><td>直接拨动开关</td></tr>
+        <tr><td>2013–2017(自 2013 Chromebook Pixel 起,CR50 之前:Haswell / Broadwell / Baytrail / Skylake / Braswell 等)</td><td>一颗「WP 螺丝」把 !WP 引脚接地</td><td>拆机取下螺丝(不用装回)</td></tr>
+        <tr><td>2017 年至今(CR50 / Ti50 安全芯片机型)</td><td>安全芯片(GSC)依据电池感应线状态控制 !WP</td><td>断开主板电池排线;部分新机型需短接一个未焊接的跳线,或用 SuzyQable 走 CCD 调试口</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 别把两道门搞混</div>
+    <p>MrChromebox 官方文档开篇第一句话就在纠偏:「写保护是 ChromeOS 设备上最常被误解的机制之一——很多教程会在讲别的操作时,顺手让你先把写保护关掉,其实完全没必要。」<strong>开发者模式 ≠ 关闭写保护</strong>,是两道独立的闸门:只有当你要改只读(RO)区——比如刷 UEFI Full ROM、或者改 GBB Flags(GBB,Google Binary Block,固件只读区里存放开发者模式启动行为标志位等数据的一块区域)——才需要关 WP;像装 RW_LEGACY 这种只动可写区域的操作,完全不需要碰写保护,更不需要拆机。</p>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · 没有螺丝之后怎么办</div>
+    <p>2017 年后带 CR50/Ti50 安全芯片(Google 内部叫 GSC,Google Security Chip)的机型不再有物理螺丝,WP 状态改由芯片依据电池感应线判断——多数机型只要把主板上的电池排线拔掉就能让 WP 失效;部分新机型改为需要短接一个未焊接的跳线。也可以用一根特制的 USB-C 调试线(官方昵称 <strong>SuzyQable</strong>)走「闭盒调试」(Closed-Case Debugging,CCD)在不拆机的情况下切换 WP 状态。2023 年之后的 Ti50 机型还多了一层「AP RO 固件验证」,需要额外单独关闭才能刷写。这条链路正是 <a href="09-secureboot-drivers.html">[[09]] 固件安全与内核驱动</a> 要展开的信任根话题。</p>
+  </div>
+
+  <h2 id="howto">怎么刷:从 RW_LEGACY 到 UEFI Full ROM</h2>
+  <p>MrChromebox 提供的固件更新分两条路,选哪条取决于你还要不要 ChromeOS。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>对比项</th><th>RW_LEGACY</th><th>UEFI Full ROM</th></tr></thead>
+      <tbody>
+        <tr><td>需要先解除写保护?</td><td>不需要</td><td>需要</td></tr>
+        <tr><td>ChromeOS 还能启动吗?</td><td>能,双系统(开机按 <span class="kbd">Ctrl</span>+<span class="kbd">L</span> 切换)</td><td>不能,被彻底替换</td></tr>
+        <tr><td>变砖风险</td><td>几乎为零</td><td>存在,但脚本会自动备份 MAC / VPD / HWID 降低风险</td></tr>
+        <tr><td>UEFI NVRAM(记住启动项)</td><td>不支持</td><td>支持</td></tr>
+        <tr><td>适合谁</td><td>想双启动、不想拆机</td><td>只跑 Linux / Windows,想要一台「正常 PC」</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🔧 worked example · 把 Chromebox 刷成 UEFI Full ROM</div>
+    <p>以官方文档最常引用的 ASUS Chromebox CN60(代号 PANTHER)为例,走一遍完整流程:</p>
+    <ol>
+      <li>在恢复/警告界面按 <span class="kbd">Ctrl</span>+<span class="kbd">D</span> 进入开发者模式,等一次约 5 分钟的状态分区擦除。</li>
+      <li>登录 ChromeOS 后按 <span class="kbd">Ctrl</span>+<span class="kbd">Alt</span>+<span class="kbd">F2</span> 切到 VT2 终端,用 <code>chronos</code>(而不是 root)登录。</li>
+      <li>物理拆开机身,找到并取下写保护螺丝(2013–2017 世代机型;CR50 机型改为拔电池排线)。螺丝在 PANTHER 主板上的具体位置,可对照 MrChromebox 官方设备支持列表(Haswell 分类下 PANTHER 一行)里的实物照片。</li>
+      <li>以普通用户身份(<strong>不要</strong> 先 <code>sudo su</code>)运行官方固件工具脚本:
+        <pre><code>cd; curl -LOf https://mrchromebox.tech/firmware-util.sh &amp;&amp; sudo bash firmware-util.sh</code></pre>
+      </li>
+      <li>菜单里选择「Install/Update UEFI (Full ROM) Firmware」。脚本会自动识别主板型号,把当前固件里的序列号、硬件 ID(HWID)、VPD(Vital Product Data,存出厂参数的区域,含以太网 MAC 地址)、内存训练缓存(RW_MRC_CACHE)一并抽出来,注入新固件——按官方文档,保留 MRC 缓存能让刷机后第一次开机<strong>省下最多 60 秒</strong>的内存训练时间。对 Chromebox 而言,VPD 里的 MAC 地址尤其关键:漏掉这一步,网卡就会用一个重复或无效的 MAC 上网。</li>
+      <li>刷写完成、重启,设备直接进入 UEFI 界面,ChromeOS 已经不在了——这台机器现在是一台「裸机」x86 PC,可以装任何 UEFI 兼容的系统。</li>
+    </ol>
+    <p>刷完之后,这台空白主机会在 <a href="02-router-bypass.html">[[02]] 软路由与旁路由</a> 里被装上 iStoreOS,变成手册后续章节反复出现的那台旁路由。</p>
+  </div>
+
+  <details class="fold">
+    <summary>折叠:固件工具脚本菜单里还能干什么</summary>
+    <ul>
+      <li><strong>Backup Current Firmware</strong>——刷任何东西之前先备份到本地或 U 盘,文件名自动带板名/版本/日期,是出问题时唯一的退路。</li>
+      <li><strong>Restore Stock Firmware</strong>——用之前的备份、或直接从官方恢复镜像里提取 shellball 还原出厂固件;EOL 设备会被脚本直接拒绝这个选项(见下方避坑)。</li>
+      <li><strong>Set Boot Options(GBB Flags)</strong>——只对未刷 Full ROM 的原厂固件有效,六个选项(其中四个是等待时长 1 秒/30 秒 × 默认启动目标 ChromeOS/Legacy Boot 的组合,另外两个是恢复出厂默认与取消)。</li>
+      <li><strong>Clear UEFI NVRAM</strong>——仅 Full ROM 固件下可用,清空启动项配置,常用来修复损坏的启动顺序。</li>
+    </ul>
+  </details>
+
+  <h2 id="pitfalls">避坑清单</h2>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 刷写中途失败,千万别重启</div>
+    <p>官方文档原话:如果刷写过程失败,<strong>不要重启</strong>,先用「恢复」选项把备份的 ROM 重新刷回去。半途重启很可能让设备停在一个既不是旧固件、也不是新固件的中间状态,这才是真正意义上的「变砖」。这也是为什么第一步永远是「先备份」。</p>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · EOL 设备拒绝恢复出厂固件,是有意为之</div>
+    <p>过了 AUE 日期的设备,脚本会直接不让你把出厂 ChromeOS 恢复回去——这不是 bug,而是故意的:恢复一个不再收到安全更新的旧系统对谁都没好处。官方建议是继续用 UEFI 固件配 Linux / Windows / ChromeOS Flex,这几个都还在持续获得更新。</p>
+  </div>
+
+  <p>其它常见误区:GBB Flags 只在原厂固件(含 RW_LEGACY)上有意义,刷完 UEFI Full ROM 之后这套机制根本不存在,继续找它设置是白费功夫;运行固件工具脚本必须用普通用户身份,脚本内部自己会在需要时调用 <code>sudo</code>,提前 <code>sudo su</code> 反而会把事情搞坏。</p>
+
+  <h2 id="key">本章要点</h2>
+  <div class="cx cx-key">
+    <div class="cx-t">📌 本章要点</div>
+    <ol>
+      <li>固件是 CPU 上电后执行的第一段代码,分两层:硬件初始化(coreboot)+ 引导载荷(payload:depthcharge / SeaBIOS / edk2)。</li>
+      <li>UEFI 是行业标准定义的「接口」,不是某个具体实现;它取代的是运行在 16 位实模式、和 x86 深度捆绑的传统 BIOS。</li>
+      <li>ChromeOS 出厂时用恢复模式、开发者模式、写保护三道相互独立的门层层把关;开发者模式放松验证启动,但不等于关闭写保护。</li>
+      <li>写保护是纯硬件电路(接地 <code>!WP</code> 引脚),不是软件开关,所以必须物理拆机操作——这是有意的安全设计,不是历史包袱。</li>
+      <li>换上 UEFI Full ROM 固件后,payload 从 depthcharge 换成 edk2,Chromebox 变成一台可以装任何 x86 系统的裸机,为下一章的旁路由改造铺好了路。</li>
+    </ol>
+  </div>
+
+  <footer class="foot">
+    <div class="foot-nav">
+      <a href="../index.html">↩ 回首页</a>
+      <a href="02-router-bypass.html">下一章:软路由与旁路由 →</a>
+    </div>
+    <div>
+      <b style="display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px">本章来源</b>
+      <ol class="sources">
+        <li>MrChromebox — Firmware Write Protection on ChromeOS Devices — <a href="https://docs.mrchromebox.tech/docs/firmware/wp/" target="_blank" rel="noopener">docs.mrchromebox.tech/docs/firmware/wp/</a></li>
+        <li>MrChromebox — Disabling Firmware Write Protection — <a href="https://docs.mrchromebox.tech/docs/firmware/wp/disabling.html" target="_blank" rel="noopener">docs.mrchromebox.tech/docs/firmware/wp/disabling.html</a></li>
+        <li>MrChromebox — Firmware Utility Script — <a href="https://docs.mrchromebox.tech/docs/fwscript.html" target="_blank" rel="noopener">docs.mrchromebox.tech/docs/fwscript.html</a></li>
+        <li>MrChromebox — Firmware Update Types(RW_LEGACY vs UEFI Full ROM) — <a href="https://docs.mrchromebox.tech/docs/firmware/types.html" target="_blank" rel="noopener">docs.mrchromebox.tech/docs/firmware/types.html</a></li>
+        <li>MrChromebox — Supported Devices(含各机型写保护螺丝位置实物照片) — <a href="https://docs.mrchromebox.tech/docs/supported-devices.html" target="_blank" rel="noopener">docs.mrchromebox.tech/docs/supported-devices.html</a></li>
+        <li>UEFI Forum — UEFI FAQs — <a href="https://uefi.org/faq" target="_blank" rel="noopener">uefi.org/faq</a></li>
+        <li>coreboot project — 官方文档首页 — <a href="https://doc.coreboot.org/" target="_blank" rel="noopener">doc.coreboot.org</a></li>
+        <li>The Chromium Projects — ChromiumOS Design Docs:Developer Mode — <a href="https://www.chromium.org/chromium-os/chromiumos-design-docs/developer-mode/" target="_blank" rel="noopener">chromium.org/.../developer-mode</a></li>
+        <li>Google — Chromebook 帮助:恢复你的 Chromebook — <a href="https://support.google.com/chromebook/answer/1080595" target="_blank" rel="noopener">support.google.com/chromebook/answer/1080595</a></li>
+      </ol>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>13 数据结构与算法</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+
+/* --- 本章补充(与设计系统同一套变量,不引入新配色) --- */
+details{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 16px;margin:16px 0}
+details summary{cursor:pointer;font-weight:700;color:var(--brand-2)}
+details[open] summary{margin-bottom:8px}
+details summary::-webkit-details-marker{color:var(--brand-2)}
+.steps{list-style:none;padding-left:0;counter-reset:step}
+.steps>li{counter-increment:step;margin:12px 0;padding-left:38px;position:relative}
+.steps>li::before{content:counter(step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;line-height:26px;text-align:center}
+.steps>li>strong{color:var(--brand-2)}
+</style>
+</head>
+<body>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 13 章</p>
+    <h1>数据结构与算法</h1>
+    <p>同一个任务,换一种数据摆放方式、换一个算法,耗时可能差出几个数量级——这一章讲清楚"数据怎么摆"与"步骤怎么走"如何从根本上决定程序的快慢,也回头点破前面章节里悄悄工作的哈希表、树与图,是本手册 Part II"计算机核心(408 拓展)"里编程与工程的地基。</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="crumbs"><a href="../index.html">← 返回首页</a></p>
+
+  <p class="lead">你可能没意识到,本手册前面几乎每一章都在跟数据结构打交道:AdGuard 判断一个域名在不在黑名单里几乎瞬间完成(<a href="03-dns-adblock.html">03 章</a>),靠的是哈希表;DNS 从根到权威服务器一层层解析(<a href="03-dns-adblock.html">03 章</a>),走的是一棵树;交换机维护的 MAC 地址表(<a href="10-networking.html">10 章</a>)本质上也是哈希表;NTFS/ext4 给目录建索引(<a href="07-filesystems.html">07 章</a>)靠的是树结构;Git 的整部提交历史(留给 <a href="16-devops-selfhost.html">16 章</a>细讲)是一张图。这些工具能"秒回",不是运气,而是数据结构与算法这门学科替你把数据摆对了形状、把步骤设计对了顺序——这一章就是这套经验的浓缩地基。</p>
+
+  <div class="toc">
+    <b>目录</b>
+    <ol>
+      <li><a href="#why">为什么复杂度决定成败</a></li>
+      <li><a href="#big-o">Big-O:量出"快慢"的尺子</a></li>
+      <li><a href="#linear">线性结构:数组·链表·栈·队列</a></li>
+      <li><a href="#tree">树:层级结构、二叉搜索树与堆</a></li>
+      <li><a href="#graph">图:万物皆关系</a></li>
+      <li><a href="#hash">哈希表:用空间换时间的 O(1) 魔法</a></li>
+      <li><a href="#sort">排序:经典算法全家福</a></li>
+      <li><a href="#engineering">工程视角:怎么选、怎么避坑</a></li>
+    </ol>
+  </div>
+
+  <h2 id="why">为什么复杂度决定成败</h2>
+  <p>设想一个具体问题:在 100 万条记录里找一条。如果数据是随手堆放的一堆(比如一份没排序的列表),你唯一能做的是从头到尾挨个比对——最坏情况要看完全部 100 万条,这叫<strong>线性查找</strong>,记作 O(n)。但如果数据先排好了序,你可以每次只看中间那条、比它大就去右半边、比它小就去左半边——这是<strong>二分查找</strong>,每一步排除掉一半候选,最坏只要 log₂(1,000,000)≈20 步。同一个问题,只因为"数据有没有排好序 + 用哪种查法",答案要走的步数差了 5 万倍。</p>
+  <p>数据结构与算法研究的正是这两件事:<strong>数据结构</strong>决定"数据怎么摆"(排好序的数组?串起来的链表?分层的树?哈希表?),<strong>算法</strong>决定"步骤怎么走"(怎么查、怎么排、怎么遍历)。程序"看起来卡"还是"感觉秒开",很多时候不是硬件不够快,而是背后选错了摆法或走错了步子——后面每一节都会回来印证这句话:03 章 AdGuard 秒判黑名单、10 章交换机秒转发、16 章 Git 秒查提交历史,都是本章原理的真实落地。</p>
+
+  <h2 id="big-o">Big-O:量出"快慢"的尺子</h2>
+  <p>Big-O 记号回答的不是"这段代码几点跑完",而是"如果输入规模翻倍,耗时大概涨几倍"——它衡量的是<strong>增长趋势</strong>,不是秒表读数。类比一下:问一辆车"这段路要开多久"是问具体耗时;问"如果距离翻倍,时间会不会也差不多翻倍"才是问增长趋势,而后者才是 Big-O 真正回答的问题。</p>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 原理 · Big-O 的形式化定义</div>
+    <p>"f(x) = O(g(x))" 的严格定义(维基百科)是:存在一个正实数 M,使得对足够大的 x,都有 |f(x)| ≤ M·|g(x)|。翻译成人话:只要能找到一个"放大倍数" M,让 g(x) 放大后从某个点开始永远盖住 f(x),就说 f(x) 是 O(g(x))。关键是"存在这样的 M"这件事本身,M 具体是多少无所谓——这也是为什么 O(2n) 和 O(n) 被视为同一复杂度:常数倍数在 Big-O 里被直接忽略。</p>
+  </div>
+
+  <p>复杂度还分<strong>最好情况(best case)、平均情况(average case)、最坏情况(worst case)</strong>——比如冒泡排序如果输入已经是正序的,一轮就能提前结束(最好情况 O(n)),但如果是完全逆序,要跑满全部轮次(最坏情况 O(n²))。工程上做容量规划时,通常按<strong>最坏情况</strong>留余量,因为线上系统扛不住"运气不好就崩"。</p>
+
+  <figure>
+    <svg viewBox="0 0 720 400" width="100%" role="img" font-family="var(--font)" aria-label="Big-O 复杂度增长趋势示意图">
+      <title>五种常见复杂度类别的增长趋势示意图(形状示意,非精确等比例数值)</title>
+      <line x1="70" y1="40" x2="70" y2="350" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <line x1="70" y1="350" x2="685" y2="350" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="690" y="354" text-anchor="end" font-size="12" fill="var(--ink-soft)">n(输入规模)→</text>
+      <text x="75" y="24" font-size="12" fill="var(--ink-soft)">↑ 操作次数 / 耗时(示意形状,非等比例数值)</text>
+      <text x="58" y="362" text-anchor="end" font-size="11" fill="var(--ink-soft)">0</text>
+
+      <path d="M70,332 L640,332" fill="none" stroke="var(--practice)" stroke-width="2.5"/>
+      <text x="645" y="336" font-size="12.5" fill="var(--practice)" font-weight="700">O(1) 常数</text>
+
+      <path d="M70,340 C160,292 300,272 640,266" fill="none" stroke="var(--brand)" stroke-width="2.5"/>
+      <text x="645" y="270" font-size="12.5" fill="var(--brand)" font-weight="700">O(log n) 对数</text>
+
+      <path d="M70,340 L640,160" fill="none" stroke="var(--key)" stroke-width="2.5"/>
+      <text x="645" y="164" font-size="12.5" fill="var(--key)" font-weight="700">O(n) 线性</text>
+
+      <path d="M70,340 C260,298 440,175 640,85" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="645" y="89" font-size="12.5" fill="var(--accent)" font-weight="700">O(n log n)</text>
+
+      <path d="M70,340 C180,332 280,215 370,135 C430,88 500,45 580,22" fill="none" stroke="var(--warn)" stroke-width="2.5"/>
+      <text x="360" y="16" font-size="12.5" fill="var(--warn)" font-weight="700">O(n²) 平方级——继续陡增↗</text>
+    </svg>
+    <figcaption>图 1:五种常见复杂度类别的增长趋势(示意图,曲线形状体现相对增长速度,非精确等比例数值)。同样输入规模下,O(n²) 会远远甩开 O(n log n),且差距随 n 增大持续扩大。</figcaption>
+  </figure>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>复杂度</th><th>名称</th><th>典型例子</th></tr></thead>
+      <tbody>
+        <tr><td>O(1)</td><td>常数</td><td>哈希表按 key 查值、数组按下标取值</td></tr>
+        <tr><td>O(log n)</td><td>对数</td><td>二分查找、平衡树查找 / 插入</td></tr>
+        <tr><td>O(n)</td><td>线性</td><td>遍历数组一次、线性查找</td></tr>
+        <tr><td>O(n log n)</td><td>线性对数</td><td>归并排序、堆排序、大多数语言内置排序</td></tr>
+        <tr><td>O(n²)</td><td>平方</td><td>冒泡 / 插入 / 选择排序、朴素两层嵌套循环</td></tr>
+        <tr><td>O(2ⁿ)</td><td>指数</td><td>穷举所有子集(n 个元素有 2ⁿ 个子集)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="linear">线性结构:数组·链表·栈·队列</h2>
+  <p>最基础的地基结构是把数据排成"一条线"。最常见的两种实现方式——<strong>数组(array)</strong>和<strong>链表(linked list)</strong>——表面上都能存一串数据、都能遍历,但底层内存布局完全不同,导致优劣完全反过来。</p>
+
+  <h3>数组 vs 链表:同样是"一条线",内存长得不一样</h3>
+  <p><strong>数组</strong>把元素挨个存在一整块连续内存里,访问下标 i 时直接用公式「地址 = 起始地址 + i × 单个元素大小」一步算出目标地址,是 O(1);但往中间插入一个元素,后面所有元素都要往后挪一位腾位置,最坏是 O(n)。<strong>链表</strong>反过来:每个节点各自散落在内存的任意角落,靠"指针"记住下一个节点在哪;只要已经拿到了插入点前一个节点的引用,插入/删除本身只是改几个指针,是 O(1),但要"找到"那个节点没法直接跳,只能从头一个个顺着指针走,是 O(n)。</p>
+
+  <figure>
+    <svg viewBox="0 0 740 380" width="100%" role="img" font-family="var(--font)" aria-label="数组与链表内存布局对比图">
+      <title>数组(连续内存,可直接寻址)与链表(节点散落,只能顺指针遍历)的内存布局对比</title>
+      <defs>
+        <marker id="arrowArr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--practice)"/>
+        </marker>
+        <marker id="arrowLL" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+
+      <text x="155" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="var(--practice)">数组(连续内存)</text>
+      <rect x="30" y="140" width="52" height="48" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="56" y="164" text-anchor="middle" font-size="14" fill="var(--ink)">8</text>
+      <rect x="86" y="140" width="52" height="48" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="112" y="164" text-anchor="middle" font-size="14" fill="var(--ink)">3</text>
+      <rect x="142" y="140" width="52" height="48" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="168" y="164" text-anchor="middle" font-size="14" fill="var(--ink)">5</text>
+      <rect x="198" y="140" width="52" height="48" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="224" y="164" text-anchor="middle" font-size="14" fill="var(--ink)">1</text>
+      <rect x="254" y="140" width="52" height="48" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="280" y="164" text-anchor="middle" font-size="14" fill="var(--ink)">9</text>
+      <text x="56" y="205" text-anchor="middle" font-size="11" fill="var(--ink-soft)">0</text>
+      <text x="112" y="205" text-anchor="middle" font-size="11" fill="var(--ink-soft)">1</text>
+      <text x="168" y="205" text-anchor="middle" font-size="11" fill="var(--ink-soft)">2</text>
+      <text x="224" y="205" text-anchor="middle" font-size="11" fill="var(--ink-soft)">3</text>
+      <text x="280" y="205" text-anchor="middle" font-size="11" fill="var(--ink-soft)">4</text>
+
+      <text x="224" y="95" text-anchor="middle" font-size="12" fill="var(--ink)">arr[3]</text>
+      <line x1="224" y1="102" x2="224" y2="138" stroke="var(--practice)" stroke-width="2" marker-end="url(#arrowArr)"/>
+      <text x="30" y="238" font-size="12" fill="var(--ink-soft)">O(1):地址 = base + 3×size,一步到达</text>
+
+      <text x="565" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="var(--accent)">链表(节点散落,靠指针相连)</text>
+      <text x="435" y="66" font-size="12" fill="var(--ink-soft)">head</text>
+      <line x1="435" y1="70" x2="435" y2="88" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowLL)"/>
+
+      <rect x="410" y="90" width="100" height="44" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+      <line x1="460" y1="90" x2="460" y2="134" stroke="var(--accent)" stroke-width="1"/>
+      <text x="435" y="117" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">6</text>
+      <text x="485" y="117" text-anchor="middle" font-size="13" fill="var(--ink-soft)">•</text>
+
+      <rect x="560" y="170" width="100" height="44" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+      <line x1="610" y1="170" x2="610" y2="214" stroke="var(--accent)" stroke-width="1"/>
+      <text x="585" y="197" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">4</text>
+      <text x="635" y="197" text-anchor="middle" font-size="13" fill="var(--ink-soft)">•</text>
+
+      <rect x="430" y="260" width="100" height="44" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+      <line x1="480" y1="260" x2="480" y2="304" stroke="var(--accent)" stroke-width="1"/>
+      <text x="455" y="287" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">9</text>
+      <text x="505" y="287" text-anchor="middle" font-size="12" fill="var(--ink-soft)">∅</text>
+
+      <path d="M490,112 C 530,112 530,192 560,192" fill="none" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowLL)"/>
+      <path d="M635,197 C 675,235 520,238 480,258" fill="none" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowLL)"/>
+
+      <text x="410" font-size="12" fill="var(--ink-soft)"><tspan x="410" y="338">O(n):找第 3 个节点(值 9),</tspan><tspan x="410" y="354">须从 head 顺着指针走 6→4→9,没法直接跳</tspan></text>
+    </svg>
+    <figcaption>图 2:数组按下标一步定位(O(1)),链表必须从 head 顺指针逐个走(O(n))——但两者对"随便插入一个元素"的代价正好反过来。</figcaption>
+  </figure>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 原理 · 维基百科怎么说</div>
+    <p>"insertion in a dynamic array at random locations will require moving half of the elements on average"(维基百科 Linked list 词条)——数组插入的平均代价是移动半数元素。该词条还指出:"Sequential access on arrays and dynamic arrays is also faster than on linked lists on many machines, because they have optimal locality of reference and thus make good use of data caching."——数组的<strong>缓存局部性(cache locality)</strong>天然优于链表。</p>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 同样标着 O(n),实测可能差十倍</div>
+    <p>Big-O 只看增长趋势,不看常数因子——而"常数因子"在数组和链表上天差地别。CPU 从内存读数据是按<strong>缓存行(cache line)</strong>整块搬运的,数组元素紧挨着存,读一个顺带把后面几个也搬进了缓存(命中率高);链表节点散落各处,几乎每跳一个指针都要重新访问内存,一次次缓存未命中(cache miss)。这就是为什么理论上"同是 O(n) 遍历",数组遍历在真实机器上常常比链表快数倍——这背后是<a href="12-comparch.html">12 章</a>要讲的存储层次问题。</p>
+  </div>
+
+  <h3>栈(Stack)与队列(Queue):两种"排队规则"</h3>
+  <p>栈和队列都是"只能从固定的一端/两端进出"的线性结构,区别在于规则:<strong>栈(Stack)</strong>是<strong>后进先出(LIFO, Last In First Out)</strong>,像一摞叠起来的盘子,只能从最上面拿、最上面放;<strong>队列(Queue)</strong>是<strong>先进先出(FIFO, First In First Out)</strong>,像排队买奶茶,先来的人先被服务。两者的核心操作(入栈/出栈 push/pop,入队/出队 enqueue/dequeue)都是 O(1)。</p>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 实战锚点 · 你天天在用它们</div>
+    <p>程序崩溃时打印出来的那一长串调用记录——<strong>调用栈(call stack)</strong>——就是一个真实的栈:函数 A 调用 B、B 调用 C,C 出错时,栈从顶部往下正好是 C→B→A 的调用顺序;<a href="08-windows-admin.html">08 章</a>任务管理器里排队等 CPU 时间片的进程、以及打印机的打印队列,都是货真价实的队列结构。</p>
+  </div>
+
+  <h2 id="tree">树:层级结构、二叉搜索树与堆</h2>
+  <p>现实里很多数据本来就是"一层层"的,而不是"一条线"——公司组织架构、文件目录、家谱都是如此。<strong>树(tree)</strong>就是给这种层级关系建模的结构:一个<strong>根节点(root)</strong>,每个节点可以有若干<strong>子节点(children)</strong>,没有子节点的叫<strong>叶节点(leaf)</strong>。<a href="07-filesystems.html">07 章</a>里 ext4/NTFS 的目录结构、<a href="03-dns-adblock.html">03 章</a>里"根 → 顶级域(TLD)→ 权威服务器"的 DNS 解析路径,本质上都是树。</p>
+
+  <h3>二叉搜索树(BST):靠一条不变的规则换来 O(log n)</h3>
+  <p><strong>二叉搜索树(Binary Search Tree, BST)</strong>在树的基础上加一条硬规则:对任意节点,左子树所有值都比它小,右子树所有值都比它大。这条规则让查找可以像二分查找一样,每比较一次就排除掉一整棵子树,理想情况下是 O(log n)——这正是开篇"100 万条记录、log₂(1,000,000)≈20 步"那套二分查找逻辑的同一种"比较一次、砍掉一半"打法,只是砍的对象从有序数组换成了树。</p>
+
+  <figure>
+    <svg viewBox="0 0 780 340" width="100%" role="img" font-family="var(--font)" aria-label="二叉搜索树查找路径与堆的数组表示对照图">
+      <title>左:二叉搜索树查找 60 的路径(O(log n));右:最大堆的树视角与数组视角对照</title>
+      <text x="180" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="var(--theory)">二叉搜索树:查找 60</text>
+
+      <line x1="180" y1="92" x2="255" y2="118" stroke="var(--warn)" stroke-width="3"/>
+      <line x1="180" y1="92" x2="105" y2="118" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="105" y1="162" x2="65" y2="188" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="105" y1="162" x2="145" y2="188" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="255" y1="162" x2="215" y2="188" stroke="var(--warn)" stroke-width="3"/>
+      <line x1="255" y1="162" x2="295" y2="188" stroke="var(--line)" stroke-width="1.5"/>
+
+      <circle cx="180" cy="70" r="22" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2.5"/>
+      <text x="180" y="76" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">50</text>
+      <circle cx="105" cy="140" r="22" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="105" y="146" text-anchor="middle" font-size="14" fill="var(--ink)">30</text>
+      <circle cx="255" cy="140" r="22" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2.5"/>
+      <text x="255" y="146" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">70</text>
+      <circle cx="65" cy="210" r="20" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="65" y="216" text-anchor="middle" font-size="13" fill="var(--ink)">20</text>
+      <circle cx="145" cy="210" r="20" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="145" y="216" text-anchor="middle" font-size="13" fill="var(--ink)">40</text>
+      <circle cx="215" cy="210" r="20" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2.5"/>
+      <text x="215" y="216" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">60</text>
+      <circle cx="295" cy="210" r="20" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="295" y="216" text-anchor="middle" font-size="13" fill="var(--ink)">80</text>
+
+      <text x="15" y="255" font-size="11.5" fill="var(--ink)">① 60 与 50 比较:60&gt;50 → 右</text>
+      <text x="15" y="275" font-size="11.5" fill="var(--ink)">② 60 与 70 比较:60&lt;70 → 左</text>
+      <text x="15" y="295" font-size="11.5" fill="var(--ink)">③ 60 与 60 比较:命中(共 3 次,树高 3)</text>
+
+      <line x1="380" y1="20" x2="380" y2="320" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4"/>
+
+      <text x="590" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="var(--practice)">堆(最大堆):树 与 数组 是同一份数据</text>
+
+      <line x1="590" y1="62" x2="530" y2="98" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="590" y1="62" x2="650" y2="98" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="530" y1="120" x2="500" y2="150" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="530" y1="120" x2="560" y2="150" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="650" y1="120" x2="620" y2="150" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="650" y1="120" x2="680" y2="150" stroke="var(--line)" stroke-width="1.5"/>
+
+      <circle cx="590" cy="42" r="20" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="2"/>
+      <text x="590" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">90</text>
+      <circle cx="530" cy="100" r="18" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="530" y="106" text-anchor="middle" font-size="12" fill="var(--ink)">50</text>
+      <circle cx="650" cy="100" r="18" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="650" y="106" text-anchor="middle" font-size="12" fill="var(--ink)">80</text>
+      <circle cx="500" cy="150" r="16" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="500" y="155" text-anchor="middle" font-size="11" fill="var(--ink)">20</text>
+      <circle cx="560" cy="150" r="16" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="560" y="155" text-anchor="middle" font-size="11" fill="var(--ink)">40</text>
+      <circle cx="620" cy="150" r="16" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="620" y="155" text-anchor="middle" font-size="11" fill="var(--ink)">60</text>
+      <circle cx="680" cy="150" r="16" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="680" y="155" text-anchor="middle" font-size="11" fill="var(--ink)">70</text>
+
+      <text x="410" y="200" font-size="12" fill="var(--ink-soft)">同一个堆,摊平成数组(下标 0~6):</text>
+      <g font-family="var(--mono)">
+        <rect x="410" y="212" width="47" height="34" fill="var(--practice-bg)" stroke="var(--practice)"/>
+        <text x="433" y="234" text-anchor="middle" font-size="13" fill="var(--ink)">90</text>
+        <rect x="457" y="212" width="47" height="34" fill="var(--panel)" stroke="var(--line)"/>
+        <text x="480" y="234" text-anchor="middle" font-size="13" fill="var(--ink)">50</text>
+        <rect x="504" y="212" width="47" height="34" fill="var(--panel)" stroke="var(--line)"/>
+        <text x="527" y="234" text-anchor="middle" font-size="13" fill="var(--ink)">80</text>
+        <rect x="551" y="212" width="47" height="34" fill="var(--panel)" stroke="var(--line)"/>
+        <text x="574" y="234" text-anchor="middle" font-size="13" fill="var(--ink)">20</text>
+        <rect x="598" y="212" width="47" height="34" fill="var(--panel)" stroke="var(--line)"/>
+        <text x="621" y="234" text-anchor="middle" font-size="13" fill="var(--ink)">40</text>
+        <rect x="645" y="212" width="47" height="34" fill="var(--panel)" stroke="var(--line)"/>
+        <text x="668" y="234" text-anchor="middle" font-size="13" fill="var(--ink)">60</text>
+        <rect x="692" y="212" width="47" height="34" fill="var(--panel)" stroke="var(--line)"/>
+        <text x="715" y="234" text-anchor="middle" font-size="13" fill="var(--ink)">70</text>
+      </g>
+      <text x="410" y="260" font-size="11" fill="var(--ink-soft)">下标 0 1 2 3 4 5 6</text>
+      <text x="410" y="285" font-size="12" fill="var(--ink)">父节点 i → 子节点 2i+1、2i+2</text>
+      <text x="410" y="305" font-size="12" fill="var(--ink)">子节点 i → 父节点 ⌊(i-1)/2⌋(纯算术定位,不用指针)</text>
+    </svg>
+    <figcaption>图 3:左侧 BST 查找 60 只需 3 次比较(树高 3,约 log₂7);右侧最大堆同时用树和数组两种视角看,数组下标靠算术公式就能定位父子关系。</figcaption>
+  </figure>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 原理 · 维基百科的警告</div>
+    <p>"the worst case for BST search is O(n) where n is the total number of nodes in the BST, because an unbalanced BST may degenerate to a linked list."(维基百科 Binary search tree 词条)——如果插入顺序恰好是从小到大或从大到小,BST 会一路只往一侧长,退化成一条链表,查找也退化成 O(n)。这正是为什么工程实践里几乎不用"裸" BST,而是用 AVL 树、红黑树等<strong>自平衡树</strong>,靠插入/删除时自动"调整形状",把树高强制维持在 O(log n)。</p>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 有序数据"从小到大"插入 BST 是反面教材</div>
+    <p>把 1,2,3,4,5 依次插入一棵普通 BST,得到的不是矮胖的树,而是一条只往右长的链——查找退化成 O(n),等于白建了一棵"树"。数据库索引、文件系统目录(<a href="07-filesystems.html">07 章</a>)几乎都用 B 树 / B+树而不是普通 BST,原因之一就是它们天然抗这种退化,并且更贴合磁盘按块读写的特性。</p>
+  </div>
+
+  <details>
+    <summary>延伸:AVL 树、红黑树、B 树——一句话区分</summary>
+    <ul>
+      <li><strong>AVL 树</strong>:每个节点严格维持左右子树高度差 ≤1,查找最快,但插入 / 删除时"再平衡"开销较大。</li>
+      <li><strong>红黑树</strong>:允许更松的平衡(用红/黑染色规则代替严格高度差),插入 / 删除更便宜,C++ <code>std::map</code>、Java <code>TreeMap</code> 底层都是它。</li>
+      <li><strong>B 树 / B+树</strong>:每个节点能装下不止 2 个子节点(通常几十到几百个),专为"按块读写"的磁盘 / SSD 设计,大幅降低访问深度——数据库索引和文件系统目录首选它。</li>
+    </ul>
+  </details>
+
+  <h3>堆(Heap):只关心"最大/最小是谁"</h3>
+  <p>如果只关心"当前最大/最小是谁"而不需要完整排序,没必要维持整棵有序树——堆就是为这类需求量身定制的结构。堆是一种特殊的完全二叉树:<strong>最大堆(max-heap)</strong>里每个父节点的值都不小于它的子节点(根节点永远是最大值),<strong>最小堆(min-heap)</strong>反过来。堆最巧妙的地方是可以直接用<strong>数组</strong>存,不需要真的建指针:下标 i 的节点,左子节点在 2i+1、右子节点在 2i+2、父节点在 ⌊(i-1)/2⌋——纯算术定位(见图 3 右侧)。</p>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 原理 · 堆的复杂度</div>
+    <p>维基百科 Heap (data structure) 词条给出二叉堆的标准复杂度:取最大 / 最小值 Θ(1),插入、删除最大 / 最小值都是 Θ(log n)。这组复杂度是<strong>优先级队列(priority queue)</strong>的标准实现——"每次都要拿到当前最紧急的那个",是堆最典型的应用场景。</p>
+  </div>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 实战锚点 · 操作系统调度器的原型</div>
+    <p><a href="11-os.html">11 章</a>会讲到,操作系统调度器要频繁回答"下一个该给哪个进程分时间片";如果每次都把所有进程扫一遍找优先级最高的是 O(n),规模一大就扛不住。用堆实现的优先级队列,插入一个新进程、取出优先级最高的都是 O(log n)——这正是很多调度器内部数据结构的原型。</p>
+  </div>
+
+  <h2 id="graph">图:万物皆关系</h2>
+  <p>树要求"每个节点只能有一个父节点",但现实里很多关系并不服从这条规矩——社交网络里 A 认识 B、B 也认识 A;道路网里一个路口连着好几条路;<a href="10-networking.html">10 章</a>里"笔记本 → 旁路由 → 主路由 → 目标服务器"那条链路,本身也只是更大网络拓扑图里的一小段。这些场景需要更宽松的结构:<strong>图(graph)</strong>——由<strong>节点(vertex)</strong>和连接节点的<strong>边(edge)</strong>组成,边可以有方向(有向图)也可以没方向(无向图)。</p>
+
+  <h3>两种存法:邻接表 vs 邻接矩阵</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>表示法</th><th>空间复杂度</th><th>判断"两点间是否有边"</th><th>适合场景</th></tr></thead>
+      <tbody>
+        <tr><td>邻接矩阵 adjacency matrix</td><td>O(V²)</td><td>O(1)</td><td>图较稠密、常需要"是否直连"</td></tr>
+        <tr><td>邻接表 adjacency list</td><td>O(V+E)</td><td>最坏 O(V)</td><td>图较稀疏(真实世界的图多数如此)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>(V = 节点数,E = 边数。)现实世界的图几乎都是<strong>稀疏图</strong>——一个人认识几百人,不是认识全世界 80 亿人——所以工程上绝大多数场景用邻接表。</p>
+
+  <h3>遍历:BFS 与 DFS</h3>
+  <p><strong>广度优先搜索(BFS, Breadth-First Search)</strong>借助<strong>队列</strong>,一层一层向外扩散,天然适合求"无权图最短路径";<strong>深度优先搜索(DFS, Depth-First Search)</strong>借助<strong>栈</strong>(或递归调用栈)一条路走到黑再回退,适合判断连通性、检测环、拓扑排序。用邻接表实现时,两者的时间复杂度都是 O(V+E)——每个节点访问一次、每条边检查一两次;如果换成邻接矩阵,复杂度会退化到 O(V²),因为每个节点都要把整行 V 个格子扫一遍才能找出它的邻居。</p>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · Git 的提交历史就是一张图,不是树</div>
+    <p>Git 官方术语表把这件事写得很直白:"The commit objects form a directed acyclic graph, because they have parents (directed), and the graph of commit objects is acyclic"(git-scm.com gitglossary)。每个提交对象内部存的是"我的父提交是谁"的指针;普通提交只有 1 个父提交(看起来像树),但<strong>合并提交(merge commit)</strong>会同时指向两个父提交——这一个节点两个"父指针"的场景,正是图和树的本质分界线:树里每个节点只能有一个父节点,图不做这个限制。<a href="16-devops-selfhost.html">16 章</a>会展开讲 Git 内部这套对象模型。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 720 320" width="100%" role="img" font-family="var(--font)" aria-label="Git 提交历史有向无环图示意图">
+      <title>Git 提交历史 DAG 示意图:合并提交同时指向两个父提交</title>
+      <defs>
+        <marker id="arrowGit" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+      <text x="360" y="26" text-anchor="middle" font-size="12.5" fill="var(--ink-soft)">提交时间:早 —————————————————————→ 晚(箭头指向"父提交")</text>
+
+      <line x1="204" y1="200" x2="116" y2="200" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrowGit)"/>
+      <line x1="376.5" y1="131.1" x2="253.5" y2="188.9" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrowGit)"/>
+      <line x1="376.5" y1="268.9" x2="253.5" y2="211.1" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrowGit)"/>
+      <line x1="546.5" y1="188.9" x2="423.5" y2="131.1" stroke="var(--warn)" stroke-width="2.5" marker-end="url(#arrowGit)"/>
+      <line x1="546.5" y1="211.1" x2="423.5" y2="268.9" stroke="var(--warn)" stroke-width="2.5" marker-end="url(#arrowGit)"/>
+
+      <circle cx="90" cy="200" r="26" fill="var(--panel)" stroke="var(--brand)" stroke-width="2"/>
+      <text x="90" y="204" text-anchor="middle" font-size="10.5" font-family="var(--mono)" fill="var(--ink)">a1c9f0</text>
+
+      <circle cx="230" cy="200" r="26" fill="var(--panel)" stroke="var(--brand)" stroke-width="2"/>
+      <text x="230" y="204" text-anchor="middle" font-size="10.5" font-family="var(--mono)" fill="var(--ink)">7e2b41</text>
+
+      <circle cx="400" cy="120" r="26" fill="var(--panel)" stroke="var(--brand)" stroke-width="2"/>
+      <text x="400" y="124" text-anchor="middle" font-size="10.5" font-family="var(--mono)" fill="var(--ink)">9f0a33</text>
+      <text x="400" y="88" text-anchor="middle" font-size="11.5" fill="var(--ink-soft)">main 分支</text>
+
+      <circle cx="400" cy="280" r="26" fill="var(--panel)" stroke="var(--brand)" stroke-width="2"/>
+      <text x="400" y="284" text-anchor="middle" font-size="10.5" font-family="var(--mono)" fill="var(--ink)">c5d81a</text>
+      <text x="450" y="288" font-size="11.5" fill="var(--ink-soft)">feature 分支</text>
+
+      <circle cx="570" cy="200" r="26" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2.5"/>
+      <text x="570" y="204" text-anchor="middle" font-size="10.5" font-family="var(--mono)" fill="var(--ink)">3d88ef</text>
+      <text x="610" font-size="11.5" fill="var(--warn)"><tspan x="610" y="234">← 合并提交:</tspan><tspan x="610" y="248">2 个父提交</tspan></text>
+    </svg>
+    <figcaption>图 4:普通提交(如 7e2b41→a1c9f0)只有 1 个父提交,看起来像树;合并提交 3d88ef 同时指向 9f0a33 和 c5d81a 两个父提交(橙色边)——这正是图突破"树"限制的地方(git-scm.com 官方术语表)。</figcaption>
+  </figure>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">🛠 实战锚点 · 路由选路也是图论问题</div>
+    <p><a href="10-networking.html">10 章</a>里路由器靠路由表做"最长前缀匹配"选路,再往底层看,像 OSPF 这类路由协议本质是在一张"设备是节点、链路是边"的图上跑最短路径算法(Dijkstra 算法的直系应用——Dijkstra 用优先级队列每次贪心弹出当前已知最短距离最小的未访问节点,是堆在图论里的经典落地)——网络拓扑的"选路"问题,从数据结构视角看,一直都是图论问题。</p>
+  </div>
+
+  <h2 id="hash">哈希表:用空间换时间的 O(1) 魔法</h2>
+  <p>前面树结构最好也只能做到 O(log n)——因为它始终要"比较"着往下走。<strong>哈希表(hash table)</strong>换了个思路:不比较,直接算。给定一个 key,用<strong>哈希函数(hash function)</strong>算出一个下标(哈希值,也叫哈希码),直接跳到那个下标去存 / 取——只要哈希函数够好,不管表里有多少数据,查找的平均耗时几乎不随数据量变化。维基百科的说法是:"In a well-dimensioned hash table, the average time complexity for each lookup is independent of the number of elements stored in the table."(维基百科 Hash table 词条)</p>
+
+  <h3>冲突:两个 key 算出同一个坑怎么办</h3>
+  <p>哈希函数的值域是有限的(比如表大小只有 8),但 key 可能有无数种,<strong>冲突(collision)</strong>——两个不同的 key 算出同一个下标——是必然会发生的,不是"运气差"。维基百科总结了两种主流解法:"Common strategies to handle hash collisions include chaining, which stores multiple elements in the same slot using linked lists, and open addressing, which searches for the next available slot according to a probing sequence."(维基百科 Hash table 词条)——即<strong>链地址法(separate chaining)</strong>,每个坑位挂一条链表;<strong>开放寻址法(open addressing)</strong>,冲突时按某种探测规则去找表里下一个空位。</p>
+
+  <h3>worked example:给 02/03 章的三个真实名字建一张哈希表</h3>
+  <p>用一个极简的哈希函数练一遍手感:<code>hash(key) = (key 里所有字符的 ASCII 码之和) mod 8</code>,表大小 m=8(坑位下标 0~7)。把<a href="02-router-bypass.html">02 章</a>旁路由、<a href="03-dns-adblock.html">03 章</a> DNS 链路里三个真实的名字塞进去:</p>
+
+  <pre><code>hash("dnsmasq")  = (100+110+115+109+97+115+113)         mod 8 = 759 mod 8 = 7
+hash("adguard")  = (97+100+103+117+97+114+100)           mod 8 = 728 mod 8 = 0
+hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0   ← 和 adguard 撞车了!</code></pre>
+
+  <ol class="steps">
+    <li><strong>算哈希:</strong>三个 key 分别算出坑位 7、0、0——"adguard" 和 "istoreos" 落进了同一个坑位 0,这就是一次真实发生的哈希冲突。</li>
+    <li><strong>发现冲突:</strong>坑位 0 已经被 "adguard"(值 5335,即 <a href="03-dns-adblock.html">03 章</a> AdGuard 监听端口)占用,"istoreos"(值 192.168.1.2,即旁路由自身地址)必须想办法共存,而不是覆盖掉前者。</li>
+    <li><strong>链地址法解决:</strong>坑位 0 挂一条链,先接 adguard,链表再接 istoreos;坑位 7 单独存 dnsmasq(值 53,<a href="03-dns-adblock.html">03 章</a> dnsmasq 监听端口)。查 "dnsmasq" 时不用扫过其他 7 个坑位,直接算一次哈希跳到坑位 7 就拿到答案——这正是 O(1) 平均查找的真实样子。</li>
+  </ol>
+
+  <figure>
+    <svg viewBox="0 0 680 380" width="100%" role="img" font-family="var(--font)" aria-label="哈希表结构与冲突解决图">
+      <title>哈希表结构:坑位数组 + 链地址法解决冲突(worked example)</title>
+      <defs>
+        <marker id="arrowHash" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+      <text x="340" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink-soft)">哈希表结构:坑位数组(索引 0~7)+ 链地址法解决冲突</text>
+
+      <text x="180" y="40" font-size="11.5" fill="var(--warn)">冲突 → 链地址法接两个节点</text>
+      <rect x="40" y="45" width="80" height="32" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="2"/>
+      <text x="25" y="66" text-anchor="end" font-size="12" font-family="var(--mono)" fill="var(--ink-soft)">0</text>
+      <text x="80" y="66" text-anchor="middle" font-size="12" fill="var(--ink)">•→</text>
+      <line x1="120" y1="61" x2="180" y2="61" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrowHash)"/>
+      <rect x="180" y="45" width="150" height="32" fill="var(--panel)" stroke="var(--warn)" stroke-width="1.5"/>
+      <text x="255" y="66" text-anchor="middle" font-size="12" font-family="var(--mono)" fill="var(--ink)">adguard : 5335</text>
+      <line x1="330" y1="61" x2="380" y2="61" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrowHash)"/>
+      <rect x="380" y="45" width="200" height="32" fill="var(--panel)" stroke="var(--warn)" stroke-width="1.5"/>
+      <text x="480" y="66" text-anchor="middle" font-size="12" font-family="var(--mono)" fill="var(--ink)">istoreos : 192.168.1.2</text>
+
+      <g>
+        <rect x="40" y="85" width="80" height="32" fill="var(--panel)" stroke="var(--line)" stroke-dasharray="4 3"/>
+        <text x="25" y="106" text-anchor="end" font-size="12" font-family="var(--mono)" fill="var(--ink-soft)">1</text>
+        <text x="80" y="106" text-anchor="middle" font-size="12" fill="var(--ink-soft)" opacity="0.55">∅</text>
+      </g>
+      <g>
+        <rect x="40" y="125" width="80" height="32" fill="var(--panel)" stroke="var(--line)" stroke-dasharray="4 3"/>
+        <text x="25" y="146" text-anchor="end" font-size="12" font-family="var(--mono)" fill="var(--ink-soft)">2</text>
+        <text x="80" y="146" text-anchor="middle" font-size="12" fill="var(--ink-soft)" opacity="0.55">∅</text>
+      </g>
+      <g>
+        <rect x="40" y="165" width="80" height="32" fill="var(--panel)" stroke="var(--line)" stroke-dasharray="4 3"/>
+        <text x="25" y="186" text-anchor="end" font-size="12" font-family="var(--mono)" fill="var(--ink-soft)">3</text>
+        <text x="80" y="186" text-anchor="middle" font-size="12" fill="var(--ink-soft)" opacity="0.55">∅</text>
+      </g>
+      <g>
+        <rect x="40" y="205" width="80" height="32" fill="var(--panel)" stroke="var(--line)" stroke-dasharray="4 3"/>
+        <text x="25" y="226" text-anchor="end" font-size="12" font-family="var(--mono)" fill="var(--ink-soft)">4</text>
+        <text x="80" y="226" text-anchor="middle" font-size="12" fill="var(--ink-soft)" opacity="0.55">∅</text>
+      </g>
+      <g>
+        <rect x="40" y="245" width="80" height="32" fill="var(--panel)" stroke="var(--line)" stroke-dasharray="4 3"/>
+        <text x="25" y="266" text-anchor="end" font-size="12" font-family="var(--mono)" fill="var(--ink-soft)">5</text>
+        <text x="80" y="266" text-anchor="middle" font-size="12" fill="var(--ink-soft)" opacity="0.55">∅</text>
+      </g>
+      <g>
+        <rect x="40" y="285" width="80" height="32" fill="var(--panel)" stroke="var(--line)" stroke-dasharray="4 3"/>
+        <text x="25" y="306" text-anchor="end" font-size="12" font-family="var(--mono)" fill="var(--ink-soft)">6</text>
+        <text x="80" y="306" text-anchor="middle" font-size="12" fill="var(--ink-soft)" opacity="0.55">∅</text>
+      </g>
+
+      <text x="180" y="320" font-size="11.5" fill="var(--practice)">无冲突,单跳直接命中</text>
+      <rect x="40" y="325" width="80" height="32" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="2"/>
+      <text x="25" y="346" text-anchor="end" font-size="12" font-family="var(--mono)" fill="var(--ink-soft)">7</text>
+      <text x="80" y="346" text-anchor="middle" font-size="12" fill="var(--ink)">•→</text>
+      <line x1="120" y1="341" x2="180" y2="341" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrowHash)"/>
+      <rect x="180" y="325" width="150" height="32" fill="var(--panel)" stroke="var(--practice)" stroke-width="1.5"/>
+      <text x="255" y="346" text-anchor="middle" font-size="12" font-family="var(--mono)" fill="var(--ink)">dnsmasq : 53</text>
+    </svg>
+    <figcaption>图 5:worked example 的哈希表结构——坑位 0 因冲突挂了 2 个节点(adguard → istoreos),坑位 7 只挂 1 个节点(dnsmasq),坑位 1~6 空置。</figcaption>
+  </figure>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 原理 · 负载因子决定哈希表什么时候该扩容</div>
+    <p><strong>负载因子(load factor)α = n/m</strong>(n = 已存元素数,m = 坑位数)是哈希表最关键的健康指标。维基百科给出两条具体的工程经验:链地址法通常在 α 介于 1~3 之间时性能最好;开放寻址法则"cannot have a load factor greater than 1",且"the performance of open addressing becomes very bad when the load factor approaches 1"(维基百科 Hash table 词条)——这也是为什么几乎所有语言内置哈希表(Python <code>dict</code>、Java <code>HashMap</code>)都会在 α 超过某个阈值时自动扩容、重新哈希。</p>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 哈希函数选不好,O(1) 会打回 O(n)</div>
+    <p>上面的示例哈希函数只是为了演示手算,现实里绝不能这么用——它对相似字符集的字符串很容易大量冲突。真正的哈希函数(如 MurmurHash、SipHash)追求"输入差一点、输出差很多"和"分布足够均匀"。如果哈希函数设计得差,或被恶意构造大量 key 让它们全部冲突到同一个坑位(哈希洪水攻击 hash flooding),链地址法的那条链会退化成一条长长的链表——查找从理想的 O(1) 打回现实的 O(n)。</p>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · 哈希表的哈希 ≠ 密码学的哈希</div>
+    <p>本节的哈希函数只求"快、分布均匀",不要求"没法反推""不能故意造出两个不同输入撞同一个输出"。<a href="15-crypto-security.html">15 章</a>会讲的 SHA-256 等<strong>密码学哈希函数</strong>,要求恰恰相反:必须几乎不可能反推原文、几乎不可能故意构造碰撞——这也是为什么 Git(<a href="16-devops-selfhost.html">16 章</a>)拿 SHA 哈希值当对象的"身份证号"做内容寻址,而不是随手拿字符 ASCII 之和这种简易哈希:后者防不住任何人蓄意构造出两个内容不同但哈希值相同的文件。</p>
+  </div>
+
+  <h2 id="sort">排序:经典算法全家福</h2>
+  <p>排序是数据结构与算法里最"古典"的问题,也是理解复杂度差异最直观的战场。经典比较排序按"笨办法 / 聪明办法"分成两大阵营:</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>算法</th><th>最好</th><th>平均</th><th>最坏</th><th>额外空间</th><th>稳定?</th></tr></thead>
+      <tbody>
+        <tr><td>冒泡排序 Bubble Sort</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>是</td></tr>
+        <tr><td>插入排序 Insertion Sort</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>是</td></tr>
+        <tr><td>选择排序 Selection Sort</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>否</td></tr>
+        <tr><td>归并排序 Merge Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td><td>是</td></tr>
+        <tr><td>快速排序 Quicksort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n²)</td><td>O(log n)</td><td>否</td></tr>
+        <tr><td>堆排序 Heapsort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(1)</td><td>否</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>(数据来源:维基百科 Sorting algorithm 词条比较排序总表。)<strong>稳定(stable)</strong>指相等的元素排序前后相对顺序不变——比如先按姓氏排、再按班级排时,如果排序算法不稳定,同班级内本该保留的姓氏顺序可能被打乱,这在"多字段排序"场景下很关键。</p>
+
+  <h3>归并排序 worked trace:分到底,再一路合并回去</h3>
+  <p>归并排序是<strong>分治(divide and conquer)</strong>的典范:把数组切成两半,分别递归排好序,再把两个有序的半边"合并"成一个有序整体。跟踪一遍 [8, 3, 5, 1, 9, 2](就是图 2 数组示例里的那 5 个数,再加一个 2)的排序过程:</p>
+
+  <pre><code>拆分(一路切到只剩 1 个元素):
+[8,3,5,1,9,2]
+ → [8,3,5]          [1,9,2]
+ → [8] [3,5]          [1] [9,2]
+ →     [3] [5]              [9] [2]
+
+合并(两两合并回去,每次都保持有序):
+[3] + [5]          → [3,5]
+[8] + [3,5]        → [3,5,8]
+[9] + [2]          → [2,9]
+[1] + [2,9]        → [1,2,9]
+[3,5,8] + [1,2,9]  → [1,2,3,5,8,9]   ← 完成</code></pre>
+
+  <p>每一层"合并"都要扫过全部 n 个元素一次,总共有 log₂n 层,所以是 O(n log n)——而且不管输入多乱,这个数字都不变,这正是归并排序"最好/平均/最坏都是 O(n log n)"的原因,代价是需要 O(n) 的额外空间存合并结果。</p>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">🧭 原理 · O(n log n) 是比较排序的理论下限</div>
+    <p>维基百科给出一个更硬核的结论:比较排序(每一步只能"比较两个元素谁大谁小")存在一个数学证明的下限——至少需要 n·log n − 1.4427n + O(log n) 次比较。换句话说,不存在一种只靠"比较"的排序算法能稳定跑赢 O(n log n)——归并排序、堆排序已经摸到了这条理论天花板。</p>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 快速排序标称 O(n log n),最坏会退化到 O(n²)</div>
+    <p>快速排序平均性能通常是几种 O(n log n) 排序里最快的(常数因子小、原地排序),但如果每次选的"基准值(pivot)"恰好都是当前子数组里最大或最小的(比如输入本来就是正序 / 逆序,又选了固定的第一个元素当 pivot),每次划分只能排除 1 个元素而不是"劈成两半",退化成 O(n²)——这正是上表里快速排序"最坏"一栏单独标 O(n²) 的原因。现代实现通常用"随机选 pivot"或"三数取中"规避这种最坏情况。</p>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · 复杂度不是纸上谈兵:一次实测的真实秒数</div>
+    <p>维基百科整理过一次实际测量(排序同一份数据,不同算法耗时):冒泡排序 128.84 秒、选择排序 58.34 秒、插入排序 50.74 秒、希尔排序 7.08 秒、堆排序 2.22 秒、归并排序 2.06 秒、快速排序(递归)1.22 秒(维基百科 Sorting algorithm 词条"Table of running times of popular algorithms";Lilith 计算机对 2048 个随机数排序的历史测量,重点看算法间的相对倍数而非绝对秒数)。冒泡排序和快速排序之间差了约 100 倍——这就是 O(n²) 与 O(n log n) 之间的理论差距,变成秒表上能读出来的真实数字。</p>
+  </div>
+
+  <details>
+    <summary>延伸:排序也能不比较——计数排序与基数排序</summary>
+    <p>前面的理论下限只适用于"靠比较大小"的排序算法。<strong>计数排序(Counting Sort)</strong>换了个思路:如果知道数据全是整数、且取值范围不太大(比如 0~100 分的考试成绩),可以直接开一个长度为值域大小 r 的计数数组,统计每个值出现几次,再依次填回去——完全不需要"比较",复杂度是 O(n+r),值域够小时能做到接近 O(n)。<strong>基数排序(Radix Sort)</strong>则按位数(个位、十位、百位……)反复做稳定的计数排序,能处理更大范围的整数乃至字符串。二者都要求"数据结构已知、值域可控"这个前提,不是任意数据都能用。</p>
+  </details>
+
+  <h2 id="engineering">工程视角:怎么选、怎么避坑</h2>
+  <p>实际写代码时,极少需要自己从零实现这些结构——每种主流语言的标准库都已经提供了工业级实现(Python 的 <code>list</code>/<code>dict</code>/<code>set</code>,Java 的 <code>ArrayList</code>/<code>HashMap</code>/<code>PriorityQueue</code>,C++ STL 的 <code>vector</code>/<code>unordered_map</code>/<code>priority_queue</code>)。真正需要操心的,是<strong>按需求选对结构</strong>,以及<strong>认出隐藏在循环里的复杂度陷阱</strong>。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>需求</th><th>该用什么</th></tr></thead>
+      <tbody>
+        <tr><td>按下标随机访问</td><td>数组 / 动态数组(如 Python <code>list</code>)</td></tr>
+        <tr><td>频繁在中间插入 / 删除,且已经拿着位置引用</td><td>链表</td></tr>
+        <tr><td>只在一端进出、后进先出</td><td>栈</td></tr>
+        <tr><td>只在一端进出、先进先出</td><td>队列</td></tr>
+        <tr><td>按 key 快速查值,不关心顺序</td><td>哈希表(<code>dict</code> / <code>HashMap</code> / <code>set</code>)</td></tr>
+        <tr><td>需要有序遍历或范围查询</td><td>平衡树(<code>TreeMap</code> / B 树索引)</td></tr>
+        <tr><td>反复取"当前最大 / 最小"</td><td>堆 / 优先级队列</td></tr>
+        <tr><td>建模"关系网络"、求最短路径 / 连通性</td><td>图 + BFS / DFS / Dijkstra</td></tr>
+        <tr><td>一次性把一批数据排好序</td><td>直接调用内置 <code>sort</code>,不必手写</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">⚠️ 避坑 · 循环里写 <code>if x in a_list</code> 是最常见的隐藏 O(n²)</div>
+    <p>在一个长度为 n 的循环里,对一个 Python <code>list</code> 做一次 <code>in</code> 成员判断是 O(n)(要线性扫描);如果这个判断本身又被套在一个长度也是 n 的外层循环里,总复杂度悄悄变成了 O(n²)——代码"看起来"只是一层循环加一个条件判断,行为上却是两层嵌套。把里层判断换成 <code>set</code> 或 <code>dict</code> 的 <code>in</code>(平均 O(1)),总复杂度就能压回 O(n)。这是新手到中级工程师之间最常见的一道复杂度分水岭。</p>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">🔍 深挖 · 语言内置排序不是"随便选一个算法"</div>
+    <p>前面表格之外,维基百科对 Introsort 的注解是"Performs a combination of Quicksort, Heapsort, and Insertion sort"(C++ STL 多个实现用它),对 Timsort 的注解是"Makes n−1 comparisons when the data is already sorted or reverse sorted"(Python、Java 用它)。工程实践里几乎不会二选一,而是取长补短:平时用快速排序的平均速度优势,数据量很小时切成插入排序减少开销,快要触发快速排序最坏情况时切换成堆排序兜底,已经有序的片段直接跳过——这正是"知道每种算法的复杂度边界"在生产代码里最终落地的样子。</p>
+  </div>
+
+  <div class="cx cx-key">
+    <div class="cx-t">📌 本章要点</div>
+    <p>复杂度(Big-O)量的是<strong>增长趋势</strong>、不是秒表读数,同一渐进复杂度下常数因子仍能差出数倍(<a href="12-comparch.html">12 章</a>缓存局部性)。<strong>数组</strong>下标访问 O(1)、插入 O(n);<strong>链表</strong>正好反过来。<strong>树</strong>靠"每步排除一半"换来 O(log n),但不平衡会退化成 O(n)(<a href="07-filesystems.html">07 章</a>文件系统靠 B 树规避)。<strong>堆</strong>只求"当前最值",O(log n) 增删换 O(1) 取值(<a href="11-os.html">11 章</a>调度器的原型)。<strong>图</strong>放宽了"只能一个父节点"的限制,邻接表 + BFS/DFS 做到 O(V+E)(<a href="16-devops-selfhost.html">16 章</a> Git 的 DAG,<a href="10-networking.html">10 章</a>路由选路)。<strong>哈希表</strong>不比较、直接算,平均 O(1),代价是要管好负载因子和哈希函数质量(<a href="15-crypto-security.html">15 章</a>安全哈希是完全不同的另一套要求)。<strong>排序</strong>没有免费午餐:比较排序理论下限是 O(n log n),非比较排序能更快但要满足"值域已知且较小"这类前提。工程上最重要的技能不是背熟每种算法的实现,而是养成"看到嵌套循环就下意识估一下复杂度"的反射弧。</p>
+  </div>
+
+  <div class="foot">
+    <div class="foot-nav">
+      <a href="12-comparch.html">← 上一章:12 计算机组成原理 + 数电基础</a>
+      <a href="14-signals-systems.html">下一章:14 信号与系统 →</a>
+    </div>
+    <div class="sources">
+      <b>本章来源(MCP 联网取证)</b>
+      <ol>
+        <li><a href="https://en.wikipedia.org/wiki/Big_O_notation">Big O notation — Wikipedia</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Sorting_algorithm">Sorting algorithm — Wikipedia(比较/非比较排序总表、理论下限、实测秒数)</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Hash_table">Hash table — Wikipedia(冲突解决、负载因子)</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Binary_search_tree">Binary search tree — Wikipedia</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Heap_(data_structure)">Heap (data structure) — Wikipedia</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Linked_list">Linked list — Wikipedia(数组/链表权衡、缓存局部性)</a></li>
+        <li><a href="https://www.baeldung.com/cs/adjacency-matrix-list-complexity">Time and Space Complexity of Adjacency Matrix and List — Baeldung</a></li>
+        <li><a href="https://git-scm.com/docs/gitglossary/2.19.0">Git - gitglossary(commit 对象构成 DAG 的官方定义)— git-scm.com 官方文档</a></li>
+      </ol>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>03 DNS 与去广告</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+
+/* --- 本章追加:SVG 手绘图专用样式(作用域内,复用主题变量) --- */
+.fig-node{fill:var(--panel);stroke:var(--line);stroke-width:1.6}
+.fig-node-c{stroke:var(--ink-soft)}
+.fig-node-hub{stroke:var(--brand);stroke-width:2.2}
+.fig-node-a{stroke:var(--accent)}
+.fig-node-ok{stroke:var(--practice);fill:var(--practice-bg)}
+.fig-node-bad{stroke:var(--warn);fill:var(--warn-bg)}
+.fig-title{fill:var(--ink);font-size:14px;font-weight:700}
+.fig-sub{fill:var(--ink-soft);font-size:11.5px}
+.fig-line{stroke:var(--ink-soft);stroke-width:1.6;fill:none}
+.fig-line-ok{stroke:var(--practice);stroke-width:1.8;fill:none}
+.fig-line-bad{stroke:var(--warn);stroke-width:1.8;fill:none}
+.fig-lbl{fill:var(--brand-2);font-size:11.5px}
+.fig-arrowhead{fill:var(--ink-soft)}
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin:16px 0}
+details summary{cursor:pointer;font-weight:700;color:var(--brand);padding:4px 0}
+details[open] summary{margin-bottom:6px}
+</style>
+</head>
+<body>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 03 章</p>
+    <h1>DNS 与去广告 —— 从域名到过滤黑洞的解析链路</h1>
+    <p>为什么在地址栏敲下一个名字,浏览器就能找到地球另一端的服务器?为什么旁路由上装了 AdGuard 之后,网页里的广告突然就消失了?这一章把域名解析的分层世界、本地 DNS 转发实战(dnsmasq → AdGuard Home)、加密 DNS(DoH/DoT)和两个真实存在的泄漏坑一次讲透。</p>
+    <p class="crumbs">← 返回首页 <a href="../index.html">index.html</a></p>
+  </div>
+</div>
+
+<div class="wrap">
+
+<nav class="toc">
+  <b>本章目录</b>
+  <ol>
+    <li><a href="#why">为什么需要 DNS</a></li>
+    <li><a href="#layers">分层世界:根·TLD·权威</a></li>
+    <li><a href="#recur">递归查询 vs 迭代查询</a></li>
+    <li><a href="#cache">缓存与 TTL</a></li>
+    <li><a href="#practice">实战:dnsmasq → AdGuard Home</a></li>
+    <li><a href="#crypto">加密 DNS:DoH 与 DoT</a></li>
+    <li><a href="#pitfalls">避坑:两个真实会漏的洞</a></li>
+    <li><a href="#key">本章要点</a></li>
+  </ol>
+</nav>
+
+<h2 id="why">为什么需要 DNS —— 机器认地址,人认名字</h2>
+<p class="lead">你的电脑、手机、路由器之间,靠的是一串数字地址(IP,如 <code>93.184.x.x</code> 这样的四段数字,或更长的 IPv6)互相找到对方。但人脑记不住数字——就像你不会去背朋友的手机号码,而是在通讯录里存一个名字。<strong>DNS(Domain Name System,域名系统)</strong>做的就是这件事:把人能记住的名字(<code>example.com</code>)翻译成机器能用的数字地址。</p>
+<p>最早的互联网(那时还叫 ARPANET)确实是「一个通讯录」——每台主机在本地维护一份 <code>HOSTS.TXT</code> 文件,人工汇总、定期从中心节点下载更新。随着联网主机数量增长,这种「单一大本子,手工同步」的模式很快就撑不住了:更新有延迟,单点还会成为全网瓶颈。<strong>RFC 1034</strong> 和 <strong>RFC 1035</strong>(1987 年发布,DNS 的奠基文档)给出的解法不是造一本更大的本子,而是<strong>把这本通讯录拆开,分层分责</strong>——没有人独自拥有全部答案,但顺着层级问下去,总能问到知道答案的那一个。这就引出了下一节的分层世界。</p>
+
+<h2 id="layers">域名的分层世界 —— 根、顶级域、权威服务器</h2>
+<p>域名要<strong>从右往左</strong>读才是它真正的层级顺序。以 <code>www.example.com</code> 为例:</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>层级</th><th>本例中的值</th><th>负责的服务器</th><th>职责</th></tr>
+<tr><td>根(root)</td><td><code>.</code>(通常省略不写)</td><td>根服务器</td><td>不知道 example.com 具体在哪,但知道该去问哪个 <strong>TLD</strong> 服务器</td></tr>
+<tr><td>顶级域(TLD)</td><td><code>.com</code></td><td>TLD 服务器</td><td>不知道 example.com 的 IP,但知道它的<strong>权威服务器</strong>是谁</td></tr>
+<tr><td>二级域</td><td><code>example</code></td><td>权威名称服务器</td><td>持有 example.com 这个「区」(zone)里全部记录的最终答案</td></tr>
+<tr><td>主机名</td><td><code>www</code></td><td>—</td><td>区内的一条具体记录(A / AAAA / CNAME …)</td></tr>
+</table>
+</div>
+
+<div class="cx cx-theory">
+  <div class="cx-t">🎓 原理 · RFC 1034 的角色定义</div>
+  <p>RFC 1034 §4-5 把 DNS 参与者严格分成几种角色:<strong>递归解析器</strong>(recursive resolver,代替你跑腿问一圈)、<strong>根服务器</strong>、<strong>TLD 服务器</strong>、<strong>权威名称服务器</strong>(authoritative name server,对某个「区」拥有最终解释权)。这四个术语在 408 统考的计算机网络科目里对应「应用层协议」考点,DNS 是除 HTTP/SMTP 外最常考的应用层协议之一——因为它优雅地演示了「分布式层级查找」这个通用设计模式(和文件系统目录树、路由聚合是同一种思路)。</p>
+</div>
+
+<div class="cx cx-dig">
+  <div class="cx-t">🔎 深挖 · 为什么根服务器恰好是 13 个</div>
+  <p>互联网上被写进「根提示文件」(root hints)的根服务器名字只有 13 个逻辑地址(<code>a.root-servers.net</code> 到 <code>m.root-servers.net</code>)。这不是拍脑袋定的数字,而是<strong>历史上 DNS 报文必须塞进一个 512 字节的 UDP 包</strong>这条硬约束推出来的结果——13 条 NS 记录 + 对应的 A 记录胶水记录(glue record),已经接近 512 字节能装下的上限,再往上加就容易溢出触发 TCP 重传,拖慢当年羸弱的网络。(按字节精算:12 字节 header + 5 字节 question + 13×31 字节 NS 记录 + 13×16 字节 glue A 记录 ≈ 436 字节,离 512 字节还留了约 1-2 台服务器的余量才会真正超限——13 是历史上定下来的、留有安全边际的数字,并非卡到临界值的精确数学上限。)这个数字后来就成了事实标准一直保留至今。不过「13 个名字」≠「13 台机器」:借助 <strong>anycast</strong>(任播,多台机器共享同一个 IP,由路由就近调度请求),截至 2025 年底,这 13 个逻辑地址背后的物理服务器实例已经超过 1900 台,分布在全球各地。现代 DNS 通过 <strong>EDNS(0)</strong>(RFC 6891)把这个包大小上限从 512 字节抬到了 4096 字节甚至更高,但「13」这个历史遗留数字已经很难再改——全球有太多老旧设备的根提示文件还硬编码着这份列表。</p>
+</div>
+
+<h2 id="recur">递归查询 vs 迭代查询 —— 谁在替你跑腿</h2>
+<p>知道了「谁负责什么」,接下来的问题是:<strong>问一圈这件苦差事,谁来干?</strong>DNS 用两种查询方式回答这个问题:</p>
+<ul>
+<li><strong>递归查询(recursive query)</strong>:你的电脑只问一次,把「问一圈」这件事完全甩给递归解析器——不管它要跑多少趟,你只要一个最终答案。</li>
+<li><strong>迭代查询(iterative query)</strong>:递归解析器每问一台服务器,对方要么给出最终答案,要么回一句「我不知道,但你可以去问它」(这叫<strong>转介</strong>,referral)——解析器拿着这个线索,自己一步步问下去,而不是坐等对方替它跑腿。</li>
+</ul>
+<p>关键在于:<strong>你的电脑和递归解析器之间是递归关系,递归解析器和根/TLD/权威服务器之间却是迭代关系</strong>——根服务器和 TLD 服务器从不会替你「继续问下去」,它们只负责转介。下图画出这条完整的路径:</p>
+
+<figure>
+<svg viewBox="0 0 700 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="f1t f1d">
+  <title id="f1t">DNS 递归查询与迭代查询示意图</title>
+  <desc id="f1d">客户端向递归解析器发起一次递归查询;解析器代替客户端依次向根服务器、TLD 服务器、权威服务器发起迭代查询,每一跳对方要么转介要么给出最终答案,最后解析器把结果返回给客户端并写入缓存。</desc>
+  <defs>
+    <marker id="ah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="fig-arrowhead"></path>
+    </marker>
+  </defs>
+
+  <line x1="192" y1="372" x2="266" y2="272" class="fig-line" marker-start="url(#ah1)" marker-end="url(#ah1)"></line>
+  <line x1="350" y1="180" x2="350" y2="92" class="fig-line" marker-start="url(#ah1)" marker-end="url(#ah1)"></line>
+  <line x1="450" y1="205" x2="490" y2="140" class="fig-line" marker-start="url(#ah1)" marker-end="url(#ah1)"></line>
+  <line x1="450" y1="252" x2="490" y2="315" class="fig-line" marker-start="url(#ah1)" marker-end="url(#ah1)"></line>
+
+  <rect x="20" y="330" width="185" height="80" rx="10" class="fig-node fig-node-c"></rect>
+  <text x="112" y="358" class="fig-title" text-anchor="middle">你的电脑</text>
+  <text x="112" y="376" class="fig-sub" text-anchor="middle">stub resolver</text>
+  <text x="112" y="392" class="fig-sub" text-anchor="middle">(浏览器 / 系统)</text>
+
+  <rect x="252" y="180" width="200" height="90" rx="10" class="fig-node fig-node-hub"></rect>
+  <text x="352" y="210" class="fig-title" text-anchor="middle">递归解析器</text>
+  <text x="352" y="228" class="fig-sub" text-anchor="middle">dnsmasq / AdGuard</text>
+  <text x="352" y="244" class="fig-sub" text-anchor="middle">/ ISP 的 DNS 服务</text>
+  <text x="352" y="260" class="fig-sub" text-anchor="middle">(见下节实战)</text>
+
+  <rect x="252" y="20" width="200" height="72" rx="10" class="fig-node fig-node-a"></rect>
+  <text x="352" y="48" class="fig-title" text-anchor="middle">根服务器 "."</text>
+  <text x="352" y="65" class="fig-sub" text-anchor="middle">13 个逻辑地址</text>
+  <text x="352" y="80" class="fig-sub" text-anchor="middle">(见深挖框)</text>
+
+  <rect x="490" y="100" width="180" height="70" rx="10" class="fig-node fig-node-a"></rect>
+  <text x="580" y="128" class="fig-title" text-anchor="middle">TLD 服务器</text>
+  <text x="580" y="145" class="fig-sub" text-anchor="middle">如 .com / .cn</text>
+
+  <rect x="490" y="280" width="180" height="70" rx="10" class="fig-node fig-node-a"></rect>
+  <text x="580" y="308" class="fig-title" text-anchor="middle">权威服务器</text>
+  <text x="580" y="325" class="fig-sub" text-anchor="middle">example.com 的记录</text>
+
+  <!-- 步骤标注统一放在所有节点方框之后绘制,避免被不透明的 fig-node 盖住;
+       ①⑧ 挪到「你的电脑」方框上方(y<330)的空白区,④⑤挪到根/解析器上方空白区并右对齐 TLD 方框左边缘,
+       ⑥⑦挪到解析器下方空白区并右对齐权威方框左边缘,均验证过不落入任何 fig-node 的矩形范围内。 -->
+  <text x="196" y="290" class="fig-lbl">① 递归查询:</text>
+  <text x="196" y="303" class="fig-lbl">example.com?</text>
+  <text x="196" y="316" class="fig-lbl">⑧ 返回 IP,写缓存</text>
+
+  <text x="358" y="128" class="fig-lbl">② 迭代问根</text>
+  <text x="358" y="141" class="fig-lbl">③ 根转介:问 .com TLD</text>
+
+  <text x="463" y="157" class="fig-lbl" text-anchor="end">④ 问 TLD</text>
+  <text x="463" y="170" class="fig-lbl" text-anchor="end">⑤ TLD 转介:问权威</text>
+
+  <text x="452" y="291" class="fig-lbl" text-anchor="end">⑥ 问权威</text>
+  <text x="452" y="304" class="fig-lbl" text-anchor="end">⑦ 权威:就是这个 IP</text>
+</svg>
+<figcaption>图 1 · 你只发起一次「递归查询」;解析器替你做 4 轮「迭代查询」(根→TLD→权威),每一跳都是「转介」而非代劳,直到拿到最终答案(参见 RFC 1034 §5.3.3)。</figcaption>
+</figure>
+
+<p>这条路径不是纸上谈兵——用 <code>dig</code>(Linux/macOS 自带,Windows 可装 BIND 工具包)的 <code>+trace</code> 选项,能亲眼看到解析器一路问下去的过程:</p>
+<pre><code>$ dig +trace example.com
+
+.                       518400  IN  NS   a.root-servers.net.
+.                       518400  IN  NS   b.root-servers.net.
+...(共 13 条根服务器记录,对应图 1 顶部节点)
+;; Received 811 bytes from 192.168.1.2#53(192.168.1.2) in 12 ms
+
+com.                    172800  IN  NS   a.gtld-servers.net.
+...
+;; Received 851 bytes from a.root-servers.net#53(a.root-servers.net) in 34 ms
+
+example.com.            86400   IN  NS   a.iana-servers.net.
+example.com.            86400   IN  NS   b.iana-servers.net.
+;; Received 200 bytes from a.gtld-servers.net#53(a.gtld-servers.net) in 41 ms
+
+example.com.            86400   IN  A    &lt;权威服务器给出的真实 IP&gt;
+;; Received 56 bytes from a.iana-servers.net#53(a.iana-servers.net) in 39 ms</code></pre>
+<p style="font-size:13px;color:var(--ink-soft)">(实际耗时、字节数因网络环境而异;这里省略了具体 IP 数值,只展示分层转介的结构——你在自己机器上跑一遍就能看到真实数字。)</p>
+
+<h2 id="cache">缓存与 TTL —— 为什么不用每次都跑一遍</h2>
+<p>图 1 那趟「4 跳迭代查询」如果每次访问网页都跑一遍,延迟会很痛苦。解决办法是<strong>缓存</strong>:权威服务器给出的每条记录都带一个 <strong>TTL</strong>(Time To Live,存活时间,单位秒),递归解析器会把「问到的答案」连同 TTL 存进本地内存。TTL 到期之前,同一个域名的后续查询直接用缓存回答,不必再走一遍图 1 的全程。这也是为什么改了域名解析后「有的地方生效快、有的地方生效慢」——每一层缓存都在按自己记住的 TTL 倒计时。</p>
+
+<details>
+<summary>展开:DNS 报文长什么样?</summary>
+<p>一个 DNS 报文(RFC 1035 §4.1)由 5 部分组成:12 字节的 <strong>Header</strong>(含 QR 位区分请求/响应、Opcode、RD/RA 表示是否要求 / 支持递归、rcode 错误码等标志位)、<strong>Question</strong>(问的是什么名字、什么记录类型)、<strong>Answer</strong>(答案记录)、<strong>Authority</strong>(权威区的 NS 记录)、<strong>Additional</strong>(附加的胶水记录,比如 NS 记录对应的 IP)。传统 UDP DNS 报文上限是 512 字节(前面深挖框提到的历史包袱),<strong>EDNS(0)</strong>(RFC 6891)通过在报文里加一条伪记录(pseudo-RR)把这个上限协商到 4096 字节甚至更大,才能塞下 DNSSEC 签名这类更大的数据。</p>
+</details>
+
+<h2 id="practice">实战 —— dnsmasq 转发给 AdGuard Home 做广告过滤</h2>
+<p>理论讲完,回到本手册第 <a href="02-router-bypass.html">02 章</a>搭的那台 iStoreOS 旁路由(<code>192.168.1.2</code>)。它身上同时跑着两个和 DNS 相关的软件,各管一段:</p>
+<ul>
+<li><strong>dnsmasq</strong>:官方文档把它定义为「DNS query forwarder」——一个轻量级<strong>转发器 + 缓存</strong>,它自己不会像根/TLD/权威那样从零做递归解析,而是把查询转发给上游一个能做完整递归的 DNS 服务。它最大的价值是和 <strong>DHCP</strong> 深度绑定:给内网设备分配 IP 的同时记住每台设备的主机名,于是局域网内可以直接用设备名互相访问。</li>
+<li><strong>AdGuard Home</strong>:官方定义是一个把追踪 / 广告域名解析请求「重定向到一个黑洞(sinkhole)」的 DNS 服务,本质上是一层<strong>过滤代理</strong>——规则命中就不让你连上广告服务器,规则没命中就继续把查询转发给它自己配置的上游。</li>
+</ul>
+<p>问题来了:两者都想<strong>监听 53 端口</strong>(DNS 的标准端口),但一台机器上一个端口只能被一个进程占用。这不是理论推演——AdGuard Home 官方 issue 跟踪器里明确记录过这个真实冲突:安装时报错「port 53 is occupied by your local dnsmasq instance」,解法只有两条:要么关掉 dnsmasq 的 DNS 功能只留 DHCP,要么让 AdGuard Home 换一个非标准端口监听。本会话选的是后者——<strong>接力而不是二选一</strong>,因为 dnsmasq 的 DHCP+主机名解析仍然要留着。</p>
+
+<figure>
+<svg viewBox="0 0 640 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="f2t f2d">
+  <title id="f2t">本会话真实 DNS 链路:dnsmasq:53 转发给 AdGuard Home:5335</title>
+  <desc id="f2d">局域网设备向旁路由 192.168.1.2 的 53 端口发起 DNS 查询,dnsmasq 处理完 DHCP 相关的内网主机名后,把其余查询通过 server=127.0.0.1#5335 转发给监听 5335 端口的 AdGuard Home;AdGuard Home 命中过滤规则的域名走向 sinkhole 黑洞,未命中的域名通过加密的 DoH 继续向公网上游解析。</desc>
+  <defs>
+    <marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L10,5 L0,10 z" class="fig-arrowhead"></path>
+    </marker>
+  </defs>
+
+  <line x1="320" y1="84" x2="320" y2="148" class="fig-line" marker-end="url(#ah2)"></line>
+  <text x="335" y="120" class="fig-lbl">DNS 查询 → 192.168.1.2:53</text>
+
+  <line x1="320" y1="226" x2="320" y2="288" class="fig-line" marker-end="url(#ah2)"></line>
+  <text x="335" y="262" class="fig-lbl">server=127.0.0.1#5335 转发</text>
+
+  <path d="M280,366 C 230,395 190,410 160,428" class="fig-line-bad" marker-end="url(#ah2)"></path>
+  <text x="150" y="405" class="fig-lbl" text-anchor="middle">命中过滤规则</text>
+
+  <path d="M360,366 C 410,395 450,410 480,428" class="fig-line-ok" marker-end="url(#ah2)"></path>
+  <text x="490" y="405" class="fig-lbl" text-anchor="middle">未命中,继续解析</text>
+
+  <rect x="210" y="20" width="220" height="64" rx="10" class="fig-node fig-node-c"></rect>
+  <text x="320" y="46" class="fig-title" text-anchor="middle">局域网设备</text>
+  <text x="320" y="64" class="fig-sub" text-anchor="middle">192.168.1.0/24</text>
+
+  <rect x="210" y="150" width="220" height="76" rx="10" class="fig-node fig-node-hub"></rect>
+  <text x="320" y="176" class="fig-title" text-anchor="middle">iStoreOS 旁路由</text>
+  <text x="320" y="193" class="fig-sub" text-anchor="middle">dnsmasq :53</text>
+  <text x="320" y="209" class="fig-sub" text-anchor="middle">(DHCP + 内网主机名)</text>
+
+  <rect x="210" y="290" width="220" height="76" rx="10" class="fig-node fig-node-hub"></rect>
+  <text x="320" y="316" class="fig-title" text-anchor="middle">AdGuard Home :5335</text>
+  <text x="320" y="333" class="fig-sub" text-anchor="middle">过滤规则匹配引擎</text>
+  <text x="320" y="349" class="fig-sub" text-anchor="middle">(管理面板另在 :3000)</text>
+
+  <rect x="30" y="430" width="230" height="86" rx="10" class="fig-node fig-node-bad"></rect>
+  <text x="145" y="458" class="fig-title" text-anchor="middle">Sinkhole 黑洞</text>
+  <text x="145" y="476" class="fig-sub" text-anchor="middle">返回 NXDOMAIN / 0.0.0.0</text>
+  <text x="145" y="492" class="fig-sub" text-anchor="middle">广告服务器连不上</text>
+
+  <rect x="380" y="430" width="230" height="86" rx="10" class="fig-node fig-node-ok"></rect>
+  <text x="495" y="458" class="fig-title" text-anchor="middle">上游 DoH:443</text>
+  <text x="495" y="476" class="fig-sub" text-anchor="middle">TLS 加密</text>
+  <text x="495" y="492" class="fig-sub" text-anchor="middle">如 dns.adguard-dns.com</text>
+</svg>
+<figcaption>图 2 · 本会话在 iStoreOS 旁路由(192.168.1.2)上的真实 DNS 链路:dnsmasq 保留 53 端口处理 DHCP 和内网主机名,把其余查询转发给监听 5335 的 AdGuard Home 做广告过滤,过滤后的正常查询再经加密上游继续解析。</figcaption>
+</figure>
+
+<div class="cx cx-practice">
+  <div class="cx-t">🛠 实战锚点 · 本会话真实配置</div>
+  <p>dnsmasq 端只需要两行(OpenWrt/iStoreOS 上等效地写进 <code>/etc/dnsmasq.conf</code> 或 LuCI 的 DHCP/DNS 转发设置里):</p>
+  <pre><code>no-resolv
+server=127.0.0.1#5335</code></pre>
+  <p>dnsmasq 官方手册对 <code>--server</code> 选项的原文定义是:「Specify upstream servers directly. A non-standard port may be specified as part of the IP address using a <code>#</code> character.」——<code>#5335</code> 就是告诉 dnsmasq「把没有更精确匹配规则的查询,转发到本机 5335 端口」,也就是 AdGuard Home 的 DNS 监听端口(它的管理面板是另一个端口,常见默认是 3000,二者不要混淆)。选一个像 5335 这样的非标准端口,正是为了绕开前面提到的「两个进程抢 53」的真实冲突。</p>
+</div>
+
+<p>跨设备互传相关的局域网协议(SMB、AirDrop 等价物)见 <a href="06-smb-fileshare.html">第 06 章</a>;DNS 在整条协议栈里处于哪一层、和 TCP/UDP/HTTP 的关系,见 <a href="10-networking.html">第 10 章 · 计算机网络体系</a>。</p>
+
+<h2 id="crypto">加密 DNS —— DoH 与 DoT 补上明文的洞</h2>
+<p>图 2 里从 AdGuard Home 到公网上游那一段,画的是<strong>加密</strong>的连接,这不是随手加的细节。传统 DNS 走明文 UDP/TCP 53 端口——链路上任何一个中间人(公共 WiFi 热点、运营商、任何能看到你流量的设备)都能看到你查询了哪个域名,甚至能伪造一个假答案把你导向钓鱼网站。要命的是,<strong>就算你之后访问的是 HTTPS 网站,DNS 查询本身发生在 HTTPS 握手之前</strong>,域名早就在这一步暴露了。DoH 和 DoT 就是为了补上这个洞:</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>方案</th><th>端口</th><th>底层加密</th><th>标准</th><th>特点</th></tr>
+<tr><td>明文 DNS</td><td>53</td><td>无</td><td>RFC 1035(1987)</td><td>默认方式,链路上任何人可见、可篡改</td></tr>
+<tr><td>DoT · DNS over TLS</td><td>853(专用)</td><td>TLS</td><td>RFC 7858(2016)</td><td>独立端口,便于企业按端口识别与管控;但端口本身容易被防火墙整体封锁</td></tr>
+<tr><td>DoH · DNS over HTTPS</td><td>443(与网页共用)</td><td>TLS(HTTP/2 或 HTTP/3)</td><td>RFC 8484(2018)</td><td>和普通网页 HTTPS 流量混在一起,几乎没法单独拦截;但把解析请求集中给了少数几家运营 DoH 的服务商</td></tr>
+<tr><td>DoQ · DNS over QUIC</td><td>853(默认)</td><td>QUIC 内的 TLS 1.3</td><td>RFC 9250(2022)</td><td>基于 UDP 的 QUIC,每条查询独立成流,消除队头阻塞;浏览器/系统支持还在铺开中</td></tr>
+</table>
+</div>
+
+<p>AdGuard Home 的上游配置里,这几种写法都能直接用前缀区分(<code>udp://</code> / <code>tcp://</code> / <code>tls://</code> / <code>https://…/dns-query</code> / <code>quic://</code>),这也是它比裸 dnsmasq 更适合放在过滤链路末端的原因之一——上游加密这一段几乎是「填地址」级别的配置成本。</p>
+
+<div class="cx cx-theory">
+  <div class="cx-t">🎓 原理 · 加密 ≠ 验真,DoH/DNSSEC 是两回事</div>
+  <p>RFC 8484 §9 明确写道:DoH 提供的是传输层的机密性(TLS 保护你和服务器之间不被偷看/篡改),但<strong>不提供 DNSSEC 那种「响应内容真实性」的保证</strong>——DoH 只保证「没人在半路改你和 AdGuard 之间的这段悄悄话」,不保证「AdGuard 上游给的答案本身没有被更早一环的人下毒」。DNSSEC(用公钥签名给每条记录背书)解决的是后一个问题,二者互补而非互斥,可以同时开启。这与<a href="15-crypto-security.html">第 15 章</a>要讲的「加密 vs 签名」是同一组概念在不同协议里的复用。</p>
+</div>
+
+<div class="cx cx-dig">
+  <div class="cx-t">🔎 深挖 · DoH 让网络管理员「失明」的争议</div>
+  <p>DoH 把 DNS 流量伪装成普通 HTTPS 网页流量,这对普通用户是隐私利好,却让企业网络管理员没法再靠「盯着 53/853 端口」的老办法做内容审计或安全过滤——除非连 443 一起封,但那会连所有 HTTPS 网站一起封掉。这也是为什么很多讨论里 DoT 被认为更适合企业内网(可按 853 端口精细管控),DoH 更适合终端用户设备(浏览器原生支持、难以被单独针对)。这组张力本身就是「加密」与「可管理性」互相拉扯的一个经典案例。</p>
+</div>
+
+<h2 id="pitfalls">避坑 —— 两个真实会漏掉的洞</h2>
+<p>即使上面这条链路配置得再干净,仍有两个环节可能在你毫无察觉的情况下绕开它。</p>
+
+<div class="cx cx-warn">
+  <div class="cx-t">⚠️ 避坑 · IPv6 DNS 泄漏</div>
+  <p>假设你已经把图 2 那条链路配得很干净:dnsmasq → AdGuard → 加密上游,IPv4 查询滴水不漏。但如果你的 ISP 或路由器仍然通过 IPv6 的 <strong>Router Advertisement</strong>(路由通告,里面可以带 RDNSS 选项直接下发 IPv6 DNS 服务器地址)在给内网设备指派 DNS,支持双栈的客户端完全可能<strong>绕开你精心搭的 AdGuard,直接用 IPv6 去问 ISP 的默认 DNS</strong>——过滤失效,还可能暴露真实的查询记录。IPv6 地址本身通过 <strong>AAAA 记录</strong>解析(和 IPv4 用的 A 记录并列存在,同一个域名可以同时有 A 和 AAAA 两条记录)。排查方法很直接:在支持 IPv6 的网络下打开任意一个「DNS 泄漏测试」网站,看返回的 DNS 服务器列表里是否混进了 ISP 的地址;根治办法要么在旁路由上把 IPv6 的 RA/DHCPv6 也接管过来统一下发 AdGuard 地址,要么在还没理顺之前干脆临时禁用内网 IPv6。</p>
+</div>
+
+<div class="cx cx-warn">
+  <div class="cx-t">⚠️ 避坑 · 浏览器自带 DoH,绕过你的路由器</div>
+  <p>Firefox 和 Chrome 都内置了「安全 DNS / Secure DNS」开关,默认会把 DNS 查询直接送到浏览器自己配置的 DoH 服务商(常见是 Cloudflare 或 Google)——走的是 443 端口,和普通网页流量长得一模一样。这意味着<strong>就算你在旁路由上把 53/853 全部收编进 AdGuard</strong>,浏览器依然可能完全无视你的设置,自己另开一条加密通道直连上游,AdGuard 在这条请求上完全「失明」,广告过滤也就对这部分流量失效了。应对办法:要么在浏览器设置里手动关掉内置的 Secure DNS(或指向你自己的 AdGuard DoH 地址),要么让 AdGuard Home 识别并阻断已知的公共 DoH 服务商域名。</p>
+</div>
+
+<div class="cx cx-key" id="key">
+  <div class="cx-t">📌 本章要点</div>
+  <ul>
+    <li>DNS 的本质是把「人记名字」翻译成「机器认地址」,靠的不是一本大账本,而是<strong>根 → TLD → 权威</strong>的分层责任链(RFC 1034/1035)。</li>
+    <li>你和递归解析器之间是<strong>递归查询</strong>(一次搞定);解析器和根/TLD/权威之间是<strong>迭代查询</strong>(一跳跳转介),别把两者搞反。</li>
+    <li>根服务器「13 个」源自 512 字节 UDP 包限制的历史遗留(留有安全余量,并非精确卡限),现代靠 anycast 把 13 个名字撑出了上千台物理实例。</li>
+    <li><strong>dnsmasq</strong>是转发器+缓存+DHCP,<strong>AdGuard Home</strong>是过滤代理,二者抢 53 端口是真实存在的坑;本会话用 <code>server=127.0.0.1#5335</code> 让 dnsmasq 把普通查询转发给监听在 5335 的 AdGuard 解决。</li>
+    <li>明文 DNS 在 HTTPS 建立前就暴露了域名;<strong>DoT(RFC 7858,853 端口)</strong>和<strong>DoH(RFC 8484,443 端口)</strong>把这段加密,但换来的是「易管控」和「难拦截」两种取舍,DoH 加密不等于 DNSSEC 验真。</li>
+    <li>再干净的过滤链路也挡不住两个洞:<strong>IPv6 DNS 泄漏</strong>(RA 下发的 IPv6 DNS 绕过你的过滤器)和<strong>浏览器自带 DoH</strong>(直接绕开路由器另开加密通道)——两个都要单独核查、单独关掉。</li>
+  </ul>
+</div>
+
+<div class="foot">
+  <div class="foot-nav">
+    <a href="02-router-bypass.html">← 上一章:02 软路由与旁路由</a>
+    <a href="../index.html">回首页</a>
+    <a href="04-wifi-radio.html">下一章:04 WiFi 与射频 →</a>
+  </div>
+  <div class="sources">
+    <b>本章来源(MCP 联网取证):</b>
+    <ol>
+      <li>RFC 1034 — Domain Names: Concepts and Facilities. <a href="https://datatracker.ietf.org/doc/html/rfc1034">datatracker.ietf.org/doc/html/rfc1034</a></li>
+      <li>RFC 1035 — Domain Names: Implementation and Specification. <a href="https://datatracker.ietf.org/doc/html/rfc1035">datatracker.ietf.org/doc/html/rfc1035</a></li>
+      <li>dnsmasq 官方手册(Man page of DNSMASQ). <a href="https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html">thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html</a></li>
+      <li>AdGuard Home Wiki — Configuration(上游 DNS 语法:udp/tcp/tls/https/quic 前缀). <a href="https://github.com/AdguardTeam/AdGuardHome/wiki/Configuration">github.com/AdguardTeam/AdGuardHome/wiki/Configuration</a></li>
+      <li>AdGuard Home 官方概览页(sinkhole 机制原话). <a href="https://adguard.com/en/adguard-home/overview.html">adguard.com/en/adguard-home/overview.html</a></li>
+      <li>RFC 8484 — DNS Queries over HTTPS (DoH). <a href="https://www.rfc-editor.org/rfc/rfc8484">rfc-editor.org/rfc/rfc8484</a></li>
+      <li>RFC 7858 — Specification for DNS over Transport Layer Security (TLS)(DoT). <a href="https://datatracker.ietf.org/doc/html/rfc7858">datatracker.ietf.org/doc/html/rfc7858</a></li>
+      <li>RFC 9250 — DNS over Dedicated QUIC Connections(DoQ). <a href="https://datatracker.ietf.org/doc/html/rfc9250">datatracker.ietf.org/doc/html/rfc9250</a></li>
+      <li>Wikipedia — Root name server(13 个逻辑地址 / anycast 实例数量). <a href="https://en.wikipedia.org/wiki/Root_name_server">en.wikipedia.org/wiki/Root_name_server</a></li>
+      <li>NordLayer — What Is a DNS Leak and How Does It Work(IPv6 DNS 泄漏机制). <a href="https://nordlayer.com/learn/threats/dns-leak/">nordlayer.com/learn/threats/dns-leak</a></li>
+      <li>OpenWrt Forum — OpenWrt AdGuard Home 101 (DNSMASQ)(dnsmasq 与 AdGuard 端口冲突实战讨论). <a href="https://forum.openwrt.org/t/openwrt-adguard-home-101-dnsmasq/110864/1">forum.openwrt.org/t/openwrt-adguard-home-101-dnsmasq</a></li>
+    </ol>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

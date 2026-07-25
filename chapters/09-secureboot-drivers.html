@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>09 固件安全与内核驱动</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+
+/* 补充:折叠详情(渐进式披露),与设计系统色板保持一致 */
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:14px 0}
+details summary{cursor:pointer;font-weight:600;color:var(--brand)}
+details[open] summary{margin-bottom:8px}
+details ul{margin:6px 0}
+</style>
+</head>
+<body>
+<button class="tgl" onclick="var r=document.documentElement,cur=r.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');r.dataset.theme=cur==='dark'?'light':'dark'">🌓 主题</button>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 09 章</p>
+    <h1>固件安全与内核驱动:Secure Boot、驱动签名与 SMM</h1>
+    <p>为什么一段能正常编译、在别的电脑上能跑的驱动,在你自己这台 Windows 笔记本上就是装不上——从主板通电的第一毫秒,到内核里每一个能碰硬件的驱动,Windows 到底在验什么、防什么、什么时候可以合理绕过。</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="crumbs"><a href="../index.html">← 返回首页</a> · 上一章 <a href="08-windows-admin.html">08 Windows 系统管理与提权</a></p>
+
+  <nav class="toc">
+    <b>本章目录</b>
+    <ol>
+      <li><a href="#s1">1. 从一次"装不上"说起</a></li>
+      <li><a href="#s2">2. Secure Boot:开机第一道信任链</a></li>
+      <li><a href="#s3">3. 驱动签名强制:进内核前的第二道门</a></li>
+      <li><a href="#s4">4. HVCI / 内存完整性:运行期的第三道门</a></li>
+      <li><a href="#s5">5. SMM 与 EC:比内核更深的隐藏层</a></li>
+      <li><a href="#s6">6. BitLocker:把磁盘钥匙锁进这条信任链</a></li>
+      <li><a href="#s7">7. 内核态 vs 用户态:五个特权环</a></li>
+      <li><a href="#s8">8. 避坑:真要跑底层硬件工具怎么办</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="s1">1. 从一次"装不上"说起</h2>
+  <p class="lead">你在这台 Dell Precision 7530 上大概率遇到过这样的场面:想让风扇提前介入,声音别等到烤到 90℃ 才转起来,于是找了个类似 <strong>DellFanCmd</strong> 的第三方小工具——它不走 Dell 官方那套图形界面,而是直接给内嵌控制器(<strong>EC</strong>)或 <strong>SMM</strong> 接口发指令,理论上更快更准。装上,运行,Windows 弹出一句你可能没细看的话:"无法验证此设备驱动程序的发布者",或者设备管理器里一个刺眼的黄色感叹号——<strong>代码 52</strong>。程序本身没有 bug,编译无误,在别人电脑上甚至能跑——问题出在 Windows 根本不打算让这段代码进内核。</p>
+  <p>这不是巧合,而是从主板通电那一刻就开始运作的一整条信任链。本章把这条链拆成五道门——<strong>Secure Boot</strong>、<strong>驱动签名强制</strong>、<strong>HVCI/内存完整性</strong>、<strong>SMM/EC</strong>、<strong>BitLocker</strong>——讲清楚每一道在防什么、为什么防,以及最后落到一个统一的坐标系:<strong>特权环(protection ring)</strong>。</p>
+
+  <h2 id="s2">2. Secure Boot:开机第一道信任链</h2>
+  <p><strong>为什么需要它</strong>:在 UEFI 出现之前,BIOS 直接把控制权交给硬盘第一个扇区里的任何代码——这给了 <strong>bootkit</strong>(藏在启动区、比操作系统更早跑起来的恶意程序)可乘之机:操作系统还没起来,杀毒软件更没起来,恶意代码已经先一步接管了整台机器。<strong>Secure Boot</strong> 是 PC 行业定的标准答案:开机后每一步都要交"签名"核验,验不过就不执行。</p>
+  <p><strong>怎么运作</strong>:整条链像机场安检层层查验登机牌和护照——任何一环对不上就当场拦下,不会"先放行再说"。固件里预置了几组密钥/签名数据库:</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>术语</th><th>全称</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td>PK</td><td>Platform Key,平台密钥</td><td>厂商级根信任,一台机器通常只有一个</td></tr>
+        <tr><td>KEK</td><td>Key Exchange Key,密钥交换密钥</td><td>由 PK 签发,管理 db/dbx 的更新权限</td></tr>
+        <tr><td>db</td><td>Signature Database,允许清单</td><td>存放受信任签名者证书或哈希,验证通过才放行</td></tr>
+        <tr><td>dbx</td><td>Forbidden Signature Database,吊销清单</td><td>列入即拉黑,即使签名本身有效也拒绝执行</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>开机时固件先验证自身完整性,再依次核验 Windows Boot Manager 的签名、Windows 内核的签名,直至 <strong>ELAM</strong>(提前反恶意软件驱动,early-launch antimalware)——只要签名对不上或证书链断在半路,固件就拒绝往下走,进入 OEM 定义的恢复流程,而不是"将就着启动"。这一整条从固件到内核驱动的核验流程,微软称之为 <strong>Trusted Boot</strong>,是 Secure Boot 在操作系统层面的延续。</p>
+
+  <figure>
+    <svg viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="svg1title svg1desc">
+      <title id="svg1title">UEFI Secure Boot 到 Trusted Boot 的信任链</title>
+      <desc id="svg1desc">从固件通电开始,依次核验 Boot Manager、内核、ELAM,最后一环分叉:已签名驱动放行,未签名驱动被拦下报 Code 52。</desc>
+      <defs>
+        <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink-soft)"/>
+        </marker>
+      </defs>
+      <g font-family="var(--font)">
+        <rect x="120" y="8" width="400" height="52" rx="10" style="fill:color-mix(in srgb,var(--brand) 12%,var(--panel));stroke:var(--brand);stroke-width:1.5"/>
+        <text x="320" y="30" text-anchor="middle" font-size="14" style="fill:var(--ink)">① UEFI 固件启动</text>
+        <text x="320" y="49" text-anchor="middle" font-size="12" style="fill:var(--ink-soft)">核验 PK / KEK 与 db / dbx 签名库</text>
+
+        <line x1="320" y1="60" x2="320" y2="97" style="stroke:var(--ink-soft);stroke-width:2" marker-end="url(#arrowhead)"/>
+
+        <rect x="120" y="100" width="400" height="52" rx="10" style="fill:color-mix(in srgb,var(--brand) 12%,var(--panel));stroke:var(--brand);stroke-width:1.5"/>
+        <text x="320" y="122" text-anchor="middle" font-size="14" style="fill:var(--ink)">② Windows Boot Manager</text>
+        <text x="320" y="141" text-anchor="middle" font-size="12" style="fill:var(--ink-soft)">验证自身签名,再验证内核签名</text>
+
+        <line x1="320" y1="152" x2="320" y2="189" style="stroke:var(--ink-soft);stroke-width:2" marker-end="url(#arrowhead)"/>
+
+        <rect x="120" y="192" width="400" height="52" rx="10" style="fill:color-mix(in srgb,var(--brand) 12%,var(--panel));stroke:var(--brand);stroke-width:1.5"/>
+        <text x="320" y="214" text-anchor="middle" font-size="14" style="fill:var(--ink)">③ Windows 内核(Trusted Boot)</text>
+        <text x="320" y="233" text-anchor="middle" font-size="12" style="fill:var(--ink-soft)">ntoskrnl.exe 逐一验证后续组件</text>
+
+        <line x1="320" y1="244" x2="320" y2="281" style="stroke:var(--ink-soft);stroke-width:2" marker-end="url(#arrowhead)"/>
+
+        <rect x="120" y="284" width="400" height="52" rx="10" style="fill:color-mix(in srgb,var(--brand) 12%,var(--panel));stroke:var(--brand);stroke-width:1.5"/>
+        <text x="320" y="306" text-anchor="middle" font-size="14" style="fill:var(--ink)">④ ELAM 提前反恶意软件驱动</text>
+        <text x="320" y="325" text-anchor="middle" font-size="12" style="fill:var(--ink-soft)">先于其他驱动加载,先行判定可信度</text>
+
+        <line x1="320" y1="336" x2="180" y2="373" style="stroke:var(--practice);stroke-width:2" marker-end="url(#arrowhead)"/>
+        <line x1="320" y1="336" x2="460" y2="373" style="stroke:var(--warn);stroke-width:2" marker-end="url(#arrowhead)"/>
+
+        <rect x="20" y="376" width="300" height="90" rx="10" style="fill:var(--practice-bg);stroke:var(--practice);stroke-width:1.5"/>
+        <text x="170" y="400" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--practice)">✓ EV 证书 + Dev Center 签名</text>
+        <text x="170" y="420" text-anchor="middle" font-size="12" style="fill:var(--ink)">例:官方 Dell Power Manager</text>
+        <text x="170" y="438" text-anchor="middle" font-size="12" style="fill:var(--ink-soft)">正常加载,进入 ring 0 工作</text>
+
+        <rect x="320" y="376" width="300" height="90" rx="10" style="fill:var(--warn-bg);stroke:var(--warn);stroke-width:1.5"/>
+        <text x="470" y="400" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--warn)">✗ 未签名 / 命中黑名单</text>
+        <text x="470" y="420" text-anchor="middle" font-size="12" style="fill:var(--ink)">例:直戳 EC/SMM 的 DellFanCmd 类工具</text>
+        <text x="470" y="438" text-anchor="middle" font-size="12" style="fill:var(--ink-soft)">设备管理器 Code 52,拒绝加载</text>
+      </g>
+    </svg>
+    <figcaption>图 1:UEFI Secure Boot → Trusted Boot 信任链,以及一个未签名驱动在最后一环被拦下的位置</figcaption>
+  </figure>
+
+  <p>这条链上每一次"验证签名",底层用的都是非对称加密的数字签名机制——db/dbx 里存的其实是公钥或哈希,固件用它验证一段代码是否被对应私钥签过、内容是否被篡改。想补数学细节,可以先跳到 <a href="15-crypto-security.html">《15 密码学与网络安全》</a>。</p>
+
+  <h2 id="s3">3. 驱动签名强制:进内核前的第二道门</h2>
+  <p>Secure Boot 只管到内核加载的那一刻;内核起来之后,还有无数第三方驱动想要加载——显卡驱动、网卡驱动,还有各种"底层小工具"背后捆绑的驱动。Windows 从 Vista 起就有<strong>内核模式代码签名策略</strong>(kernel-mode code signing policy),规定 64 位系统上的内核驱动必须携带有效数字签名;Windows 10 版本 1607(2016 年)之后更进一步——新驱动必须经过 <strong>Microsoft Hardware Dev Center</strong> 认证或"证明签名"(attestation signing),普通自签名证书不再够用。这道门槛与 <a href="08-windows-admin.html">《08 Windows 系统管理与提权》</a> 里的 UAC 提权前后呼应:UAC 挡的是"谁有管理员权限去安装驱动",驱动签名挡的是"装上之后,这段代码能不能真正跑进 ring 0"。</p>
+  <p>这正是 DellFanCmd 这类工具会踩雷的地方:它要做的事——直接读写 EC 寄存器或触发 SMI——用户态程序没有权限做,必须靠一个内核驱动在 ring 0 代劳。如果这个驱动没有走完整的 Dev Center 签名流程(小众开源项目通常负担不起,或者用的是多年前的旧证书),Secure Boot 打开时 Windows 直接拒绝加载,设备管理器报 <strong>Code 52</strong>:"Windows 无法验证此设备驱动程序的数字签名"。</p>
+
+  <details>
+    <summary>点击展开:驱动签名要求随 Windows 版本的演变</summary>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>适用范围</th><th>Vista / 7,或 Secure Boot 关闭</th><th>8 / 8.1 / 10(≤1511),Secure Boot 开启</th><th>10 版本 1607+,Secure Boot 开启</th></tr></thead>
+        <tbody>
+          <tr><td>架构要求</td><td>仅 64 位需签名</td><td>64 位 + 32 位均需</td><td>64 位 + 32 位均需</td></tr>
+          <tr><td>签名形式</td><td>内嵌签名或 catalog 文件</td><td>同左</td><td>同左,且须经 Dev Center 认证/证明签名</td></tr>
+          <tr><td>签名算法</td><td>SHA2</td><td>SHA2</td><td>SHA2</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--ink-soft)">来源:Microsoft Learn《Driver Signing Policy》。跨系统升级/Secure Boot 关闭时仍保留若干交叉签名例外,细节见原文。</p>
+  </details>
+
+  <h2 id="s4">4. HVCI / 内存完整性:运行期的第三道门</h2>
+  <p>就算一个驱动顺利通过签名检查、成功加载进内核,故事还没完。<strong>HVCI</strong>(Hypervisor-protected Code Integrity,也叫"内存完整性")在此之上又加了一层:借助 Hyper-V 的虚拟化能力,把"判断哪些内核内存页可以被当作代码执行"这件事,挪到一个连内核自己都碰不到的隔离环境里完成——即使某个驱动或攻击者拿到了内核权限,也无法把一段内核内存悄悄改成可执行代码。这也是为什么 HVCI 依赖 <strong>VBS</strong>(Virtualization-based Security,基于虚拟化的安全):没有虚拟化隔离,就没有"内核自己说了不算"这件事。HVCI 从 Windows 11 22H2 起在新机器上默认开启。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th></th><th>没有 HVCI</th><th>开启 HVCI</th></tr></thead>
+      <tbody>
+        <tr><td>内核内存页能否被标记为"可执行"</td><td>驱动或攻击者拿到内核权限后可直接改写页属性,注入代码能跑起来</td><td>页属性由 Hyper-V 隔离环境仲裁,内核自己说了不算,篡改不生效</td></tr>
+        <tr><td>驱动加载时还会核对什么</td><td>仅核对数字签名是否有效</td><td>签名之外再核对是否命中 vulnerable driver blocklist(见下方深挖框)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">实战锚点 · 你在 Precision 7530 上真做过的</div>
+    <p>Windows 优化脚本里"关 VBS"那一步,动的正是三个注册表值——完整路径分别是 <code>HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\EnableVirtualizationBasedSecurity=0</code>、<code>HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity\Enabled=0</code>(比第一条深两级,并非同一分支下的平级项),以及与 DeviceGuard 同级的 <code>HKLM\SYSTEM\CurrentControlSet\Control\Lsa\LsaCfgFlags=0</code>——任务管理器实测,同一台机器空载桌面场景下关闭前后 CPU 占用差约 5 个百分点(具体幅度因硬件世代和负载而异,并非普适结论)。但有一根线不能动:<code>bcdedit /enum {current}</code> 里的 <code>hypervisorlaunchtype</code> 必须留着,它管的是 Hyper-V 平台本身,一旦关掉,Docker / WSL2 直接起不来——<strong>VBS 关闭 ≠ hypervisor 关闭,二者是两个独立开关</strong>。同一台机器上,想手动降压(undervolt)省电又被 <strong>Plundervolt</strong>(CVE-2019-11157)在固件层锁死,只能退回 BIOS 的 Cool 热档 + 官方 <strong>Dell Power Manager</strong> 控制风扇与性能——这正是"绕不过底层保护,就换一条厂商签过名的官方路"的真实案例。</p>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">深挖 · 连"签名"都保不住的驱动</div>
+    <p>微软文档写得很直白:只要 HVCI/内存完整性、Smart App Control 或 S 模式开着,<strong>vulnerable driver blocklist</strong>(高危驱动黑名单)就强制生效——<strong>WinRing0</strong>(不少风扇/温度监控工具,包括开源的 FanControl,底层都靠它读写硬件寄存器与 MSR)就是这份名单上的常客,即便当年拿到过合法签名,也照样被 Defender 拦截并标记为 <code>HackTool:Win32/Winring0</code>。更早之前,这类"能从用户态一路捅到 ring 0"的驱动干脆是国家级后门的理想藏身之处——维基百科记录的 NSA 军火库里,<strong>DEITYBOUNCE</strong> 这个代号,针对的正是 Dell PowerEdge 服务器的 SMM 层。</p>
+    <details>
+      <summary>更多同类代号(维基百科整理)</summary>
+      <ul>
+        <li><strong>SOUFFLETROUGH</strong> — 针对 Juniper SSG300/500 系列防火墙</li>
+        <li><strong>SCHOOLMONTANA</strong> — 针对 Juniper J-series 路由器</li>
+        <li><strong>IRONCHEF</strong> — 针对 HP ProLiant 服务器</li>
+      </ul>
+    </details>
+  </div>
+
+  <h2 id="s5">5. SMM 与 EC:比内核更深的隐藏层</h2>
+  <p>到这里为止,Secure Boot、驱动签名、HVCI 管的都还是操作系统能看到的世界。但 x86 处理器还留了一个操作系统完全看不见的模式——<strong>System Management Mode(SMM)</strong>,因为比 ring 0 权限更高,业内常俗称"<strong>ring −2</strong>"(非正式类比说法,见第 7 节说明)。SMM 只能通过硬件触发的 <strong>SMI</strong>(System Management Interrupt)进入,代码运行在一段叫 <strong>SMRAM</strong> 的隔离内存里,运行期间连操作系统、hypervisor 都会被整体挂起。打个比方:好比大楼消防广播系统触发后直接接管所有楼层的喇叭——你正开的会(操作系统/hypervisor)不是被终止,而是被整体按下暂停键,等广播讲完(RSM 指令)才把话筒还给你,你甚至感觉不到自己被暂停过。它从 1990 年代初 Intel 386SL 时代就存在,原本是为了让 BIOS 厂商实现电源管理(如 ACPI)、处理硬件错误,以及管理 <strong>EC</strong>(嵌入式控制器,embedded controller)。</p>
+
+  <figure>
+    <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="svg3title svg3desc">
+      <title id="svg3title">SMM 执行时间轴</title>
+      <desc id="svg3desc">CPU 正常执行,SMI 触发后跳进 SMRAM 运行 SMM 代码,期间操作系统与 hypervisor 整体冻结,RSM 指令后恢复正常执行,整个过程按时间从左到右推进。</desc>
+      <defs>
+        <marker id="arrowhead-smm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink-soft)"/>
+        </marker>
+      </defs>
+      <g font-family="var(--font)">
+        <rect x="20" y="30" width="180" height="70" rx="10" style="fill:var(--theory-bg);stroke:var(--theory);stroke-width:1.5"/>
+        <text x="110" y="58" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--theory)">CPU 正常执行</text>
+        <text x="110" y="80" text-anchor="middle" font-size="11" style="fill:var(--ink-soft)">OS / hypervisor 运行中</text>
+
+        <line x1="200" y1="65" x2="234" y2="65" style="stroke:var(--ink-soft);stroke-width:2" marker-end="url(#arrowhead-smm)"/>
+        <text x="217" y="53" text-anchor="middle" font-size="11" style="fill:var(--ink-soft)">SMI 触发</text>
+
+        <rect x="238" y="20" width="220" height="90" rx="10" style="fill:var(--warn-bg);stroke:var(--warn);stroke-width:1.5"/>
+        <text x="348" y="48" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--warn)">SMRAM 中运行 SMM</text>
+        <text x="348" y="68" text-anchor="middle" font-size="11" style="fill:var(--ink)">固件代码处理电源 / EC / ACPI</text>
+        <text x="348" y="92" text-anchor="middle" font-size="11" font-weight="700" style="fill:var(--warn)">期间 OS / hypervisor 整体冻结</text>
+
+        <line x1="461" y1="65" x2="496" y2="65" style="stroke:var(--ink-soft);stroke-width:2" marker-end="url(#arrowhead-smm)"/>
+        <text x="478" y="53" text-anchor="middle" font-size="11" style="fill:var(--ink-soft)">RSM</text>
+
+        <rect x="500" y="30" width="120" height="70" rx="10" style="fill:var(--theory-bg);stroke:var(--theory);stroke-width:1.5"/>
+        <text x="560" y="58" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--theory)">恢复正常执行</text>
+        <text x="560" y="80" text-anchor="middle" font-size="11" style="fill:var(--ink-soft)">OS 无感知曾被暂停</text>
+
+        <line x1="20" y1="140" x2="612" y2="140" style="stroke:var(--ink-soft);stroke-width:1.5" marker-end="url(#arrowhead-smm)"/>
+        <text x="320" y="160" text-anchor="middle" font-size="11" style="fill:var(--ink-soft)">时间 →</text>
+      </g>
+    </svg>
+    <figcaption>图 2:SMM 执行时间轴——SMI 触发到 RSM 恢复之间,操作系统整体被冻结而非并发运行</figcaption>
+  </figure>
+
+  <p>EC 是主板上一颗独立的小芯片,负责风扇转速、电池充放电、键盘背光这类"不劳烦 CPU 大驾"的琐事;笔记本电脑里,风扇曲线往往就是 BIOS/EC 固件谈好的一套规则,操作系统本身并不直接管。EC 与总线、I/O 端口的关系,详见 <a href="12-comparch.html">《12 计算机组成原理》</a>。DellFanCmd 这类工具想绕开官方曲线,只能选其一:直接戳 EC 寄存器,或者通过 SMI 让固件的 SMM 处理程序代劳——这两条路都要求一个能进 ring 0(甚至间接触发 SMM)的驱动,于是又绕回第 3 节的签名问题。</p>
+
+  <h2 id="s6">6. BitLocker:把磁盘钥匙锁进这条信任链</h2>
+  <p>BitLocker 加密的是整个卷,听起来跟前面几节没什么关系,但它的钥匙管理其实把前面所有环节的"状态"当成了解锁条件之一。启用 TPM 保护后,BitLocker 不是简单地把密钥存一份在 TPM 里就完事——它把一组 <strong>PCR</strong>(Platform Configuration Register,平台配置寄存器)测量值也绑进解锁条件,其中 <strong>PCR7</strong> 记录的正是 Secure Boot 的状态与策略。只要 Secure Boot 被关闭、或签名策略被改动,PCR7 的值就会变,TPM 认为"开机环境跟上次不一样了",拒绝自动吐出密钥——用户只能手敲一长串 48 位数字的恢复密钥。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>开机环境</th><th>PCR7 测量值</th><th>TPM 自动解锁</th></tr></thead>
+      <tbody>
+        <tr><td>Secure Boot 保持开启,策略未改动</td><td>与上次一致</td><td>是,静默放行,用户无感知</td></tr>
+        <tr><td>Secure Boot 被关闭,或签名策略被改动</td><td>与上次不一致</td><td>否,要求手敲 48 位恢复密钥</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>反过来说,这也是为什么"为了装一个未签名驱动而临时关掉 Secure Boot"代价可能超出预期:如果这台机器同时开着 BitLocker,收获的不只是驱动能装上,还有一次意外的恢复密钥提示。</p>
+
+  <h2 id="s7">7. 内核态 vs 用户态:五个特权环</h2>
+  <p>把前六节串起来看,会发现 Windows 的安全模型其实是一层套一层的<strong>特权环(protection ring)</strong>:越往里权限越大,操作系统能管到的范围也越小。打个比方:好比大楼门禁权限分级——访客卡只能进大堂,员工卡能刷开自己的办公楼层,保安手里的万能卡能开全楼所有房间,而只有物业总控室才有的总闸钥匙能直接切断整栋楼的门禁系统本身;越往里能开的门越多,外人也越难看到这一层的存在。</p>
+
+  <figure>
+    <svg viewBox="0 0 640 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="svg2title svg2desc">
+      <title id="svg2title">x86 特权环层级示意图</title>
+      <desc id="svg2desc">五层嵌套矩形,从外到内依次是 Ring 3 用户态、Ring 0 内核态、Ring -1 Hypervisor、Ring -2 SMM、Ring -3 ME/PSP,权限逐层升高、操作系统可见范围逐层收缩。</desc>
+      <g font-family="var(--font)">
+        <rect x="10" y="10" width="620" height="380" rx="16" style="fill:var(--panel);stroke:var(--ink-soft);stroke-width:1.5"/>
+        <text x="24" y="38" font-size="13" font-weight="700" style="fill:var(--ink)">Ring 3 — 用户态</text>
+
+        <rect x="70" y="65" width="500" height="270" rx="14" style="fill:var(--theory-bg);stroke:var(--theory);stroke-width:1.5"/>
+        <text x="84" y="92" font-size="13" font-weight="700" style="fill:var(--theory)">Ring 0 — 内核态</text>
+
+        <rect x="130" y="120" width="380" height="160" rx="12" style="fill:var(--dig-bg);stroke:var(--dig);stroke-width:1.5"/>
+        <text x="144" y="147" font-size="13" font-weight="700" style="fill:var(--dig)">Ring −1 — Hypervisor</text>
+
+        <rect x="190" y="155" width="260" height="90" rx="10" style="fill:var(--warn-bg);stroke:var(--warn);stroke-width:1.5"/>
+        <text x="220" y="204" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--warn)">Ring −2</text>
+
+        <rect x="250" y="180" width="140" height="40" rx="6" style="fill:var(--key-bg);stroke:var(--key);stroke-width:1.5"/>
+        <text x="320" y="204" text-anchor="middle" font-size="11" font-weight="700" style="fill:var(--key)">Ring −3</text>
+
+        <text x="320" y="412" text-anchor="middle" font-size="12" style="fill:var(--ink-soft)">用户态 → 内核态 → Hypervisor(VBS)→ SMM(EC/风扇/电源)→ ME/PSP(厂商固件,操作系统不可见)</text>
+      </g>
+    </svg>
+    <figcaption>图 3:x86 特权环层级——从用户态到 ME/PSP,操作系统的管辖范围逐层收缩</figcaption>
+  </figure>
+
+  <p style="font-size:13px;color:var(--ink-soft)">注:x86 架构本身只由 CPL/DPL(2 位特权级字段)正式定义 Ring 0–3;下表与上图中的 Ring −1/−2/−3 是安全社区对 hypervisor / SMM / ME-PSP 权限层级的非正式类比,三者分别依赖 VMX root 模式、SMI 陷入 SMRAM、独立协处理器等完全不同的硬件机制运作,并不是 CPL 编号本身的延伸。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>层级</th><th>名称</th><th>典型内容</th><th>谁能拦下未授权代码</th></tr></thead>
+      <tbody>
+        <tr><td>Ring 3</td><td>用户态 User Mode</td><td>浏览器、普通应用、大多数进程</td><td>操作系统内核(系统调用边界)</td></tr>
+        <tr><td>Ring 0</td><td>内核态 Kernel Mode</td><td>OS 内核、设备驱动</td><td>Secure Boot + 驱动签名策略 + HVCI</td></tr>
+        <tr><td>Ring −1</td><td>Hypervisor</td><td>Hyper-V / VBS 虚拟化层</td><td>CPU 虚拟化扩展(VT-x / AMD-V)隔离</td></tr>
+        <tr><td>Ring −2</td><td>SMM(System Management Mode)</td><td>电源管理、EC/风扇、ACPI、TPM 底层交互</td><td>只有固件本身能进出,操作系统完全看不到</td></tr>
+        <tr><td>Ring −3</td><td>ME / PSP(Intel ME、AMD PSP)</td><td>独立协处理器,开机前就已运行</td><td>厂商固件签名,OS 与主固件都管不到</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">原理 · 操作系统教材怎么定义这条边界</div>
+    <p>408/大多数操作系统教材里,"内核态"与"用户态"的边界不是靠模糊的"信任"划定,而是靠 CPU 硬件的特权级寄存器 + <strong>trap(陷入)机制</strong>:用户态程序不能直接执行特权指令(如修改页表、屏蔽中断),只能通过<strong>系统调用(system call)</strong>主动"陷入"内核,由内核检查后代为执行,再把控制权交还。Secure Boot / 驱动签名 / HVCI 这些机制,本质上都是在回答同一个更深的问题——"谁有资格把代码放进 ring 0 这一侧"。</p>
+  </div>
+
+  <h2 id="s8">8. 避坑:真要跑底层硬件工具怎么办</h2>
+  <p>如果确实需要在开发机上跑一个未签名驱动(调试硬件、跑一次性检测工具),Windows 留了口子,但每一步都有对应代价:</p>
+
+  <pre><code># 查看当前 Secure Boot 状态(True / False)
+Confirm-SecureBootUEFI
+
+# 查看是否已处于测试签名模式
+bcdedit /enum {current}
+
+# 临时开启测试签名模式(允许加载自签名/测试证书驱动)
+bcdedit /set testsigning on
+# 用完务必关闭
+bcdedit /set testsigning off</code></pre>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">避坑 · 这条路每一步都在切安全权衡</div>
+    <p><code>testsigning on</code> 只解决"驱动没走 Dev Center 签名"这一层;如果目标驱动是 WinRing0 这类已经进了漏洞黑名单的老熟人,HVCI 开着照样拦你,得先临时关 HVCI(参见第 4 节的注册表项)。彻底关闭 Secure Boot 则会连带影响 BitLocker(见第 6 节)与整机的第一道信任链。测试签名 / HVCI / Secure Boot 是三道独立的门,不要因为"关了一个还是装不上"就把三道门全打开——用完记得按相反顺序逐项恢复,而不是留着"能用就行"。能用厂商官方签过名的工具(如 Dell Power Manager、Dell Command 系列)解决同样的需求时,优先选官方工具,始终是风险最低的一条路。</p>
+  </div>
+
+  <div class="cx cx-key">
+    <div class="cx-t">本章要点</div>
+    <ul>
+      <li><strong>Secure Boot</strong> 管"开机到内核加载"这一段的签名链(PK/KEK/db/dbx),关掉它等于交出整条链的信任前提。</li>
+      <li><strong>驱动签名强制</strong> 管每一个想进 ring 0 的驱动,Windows 10 1607+ 默认要求经 Microsoft Dev Center 认证。</li>
+      <li><strong>HVCI/内存完整性</strong> 是运行期持续生效的第三层,还顺带强制执行"漏洞驱动黑名单"——即使签名合法也可能被挡。</li>
+      <li><strong>SMM(ring −2)</strong> 是操作系统完全看不见的固件层,EC/风扇/电源管理通常经它或直接寄存器访问完成。</li>
+      <li><strong>BitLocker</strong> 通过 TPM PCR7 把 Secure Boot 状态纳入磁盘解锁条件,牵一发动全身。</li>
+      <li>五个<strong>特权环</strong>(用户态 → 内核态 → Hypervisor → SMM → ME/PSP)权限递增、操作系统管辖范围递减,是理解以上所有机制的统一坐标系。</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    <div class="foot-nav">
+      <a href="08-windows-admin.html">← 上一章:08 Windows 系统管理与提权</a>
+      <a href="../index.html">回首页</a>
+      <a href="10-networking.html">下一章:10 计算机网络体系 →</a>
+    </div>
+    <p><strong>本章 MCP 来源</strong></p>
+    <ol class="sources">
+      <li><a href="https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-secure-boot">Microsoft Learn — Secure boot(OEM 固件要求 / 签名数据库)</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/operating-system-security/system-security/secure-the-windows-10-boot-process">Microsoft Learn — Secure the Windows boot process</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/operating-system-security/system-security/trusted-boot">Microsoft Learn — Secure Boot and Trusted Boot</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/install/kernel-mode-code-signing-policy--windows-vista-and-later-">Microsoft Learn — Driver Signing Policy(kernel-mode code signing)</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/hardware-security/enable-virtualization-based-protection-of-code-integrity">Microsoft Learn — Enable virtualization-based protection of code integrity(HVCI)</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/design/microsoft-recommended-driver-block-rules">Microsoft Learn — Microsoft recommended driver block rules(vulnerable driver blocklist)</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/">Microsoft Learn — BitLocker Overview</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/faq">Microsoft Learn — BitLocker FAQ(TPM / PCR / PIN 密钥推导)</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/System_Management_Mode">Wikipedia — System Management Mode</a></li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>

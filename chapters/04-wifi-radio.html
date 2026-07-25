@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>04 WiFi 与射频</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 04 章</p>
+    <h1>WiFi 与射频</h1>
+    <p>2.4GHz 和 5GHz 到底是什么、信道 1/6/11 为什么总被反复提起、802.11 的 n/ac/ax 都代表哪一代——以及,为什么这台笔记本内置的 Intel 网卡说什么也开不出 5GHz 热点。</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+<p class="crumbs"><a href="../index.html">← 返回首页</a> · 计算机知识手册 · 第 04 章 / 共 16 章 · Part I 实战复盘</p>
+
+<p class="lead">Wi-Fi 图标满格,网却是断的;明明是双频网卡,5GHz 热点却死活开不出来——这些坑背后都是同一件事在起作用:无线电频谱是一份共享、有限、受管制的物理资源,协议标准和芯片固件在这份资源上各自划了地盘,谁都不能违规。</p>
+
+<div class="toc">
+<b>目录</b>
+<ol>
+<li><a href="#why">为什么要懂频段和信道</a></li>
+<li><a href="#bands">2.4GHz 与 5GHz:两条不同的路</a></li>
+<li><a href="#channels">信道与信道宽度</a></li>
+<li><a href="#gen">802.11 世代:n / ac / ax 是什么</a></li>
+<li><a href="#hostapd">hostapd:网卡如何变成 AP</a></li>
+<li><a href="#cnvi">CNVi 架构:AX201 不是一张"完整"网卡</a></li>
+<li><a href="#case">实战:AX201 为什么开不出 5GHz 热点</a></li>
+<li><a href="#power">发射功率与覆盖(伏笔)</a></li>
+<li><a href="#key">本章要点</a></li>
+</ol>
+</div>
+
+<h2 id="why">为什么要懂频段和信道</h2>
+<p>有线以太网里,一根网线就是一条专用车道——你的包和别人的包物理上走的是不同的铜线或光纤。Wi-Fi 完全不同:同一个房间里所有设备共享同一段无线电频谱,这段频谱还要按各国规定切成一条条"信道"分给不同的 AP(接入点)使用。谁在哪条信道上广播、用多宽的频谱、用多大功率发射——这些选择直接决定了你家 Wi-Fi 是"跑高速"还是"堵成早高峰"。</p>
+<p>这一章要拆开三层东西:①<strong>频段</strong>——2.4GHz、5GHz 分别是什么、能干什么;②<strong>信道</strong>——频段怎么被切成一条条广播通道,为什么"信道 1/6/11"总被反复提起;③<strong>硬件的真实边界</strong>——用本机 Intel AX201 网卡一次真实的踩坑(试图开 5GHz 热点却失败)说明:很多"为什么建不了 AP"的问题,答案根本不在配置文件里,而是焊在芯片固件里。</p>
+
+<h2 id="bands">2.4GHz 与 5GHz:两条不同的路</h2>
+<p>Wi-Fi 用的是无需申请授权的公共频谱:2.4GHz 频段(2400–2483.5MHz,日本另外多一条仅 802.11b legacy 设备可用的信道 14,2484MHz)和 5GHz 频段(大致 5150–5850MHz 左右,依国家/地区细分为 U-NII-1~4 等多段)。频率越低,波长越长,绕过墙体、家具的衍射能力越强,但可用总带宽越窄;频率越高正好相反。IEEE 802.11 的官方说明写得很直白:2.4GHz 频段只能切出 <strong>3 条</strong>互不重叠的 20MHz 信道,而 5GHz 的 U-NII 频段在大多数地区能提供<strong>至少 23 条</strong>互不重叠的 20MHz 信道<sup>[1]</sup>。</p>
+<p>打个比方:2.4GHz 像小区门口那条唯一的双向两车道马路——能绕开路障,但车一多就堵死;5GHz 像旁边新修的十几条并行辅路——车少跑得快,可一旦有堵墙挡着,就没法绕过去,只能"硬扛"衰减。</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>维度</th><th>2.4 GHz</th><th>5 GHz</th></tr>
+<tr><td>频段范围</td><td>2400–2483.5MHz</td><td>约 5150–5850MHz(分多段,依国家而定)</td></tr>
+<tr><td>穿墙 / 绕射能力</td><td>强</td><td>弱,遇墙体、家具明显衰减</td></tr>
+<tr><td>非重叠 20MHz 信道数</td><td>3 条(1 / 6 / 11)</td><td>≥23 条(含部分需 DFS 避让的信道)</td></tr>
+<tr><td>常见干扰源</td><td>微波炉、蓝牙、无绳电话、邻居 AP</td><td>较少,但拥挤度随 Wi-Fi6/6E 普及在上升</td></tr>
+<tr><td>典型取舍</td><td>覆盖优先、IoT 设备常驻</td><td>速度优先、近距离高吞吐</td></tr>
+</table>
+</div>
+
+<div class="cx cx-dig">
+<div class="cx-t">深挖 · 5GHz 里那些"会消失"的信道:DFS</div>
+<p>5GHz 频段里信道 52 往上的一大段,历史上是气象雷达、军用雷达在用。为了共存,规定要求 AP 在这些信道上开机前必须先"闭嘴监听"一段时间(通常几十秒到一分钟),确认周围没有雷达信号才敢开始广播,这套机制叫 <strong>DFS</strong>(Dynamic Frequency Selection,动态频率选择)。监听期间一旦真的测到雷达信号,AP 会立刻切走信道并短暂断网——这是有些路由器"莫名其妙断一下网,过会儿又自己好了"的真实原因之一。相比之下,36/40/44/48(U-NII-1)在多数地区不需要 DFS,开机即用<sup>[2]</sup>。</p>
+</div>
+
+<h2 id="channels">信道与信道宽度</h2>
+<p>2.4GHz 频段里,相邻信道的中心频率只差 5MHz(信道 1 中心 2412MHz,信道 6 是 2437MHz,信道 11 是 2462MHz),但每个信道实际占用的频谱宽度有 20~22MHz——也就是说,编号挨得近的信道其实是在"抢地盘",只有编号相差 5 以上(即 25MHz 以上间隔)才能做到完全不重叠。这就是为什么 1、6、11 会被反复推荐:它们是 11 信道体系里唯一能同时存在、互不干扰的组合<sup>[2]</sup>。</p>
+
+<figure>
+<svg viewBox="-100 0 1030 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2.4GHz频段11个信道的频谱占用与重叠示意图,信道1、6、11互不重叠">
+<style>text{font-family:var(--font)}</style>
+<line x1="-100" y1="210" x2="930" y2="210" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<polygon points="-19,210 94,90 194,90 307,210" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)" stroke-opacity="0.45"/>
+<polygon points="49,210 162,90 262,90 375,210" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)" stroke-opacity="0.45"/>
+<polygon points="117,210 230,90 330,90 443,210" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)" stroke-opacity="0.45"/>
+<polygon points="185,210 298,90 398,90 511,210" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)" stroke-opacity="0.45"/>
+<polygon points="321,210 434,90 534,90 647,210" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)" stroke-opacity="0.45"/>
+<polygon points="389,210 502,90 602,90 715,210" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)" stroke-opacity="0.45"/>
+<polygon points="457,210 570,90 670,90 783,210" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)" stroke-opacity="0.45"/>
+<polygon points="525,210 638,90 738,90 851,210" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)" stroke-opacity="0.45"/>
+<polygon points="-87,210 26,90 126,90 239,210" fill="var(--brand)" fill-opacity="0.5" stroke="var(--brand)" stroke-width="2.2"/>
+<polygon points="253,210 366,90 466,90 579,210" fill="var(--brand)" fill-opacity="0.5" stroke="var(--brand)" stroke-width="2.2"/>
+<polygon points="593,210 706,90 806,90 919,210" fill="var(--brand)" fill-opacity="0.5" stroke="var(--brand)" stroke-width="2.2"/>
+<text x="76" y="230" font-size="13" text-anchor="middle" fill="var(--brand)" font-weight="700">1</text>
+<text x="144" y="230" font-size="13" text-anchor="middle" fill="var(--ink-soft)">2</text>
+<text x="212" y="230" font-size="13" text-anchor="middle" fill="var(--ink-soft)">3</text>
+<text x="280" y="230" font-size="13" text-anchor="middle" fill="var(--ink-soft)">4</text>
+<text x="348" y="230" font-size="13" text-anchor="middle" fill="var(--ink-soft)">5</text>
+<text x="416" y="230" font-size="13" text-anchor="middle" fill="var(--brand)" font-weight="700">6</text>
+<text x="484" y="230" font-size="13" text-anchor="middle" fill="var(--ink-soft)">7</text>
+<text x="552" y="230" font-size="13" text-anchor="middle" fill="var(--ink-soft)">8</text>
+<text x="620" y="230" font-size="13" text-anchor="middle" fill="var(--ink-soft)">9</text>
+<text x="688" y="230" font-size="13" text-anchor="middle" fill="var(--ink-soft)">10</text>
+<text x="756" y="230" font-size="13" text-anchor="middle" fill="var(--brand)" font-weight="700">11</text>
+<text x="76" y="248" font-size="12" text-anchor="middle" fill="var(--brand)">2412MHz</text>
+<text x="416" y="248" font-size="12" text-anchor="middle" fill="var(--brand)">2437MHz</text>
+<text x="756" y="248" font-size="12" text-anchor="middle" fill="var(--brand)">2462MHz</text>
+<rect x="-90" y="266" width="18" height="14" fill="var(--brand)" fill-opacity="0.5" stroke="var(--brand)" stroke-width="1.5"/>
+<text x="-66" y="277" font-size="13" fill="var(--ink)">信道 1 / 6 / 11 — 互不重叠,可任意搭配使用</text>
+<rect x="430" y="266" width="18" height="14" fill="var(--ink-soft)" fill-opacity="0.16" stroke="var(--ink-soft)"/>
+<text x="454" y="277" font-size="13" fill="var(--ink-soft)">信道 2–5、7–10 — 与左右邻居频谱重叠</text>
+</svg>
+<figcaption>2.4GHz 频段 11 个信道的频谱占用示意图:每个信道实际占用约 20–22MHz 频谱,但相邻信道编号中心频率只差 5MHz,于是紧挨着的信道会互相"侵占"。只有间隔 5 个编号(25MHz)的 1、6、11 才能同时存在且互不重叠。数据来源见章末<sup>[2]</sup>。</figcaption>
+</figure>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · 信道选择的常见误解</div>
+<p>很多人以为在 2、3、4、5、7、8、9、10 里"随便挑一个空的"就是在避开拥挤——恰恰相反,这些信道左右两边都会跟邻居重叠,反而两头都挨干扰。正确做法永远是:只在 1 / 6 / 11 里,挑当前扫描到 AP 数量最少的那一个。</p>
+</div>
+
+<p>信道宽度是另一个维度:一条 20MHz 的基础信道,可以横向"绑定"相邻信道拼成 40MHz、80MHz,乃至 160MHz、320MHz(Wi-Fi7),换来更高的单流速率——但代价是占用了更多本该属于邻居的频谱。下表是 IEEE 802.11 各代标准在各自"满编空间流"下的理论峰值速率<sup>[1]</sup>:</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>Wi-Fi 世代</th><th>标准</th><th>频段</th><th>20MHz</th><th>40MHz</th><th>80MHz</th><th>160MHz 及以上</th></tr>
+<tr><td>Wi-Fi 4</td><td>802.11n(2009)</td><td>2.4 / 5GHz</td><td>288.8</td><td>600</td><td>—</td><td>—</td></tr>
+<tr><td>Wi-Fi 5</td><td>802.11ac(2013)</td><td>仅 5GHz</td><td>693</td><td>1600</td><td>3467</td><td>6933</td></tr>
+<tr><td>Wi-Fi 6 / 6E</td><td>802.11ax(2021)</td><td>2.4 / 5 / 6GHz</td><td>1147</td><td>2294</td><td>5500</td><td>11000(80+80)</td></tr>
+<tr><td>Wi-Fi 7</td><td>802.11be(2024)</td><td>2.4 / 5 / 6GHz</td><td>—</td><td>—</td><td>5764</td><td>23059(320)</td></tr>
+</table>
+</div>
+<p style="font-size:13px;color:var(--ink-soft)">单位 Mbit/s;为该代标准"满编空间流"(802.11n 最多 4 流,ac/ax/be 最多 8 流)下的理论峰值,不是单条空间流的速率——消费级产品通常只做 1~4 流,实际到手速率远低于表中数字;数据整理自 IEEE 802.11 标准文档<sup>[1]</sup>。</p>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · 2.4GHz 上别轻易开 40MHz</div>
+<p>2.4GHz 总共才 3 条互不重叠的干净信道,开 40MHz 绑定相当于直接吃掉隔壁一整条信道的地盘。独栋、四周没有别的 AP 时开 40MHz 确实能提速;但在公寓楼、写字楼这种邻居 AP 密集的环境,几乎总该老实用 20MHz——多出来的理论速率换不回实际吞吐,只会让全楼一起变慢。</p>
+</div>
+
+<div class="cx cx-practice">
+<div class="cx-t">实战锚点 · 旁路由 AP 的真实 2.4GHz 配置</div>
+<p>把前面两条结论对到真实设备上:<a href="02-router-bypass.html">旁路由</a>这台 AP 在 2.4GHz 频段上实际跑的信道是 <strong>6</strong>(2437MHz,三条干净信道之一),位宽是 <strong>HT20</strong>(802.11n 里"高吞吐率 20MHz"的简写,也就是没有绑定 40MHz),发射功率 <strong>22dBm</strong>(约 158mW)。三个数字分别对应前面讲的信道选择和位宽选择——这台 AP 老老实实选了干净信道、也老老实实没开 40MHz;22dBm 这个真实读数,下一章会接着往下算,推出笔记本站在旁边实测到的接收强度还剩多少。</p>
+</div>
+
+<h2 id="gen">802.11 世代:n / ac / ax 是什么</h2>
+<p>Wi-Fi 联盟从 2018 年起把拗口的协议编号(如"802.11ac")换成了好记的世代号(如"Wi-Fi 5"),对应关系是<sup>[1]</sup>:</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>世代</th><th>协议编号</th><th>发布</th><th>频段</th><th>关键新特性</th></tr>
+<tr><td>Wi-Fi 4</td><td>802.11n</td><td>2009</td><td>2.4 / 5GHz</td><td>MIMO 多天线、40MHz 信道绑定</td></tr>
+<tr><td>Wi-Fi 5</td><td>802.11ac</td><td>2013</td><td>仅 5GHz</td><td>下行 MU-MIMO、80/160MHz、256-QAM</td></tr>
+<tr><td>Wi-Fi 6</td><td>802.11ax</td><td>2021</td><td>2.4 / 5GHz</td><td>OFDMA、上下行 MU-MIMO、1024-QAM</td></tr>
+<tr><td>Wi-Fi 6E</td><td>802.11ax</td><td>2021</td><td>+6GHz</td><td>沿用 Wi-Fi6 技术,新增全新 6GHz 频谱</td></tr>
+<tr><td>Wi-Fi 7</td><td>802.11be</td><td>2024</td><td>2.4 / 5 / 6GHz</td><td>320MHz、多链路同时收发(MLO)、4096-QAM</td></tr>
+</table>
+</div>
+<p style="font-size:13px;color:var(--ink-soft)">表中年份是 IEEE 正式批准修正案的年份;Wi-Fi 联盟的认证计划通常提前一两年启动——比如 Wi-Fi6 认证从 2019 年 9 月就已开始,不少 2019–2020 年上市的"Wi-Fi6"认证机型其实早于 802.11ax-2021 这份正式标准落地<sup>[1]</sup>。</p>
+
+<div class="cx cx-theory">
+<div class="cx-t">原理 · OFDMA 和 MU-MIMO 到底在多路复用什么</div>
+<p>经典 Wi-Fi(到 Wi-Fi5 为止)是"一次只服务一个人":哪怕你的手机只发一个几十字节的心跳包,也要独占一整条信道的一个时间片。<strong>MU-MIMO</strong>(多用户多入多出)让 AP 用多根天线的空间自由度同时给不同客户端发不同的数据流——这是在"空间"维度上做复用,Wi-Fi5 先加了下行版本,Wi-Fi6 补上行版本。<strong>OFDMA</strong>(正交频分多址,Wi-Fi6 引入)则是在"频率"维度上做复用:把一条信道的子载波切成更小的"资源单元",一个时间片里同时塞进好几个客户端的小包。两者结合,才是 Wi-Fi6 在设备多、IoT 多的场景下明显更稳的真正原因,而不只是"参数表数字更大"。子载波为什么能"正交"共存、频域与时域怎么互相转换,属于信号与系统的范畴,见 <a href="14-signals-systems.html">14 信号与系统</a>。</p>
+</div>
+
+<h2 id="hostapd">hostapd:网卡如何变成 AP</h2>
+<p>到这里讲的都是"频谱规则"。落到实现上,让一张网卡真正广播出一个 Wi-Fi 网络(而不是作为客户端去连别人的网络),在 Linux/OpenWRT 世界里靠的是用户态守护进程 <code>hostapd</code>。它通过内核的 <code>nl80211</code> 接口告诉网卡驱动:用哪个频段(<code>hw_mode=g</code> 对应 2.4GHz,<code>hw_mode=a</code> 对应 5GHz)、哪个信道、多大发射功率、什么加密方式。这里有两个独立的"许可"缺一不可:</p>
+<ol>
+<li><strong>法规许可</strong>——由 <code>country_code</code> 决定,不同国家对同一信道允许的最大功率、是否要求 DFS 完全不同。</li>
+<li><strong>硬件许可</strong>——网卡固件/驱动是否物理上支持在这个频段"主动发起广播"(而不只是被动接收)。</li>
+</ol>
+<p><a href="02-router-bypass.html">第 02 章</a>的旁路由如果用的是独立 Wi-Fi 芯片(非 Intel CNVi 系列),这两个许可通常都拿得到,能顺利在 5GHz 上开出 AP;但换到这台 Windows 笔记本内置的 Intel AX201,问题恰恰出在第二条——这也是本章重点讲的实战案例。</p>
+
+<h2 id="cnvi">CNVi 架构:AX201 不是一张"完整"网卡</h2>
+<p>先解决一个命名疑惑:Intel 的 <strong>AX200</strong> 和 <strong>AX201</strong> 参数表看起来几乎一样(同为 Wi-Fi6、2×2、160MHz),但它们不是"一代升级",而是两种完全不同的封装方式——区别就在型号最后一位数字<sup>[3]</sup>:</p>
+<ul>
+<li>以 <strong>0</strong> 结尾(AX200、AX210……):传统 M.2 <strong>PCIe</strong> 网卡,MAC 基带处理器、固件、射频前端全部封装在这一张卡里,插进任何支持 M.2 Key-E 插槽、装对驱动的电脑都能用。</li>
+<li>以 <strong>1</strong> 结尾(AX201、AX211……):Intel 的 <strong>CNVi</strong>(Connectivity Integration,集成连接)架构。网卡里"值钱"的部分——MAC、基带处理器、固件——被搬进了 CPU / 芯片组(PCH)内部,插槽上留下的这块小模块只剩模拟射频前端和天线,专业说法叫 <strong>CRF</strong>(Companion RF,伴射频模块)<sup>[4][5]</sup>。</li>
+</ul>
+
+<figure>
+<svg viewBox="0 0 920 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="传统独立网卡与CNVi集成架构对比示意图:CNVi把MAC和固件移入CPU芯片组,外置CRF模块只保留射频前端和天线">
+<style>text{font-family:var(--font)}</style>
+<defs>
+<marker id="arrow04" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M0,0 L10,5 L0,10 z" fill="var(--ink-soft)"/>
+</marker>
+</defs>
+<line x1="445" y1="40" x2="445" y2="270" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="310" y="26" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">传统 M.2 网卡 — 如 AX200(PCIe)</text>
+<rect x="20" y="140" width="80" height="60" rx="8" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="2"/>
+<text x="60" y="175" font-size="14" text-anchor="middle" fill="var(--ink)">CPU</text>
+<line x1="100" y1="170" x2="193" y2="170" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrow04)"/>
+<text x="147" y="160" font-size="12" text-anchor="middle" fill="var(--ink-soft)">PCIe</text>
+<rect x="200" y="55" width="220" height="225" rx="10" fill="none" stroke="var(--ink-soft)" stroke-width="2"/>
+<text x="310" y="75" font-size="12" text-anchor="middle" fill="var(--ink-soft)">一张卡包含全部功能</text>
+<rect x="215" y="90" width="190" height="85" rx="6" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+<text x="310" y="122" font-size="13" text-anchor="middle" fill="var(--theory)" font-weight="700">MAC / 基带处理器</text>
+<text x="310" y="140" font-size="12" text-anchor="middle" fill="var(--theory)">+ 固件</text>
+<rect x="215" y="185" width="190" height="85" rx="6" fill="var(--dig-bg)" stroke="var(--dig)" stroke-width="1.5"/>
+<text x="310" y="217" font-size="13" text-anchor="middle" fill="var(--dig)" font-weight="700">射频前端 RF</text>
+<text x="310" y="235" font-size="12" text-anchor="middle" fill="var(--dig)">+ 天线</text>
+<text x="675" y="26" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">CNVi 架构 — 如 AX201(CNVio2)</text>
+<rect x="470" y="55" width="230" height="225" rx="10" fill="var(--theory-bg)" fill-opacity="0.35" stroke="var(--theory)" stroke-width="2"/>
+<text x="585" y="75" font-size="12" text-anchor="middle" fill="var(--theory)">CPU / PCH(芯片组)</text>
+<rect x="485" y="90" width="200" height="170" rx="6" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+<text x="585" y="150" font-size="13" text-anchor="middle" fill="var(--theory)" font-weight="700">MAC / 基带处理器</text>
+<text x="585" y="168" font-size="12" text-anchor="middle" fill="var(--theory)">+ 固件(CNVi 逻辑)</text>
+<text x="585" y="186" font-size="11" text-anchor="middle" fill="var(--ink-soft)">焊死绑定该芯片组</text>
+<line x1="700" y1="170" x2="793" y2="170" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrow04)"/>
+<text x="747" y="160" font-size="12" text-anchor="middle" fill="var(--ink-soft)">CNVio2</text>
+<rect x="800" y="140" width="80" height="60" rx="8" fill="var(--dig-bg)" stroke="var(--dig)" stroke-width="2"/>
+<text x="840" y="163" font-size="13" text-anchor="middle" fill="var(--dig)" font-weight="700">CRF 模块</text>
+<text x="840" y="180" font-size="11" text-anchor="middle" fill="var(--dig)">(AX201)</text>
+<text x="840" y="213" font-size="11" text-anchor="middle" fill="var(--ink-soft)">只剩 RF + 天线</text>
+</svg>
+<figcaption>传统架构(如 Intel AX200)把 MAC/基带处理器、固件和射频前端封装在同一张可更换的 M.2 网卡里;CNVi 架构(如 AX201)把 MAC/基带处理器和固件挪进了 CPU/芯片组内部,外插的 CRF 模块只剩射频模拟前端和天线——这也是为什么 CRF 模块必须匹配特定平台,不能随便换到别的电脑上用。数据来源见章末<sup>[3][4][5]</sup>。</figcaption>
+</figure>
+
+<p>这解释了两件容易让人困惑的事:第一,CRF 模块虽然物理上也是 M.2 接口,却<strong>不能随便换到别的电脑</strong>——它必须匹配主板/CPU 里对应的 CNVi 逻辑,不兼容就直接检测不到网卡。这和<a href="09-secureboot-drivers.html">第 09 章</a>里"驱动签名绑定特定内核"是同一种"厂商把关键逻辑锁在更底层硬件里"的思路。第二,CRF 模块本身几乎没有自己的"智能"——它能不能在某个频段发起广播、功率上限多少,完全由焊在芯片组里的那部分固件说了算,而这部分固件是 Intel 说了算,不是路由器软件说了算。</p>
+
+<div class="cx cx-dig">
+<div class="cx-t">深挖 · CNVi 也在迭代</div>
+<p>CNVi 接口本身也分代:2017 年随 Gemini Lake 桌面平台、2018 年随 Coffee Lake 移动平台推出的第一代叫 <strong>CNVio</strong>(代表产品 AC 9560/9460);<strong>CNVio2</strong> 随 Comet Lake(桌面)/ Ice Lake(移动)登场,AX201 就是这一代;最新的 <strong>CNVio3</strong>(代表产品 BE201/BE401)已经支持 Wi-Fi7 的 2.4/5/6GHz 三频、320MHz 带宽<sup>[3]</sup>。换句话说,"这台电脑能不能用某张 CRF 网卡",不仅要看有没有 M.2 插槽,还要看主板焊的是哪一代 CNVi 逻辑。</p>
+</div>
+
+<h2 id="case">实战:AX201 为什么开不出 5GHz 热点</h2>
+<p>回到本章开头的问题。这台机器的 Wi-Fi 网卡是 Intel Wi-Fi 6 AX201——按上一节的结论,它是 CNVi 架构,MAC 和固件逻辑焊在芯片组里。当尝试把它配置成 5GHz 频段的 AP(不管是 Windows 的"移动热点"功能,还是 Linux 下手写 hostapd 配置 <code>hw_mode=a</code>)时,现象是:</p>
+<ul>
+<li><strong>Windows</strong>:较新的 Intel Wi-Fi6 驱动在 Windows 11 上直接砍掉了 SoftAP / "承载网络"(Hosted Network)能力,系统 UI 里 5GHz 热点选项要么不存在,要么创建即报错——这是 Intel 官方社区确认过的驱动行为变化,不是个例<sup>[6]</sup>。</li>
+<li><strong>Linux / hostapd</strong>(同属 iwlwifi 驱动线的 Intel 网卡上现象一致):手动把 <code>hw_mode</code> 设成 <code>a</code>、信道设成某个 5GHz 信道(比如 48)时,日志会精确卡在"这个信道能收听但不许发射"这一步:</li>
+</ul>
+
+<pre><code># hw_mode=a、channel=48(5240MHz)下 hostapd 的典型失败日志
+channel [3] (48) is disabled for use in AP mode, flags: 0x77 NO-IBSS PASSIVE-SCAN
+wlan0: IEEE 802.11 Configured channel (48) not found from the channel list of current mode
+wlan0: IEEE 802.11 Hardware does not support configured channel
+Could not select hw_mode and channel. (-3)
+wlan0: Unable to setup interface.</code></pre>
+
+<p><code>PASSIVE-SCAN</code> 这个标志是关键:它表示驱动/固件认定这个信道"只能被动收听,不能主动发射",工程上常把这类限制叫 <strong>No-IR</strong>(No Initiate Radiation,不得主动辐射)。上面这条日志出自一个更早的 iwlwifi 芯片(Intel Wireless 3160),但同一种失败在 Wi-Fi6 的 AX200 上被人重新踩了一遍<sup>[8]</sup>——从 3160 到 AX200/AX201,Intel 消费级网卡这一路共享的都是同一套"5GHz 只许客户端角色、不许 AP 角色"的固件设计,论坛答案区也直接给出过结论:<strong>这是固件层面写死的限制,不是 regulatory domain 配错,也不是驱动 bug</strong>,2.4GHz 完全不受影响<sup>[7]</sup>。</p>
+
+<div class="cx cx-practice">
+<div class="cx-t">实战锚点 · 本机 AX201 的真实结论</div>
+<p>诊断这类问题时最容易踩的坑,是把它当成"配置写错了"去反复调 <code>country_code</code>、信道号、驱动版本——但根因是固件层面焊死的角色限制,怎么调配置都没用。这台机器最终的解法是"分工":需要 5GHz AP 能力的角色交给<a href="02-router-bypass.html">旁路由</a>那台跑独立 Wi-Fi 芯片的盒子去扛,笔记本上的 AX201 只老实做 2.4GHz AP,或者干脆只当 client 去连别人的 AP。</p>
+</div>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · 别把"收不到"和"发不出"搞混</div>
+<p>AX201 收 5GHz 信号完全正常——它是不折不扣的双频网卡,连别人的 5GHz Wi-Fi 毫无问题。被锁死的只是"5GHz + AP 角色"这一个组合;"5GHz + client 角色"和"2.4GHz + AP 角色"都不受影响。诊断时先分清楚是收不到还是当不了 AP,排查方向完全不同。</p>
+</div>
+
+<h2 id="power">发射功率与覆盖(留个伏笔)</h2>
+<p>AP 广播出去的信号有多"响"、能传多远,由发射功率、天线增益、路径损耗三者共同决定——工程上统一用 <strong>dBm</strong> 这个对数单位表示。前面那段 hostapd 诊断日志的同类实测记录里,其实已经埋了一个数字:某个欧洲 regulatory domain 下,2.4GHz 每条信道给出的 <code>max_tx_power</code> 都标着 <strong>20dBm</strong>(约 100mW)<sup>[7]</sup>——这是那条日志所在国家/地区的"法规上限"标注,不同国家的 2.4GHz 功率上限本就不同,这不是"标准答案"。回到本章前面"实战锚点"提到的那台旁路由 AP,信道 6 上实测配置的发射功率是 <strong>22dBm</strong>(约 158mW)——这个真实数字,下一章会接着往下算:它换算成多少毫瓦、能让信号传出多远、笔记本站在旁边实际测到的接收强度又剩多少,以及 EIRP = 发射功率 + 天线增益 这套完整算法,见 <a href="05-dbm-signal.html">05 dBm·分贝·信号强度</a>。</p>
+<p>再往上一层看,Wi-Fi 只是完整网络协议栈里最底下的物理层 + 链路层——它怎么和上面的 IP/TCP、DNS 这些层拼成一整套能用的网络,见 <a href="10-networking.html">10 计算机网络体系</a>。</p>
+
+<h2 id="key">本章要点</h2>
+<div class="cx cx-key">
+<div class="cx-t">本章要点</div>
+<ul>
+<li>2.4GHz:3 条互不重叠的 20MHz 信道(<strong>1 / 6 / 11</strong>),穿墙强、速度低、容易拥挤。</li>
+<li>5GHz:≥23 条互不重叠 20MHz 信道,速度更高但穿墙弱,部分信道(52 及以上)需 <strong>DFS</strong> 避让雷达。</li>
+<li>信道宽度 20→40→80→160(→320)MHz 是"用带宽换速率",越宽越占邻居的地盘,拥挤环境应保守选窄。</li>
+<li>世代对应:<strong>Wi-Fi4</strong>=802.11n(2009,2.4/5GHz)/ <strong>Wi-Fi5</strong>=802.11ac(2013,仅 5GHz)/ <strong>Wi-Fi6</strong>=802.11ax(2021,OFDMA+上下行 MU-MIMO)/ <strong>Wi-Fi6E</strong>(+6GHz)/ <strong>Wi-Fi7</strong>=802.11be(2024,320MHz)。</li>
+<li><strong>CNVi</strong> 把网卡的 MAC/基带/固件焊进 CPU/芯片组,外插模块(CRF,如 AX201)只剩射频前端 + 天线,因此不能跨平台乱换。</li>
+<li>Intel 消费级网卡(含 AX201)的 AP 角色被固件锁死只能用 2.4GHz,5GHz 开 AP 必然失败——这是硬件限制,不是配置问题。</li>
+</ul>
+</div>
+
+<div class="foot">
+  <div class="foot-nav">
+    <a href="03-dns-adblock.html">← 03 DNS 与去广告</a>
+    <a href="../index.html">回首页</a>
+    <a href="05-dbm-signal.html">05 dBm·分贝·信号强度 →</a>
+  </div>
+  <p><b>本章来源</b></p>
+  <ol class="sources">
+    <li>Wikipedia,《IEEE 802.11》— 世代对照表、频段带宽与理论速率、2.4/5GHz 非重叠信道数。<a href="https://en.wikipedia.org/wiki/IEEE_802.11">https://en.wikipedia.org/wiki/IEEE_802.11</a></li>
+    <li>Wikipedia,《List of WLAN channels》— 2.4GHz 信道中心频率表、5GHz U-NII/DFS 信道划分。<a href="https://en.wikipedia.org/wiki/List_of_WLAN_channels">https://en.wikipedia.org/wiki/List_of_WLAN_channels</a></li>
+    <li>Wikipedia,《CNVi》— CNVi/CNVio2/CNVio3 架构演进、AX200 与 AX201 命名规则。<a href="https://en.wikipedia.org/wiki/CNVi">https://en.wikipedia.org/wiki/CNVi</a></li>
+    <li>Intel,《Intel® Wi-Fi 6 AX201 (Gig+) — Product Specifications》。<a href="https://www.intel.com/content/www/us/en/products/sku/130293/intel-wifi-6-ax201-gig/specifications.html">https://www.intel.com/content/www/us/en/products/sku/130293/intel-wifi-6-ax201-gig/specifications.html</a></li>
+    <li>Intel,《What Are the Intel® Integrated Connectivity (CNVi) and Companion RF (CRF) Module?》官方支持文档。<a href="https://www.intel.com/content/www/us/en/support/articles/000026155/wireless.html">https://www.intel.com/content/www/us/en/support/articles/000026155/wireless.html</a></li>
+    <li>Intel Community,《Wi-Fi Direct / SoftAP / Hosted Network no longer working under Windows 11》— Intel Wi-Fi6 驱动移除 SoftAP 的官方确认。<a href="https://community.intel.com/t5/Wireless/Intel-AX201-Wi-Fi-Direct-SoftAP-Hosted-Network-no-longer-working/td-p/1727307">community.intel.com/.../td-p/1727307</a></li>
+    <li>Ask Ubuntu,《Ubuntu 14.04 + hostapd + 802.11a + iwlwifi = no AP!》— Intel 网卡 5GHz hw_mode=a 的实测 hostapd 调试日志(NO-IBSS/PASSIVE-SCAN 标志、各信道 max_tx_power)。<a href="https://askubuntu.com/questions/457702/ubuntu-14-04-hostapd-802-11a-iwlwifi-no-ap">askubuntu.com/questions/457702</a></li>
+    <li>Unix & Linux Stack Exchange,《Why can't hostapd service start AP configured in the 5 GHz band using Intel AX200 based adapter?》— Intel 官方确认 5GHz AP 固件限制。<a href="https://unix.stackexchange.com/questions/636667/why-cant-hostapd-service-start-ap-configured-in-the-5-ghz-band-using-intel-ax20">unix.stackexchange.com/questions/636667</a></li>
+  </ol>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>02 软路由与旁路由</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<script>document.documentElement.dataset.theme=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';</script>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 02 章</p>
+    <h1>软路由与旁路由</h1>
+    <p>一台放在角落吃灰的迷你主机,插上一根网线接入家里的网络,就能在完全不碰主路由配置的前提下,接管全屋广告过滤、内网服务这些运营商路由器给不了的能力——这一章讲清楚「旁路由」这套「借道不越权」的机制到底是怎么运作的。</p>
+    <p class="crumbs"><a href="../index.html">← 返回首页</a></p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="toc">
+    <b>本章目录</b>
+    <ol>
+      <li><a href="#why">一、为什么会有旁路由这回事</a></li>
+      <li><a href="#foundations">二、地基概念:网关 · 子网与掩码 · DHCP · NAT</a></li>
+      <li><a href="#roles">三、三种角色:主路由 / AP / 旁路由</a></li>
+      <li><a href="#dns-not-gateway">四、题眼:只接管 DNS、不当网关</a></li>
+      <li><a href="#setup">五、动手:旁路由怎么接、怎么配</a></li>
+      <li><a href="#pitfalls">六、常见坑</a></li>
+      <li><a href="#summary">本章要点</a></li>
+    </ol>
+  </div>
+
+  <h2 id="why">一、为什么会有旁路由这回事</h2>
+
+  <p class="lead">运营商或厂商随机器附送的路由器,大多数是个黑盒:固件锁死、没有 root、装不了广告过滤规则,也看不到详细的连接日志。想要更强的掌控力,过去只有一条路——把它整个刷成 <strong>OpenWrt</strong>。但这意味着把家里唯一连接互联网的设备变成实验对象:配置写错、驱动不兼容,后果是全家断网,而且相当一部分运营商发的光猫 + 路由一体机根本不允许换固件。</p>
+
+  <p>「<strong>旁路由</strong>」(也叫旁路网关、单臂路由)是这个矛盾的折中解法:不动主路由一根网线,在同一个局域网里再接入一台设备,专门用来跑那些主路由做不到的功能——去广告、自建 DNS、跑内网服务、离线下载。这台设备出了问题,大不了重启它;主路由——家里唯一的互联网大门——始终不受牵连。</p>
+
+  <p>可以把主路由想象成大楼的总配电箱:谁也不想在上面做实验。旁路由更像是接在已有插座上的一个智能插座——它不改动楼里的电路,只是在已有的电力基础上叠加定时开关、远程控制这些新功能;总配电箱该怎么送电,还是怎么送电。</p>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">实战锚点 · 本会话做过的</div>
+    <p>本章的具体例子来自这次真实操作:把一台刷机改造过的 Chromebox(见 <a href="01-flashing-firmware.html">第 01 章</a>)装上 <strong>iStoreOS</strong>,作为旁路由挂进家庭网络,固定 IP <code>192.168.1.2</code>;主路由维持出厂角色不变,IP 仍是 <code>192.168.1.1</code>。旁路由唯一的工作是接管 DNS 解析、跑 AdGuard Home 做全屋去广告(细节见 <a href="03-dns-adblock.html">第 03 章</a>),网关这个身份完整地留给主路由——这正是「借道不越权」的字面意思。</p>
+  </div>
+
+  <h2 id="foundations">二、地基概念:网关 · 子网与掩码 · DHCP · NAT</h2>
+
+  <p>要看懂旁路由为什么能「接管一部分、不接管另一部分」,得先拆开四个每天都在后台工作、却很少被解释清楚的概念。</p>
+
+  <h3>网关(Gateway)</h3>
+  <p>局域网里每台设备的网络设置里都有一项「默认网关」——本机不知道该往哪送的包,一律先扔给网关,由网关决定接下来怎么走。可以把网关类比成小区门口的传达室:寄给小区外面的信,不用自己找收件地址在哪条街,先交给传达室,它知道该往哪个方向送。家庭网络里,网关通常就是主路由的局域网 IP,例如 <code>192.168.1.1</code>。</p>
+
+  <h3>子网与掩码(Subnet &amp; Mask)</h3>
+  <p>同一个<strong>子网</strong>内的设备可以直接「面对面」通信,不同子网必须经网关转发。子网多大由<strong>掩码</strong>决定——家庭网络最常见的是 <code>255.255.255.0</code>,也写作 CIDR(Classless Inter-Domain Routing,无类别域间路由)记法 <code>/24</code>:前 24 位是网络号,后 8 位是主机号,一个子网能装 256 个地址(刨去网络地址和广播地址,实际可用 254 个),对大多数家庭绰绰有余。私有地址段由 <strong>RFC&nbsp;1918</strong> 划定三段:<code>10.0.0.0/8</code>、<code>172.16.0.0/12</code>、<code>192.168.0.0/16</code>,家用路由器几乎全落在最后这一段。</p>
+
+  <h3>DHCP —— 谁在替你把这些参数填好</h3>
+  <p>每台设备开机联网时,不需要人工敲入 IP、网关、DNS——这些参数由 <strong>DHCP</strong>(Dynamic Host Configuration Protocol,动态主机配置协议)自动派发。整个过程是经典的 <strong>DORA</strong> 四步握手:Discover(发现)→ Offer(提供)→ Request(请求)→ Acknowledge(确认)。可以把它类比成前台自动登记入住:你一进门不用自己找空房间,前台直接分配房间号(IP)、告诉你正门在哪(网关)、还留了信息台电话(DNS 服务器)。</p>
+
+  <figure>
+    <svg viewBox="0 0 640 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="fig1title">
+      <title id="fig1title">DHCP 四步握手(DORA):Discover / Offer / Request / Acknowledge</title>
+      <defs>
+        <marker id="ah2-brand" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--brand)"/></marker>
+        <marker id="ah2-practice" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--practice)"/></marker>
+      </defs>
+
+      <rect x="20" y="8" width="220" height="44" rx="8" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="130" y="27" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">客户端设备</text>
+      <text x="130" y="44" text-anchor="middle" font-size="11" fill="var(--ink-soft)">笔记本 / 手机 / IoT</text>
+
+      <rect x="400" y="8" width="220" height="44" rx="8" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="510" y="27" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">DHCP 服务器</text>
+      <text x="510" y="44" text-anchor="middle" font-size="11" fill="var(--ink-soft)">(此处 = 主路由)</text>
+
+      <line x1="130" y1="52" x2="130" y2="298" stroke="var(--ink-soft)" stroke-width="1.2" stroke-dasharray="3 4"/>
+      <line x1="510" y1="52" x2="510" y2="298" stroke="var(--ink-soft)" stroke-width="1.2" stroke-dasharray="3 4"/>
+
+      <line x1="130" y1="92" x2="510" y2="92" stroke="var(--brand)" stroke-width="2.2" marker-end="url(#ah2-brand)"/>
+      <text x="140" y="84" font-size="12" font-weight="700" fill="var(--brand)">① DHCPDISCOVER</text>
+      <text x="140" y="106" font-size="11" fill="var(--ink-soft)">广播:哪位能给我一个 IP?</text>
+
+      <line x1="510" y1="152" x2="130" y2="152" stroke="var(--practice)" stroke-width="2.2" marker-end="url(#ah2-practice)"/>
+      <text x="140" y="144" font-size="12" font-weight="700" fill="var(--practice)">② DHCPOFFER</text>
+      <text x="140" y="166" font-size="11" fill="var(--ink-soft)">建议 192.168.1.105,网关(3)=.1,DNS(6)=.2</text>
+
+      <line x1="130" y1="212" x2="510" y2="212" stroke="var(--brand)" stroke-width="2.2" marker-end="url(#ah2-brand)"/>
+      <text x="140" y="204" font-size="12" font-weight="700" fill="var(--brand)">③ DHCPREQUEST</text>
+      <text x="140" y="226" font-size="11" fill="var(--ink-soft)">广播确认:我要这个地址(防止撞车)</text>
+
+      <line x1="510" y1="272" x2="130" y2="272" stroke="var(--practice)" stroke-width="2.2" marker-end="url(#ah2-practice)"/>
+      <text x="140" y="264" font-size="12" font-weight="700" fill="var(--practice)">④ DHCPACK</text>
+      <text x="140" y="286" font-size="11" fill="var(--ink-soft)">成交,租期(lease)开始倒计时</text>
+
+      <text x="320" y="314" text-anchor="middle" font-size="11" fill="var(--ink-soft)">租约到期前客户端不会主动换配置——这就是第五节「改完要重连」的原因</text>
+    </svg>
+    <figcaption>图 1 · DHCP DORA 四步握手:网关(option 3)和 DNS(option 6)在第②步里一起下发,但它们是两个独立字段。</figcaption>
+  </figure>
+
+  <p>DHCP 应答里不止有 IP 一项,还打包了一堆「选项」(option),和本章最相关的四个是:</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>option 编号</th><th>含义</th><th>家庭网络里的典型值</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>子网掩码 Subnet Mask</td><td><code>255.255.255.0</code></td></tr>
+        <tr><td>3</td><td>默认网关 Router</td><td><code>192.168.1.1</code>(主路由)</td></tr>
+        <tr><td>6</td><td>DNS 服务器 Domain Name Server</td><td><code>192.168.1.2</code>(旁路由)</td></tr>
+        <tr><td>51</td><td>租期 Lease Time</td><td>86400 秒(24 小时)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>关键在于:<strong>option 3 和 option 6 是两个互相独立的字段</strong>——DHCP 服务器完全可以在同一份应答里,把「网关」填主路由的地址,把「DNS 服务器」填旁路由的地址。这一点是全章的伏笔,第四节会详细展开。</p>
+
+  <h3>NAT —— 一群设备怎么共用一个公网 IP</h3>
+  <p>运营商通常只给一个公网 IP,但家里有几十台设备要联网,靠的是网关做 <strong>NAT</strong>(Network Address Translation,网络地址转换):把局域网内各设备的私网 IP、端口,动态映射成路由器自己的公网 IP 加不同端口,回包再原样换回来。可以类比成公司总机转分机:外部只看得到一个总机号码,内部几十个分机各自忙各自的,全靠总机做转接和记账。也正因为如此,「谁做 NAT,谁就必须是网关」——这两件事在实践里几乎总是绑在同一台设备上。</p>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">原理 · 408 / 计算机网络里的位置</div>
+    <p>网关工作在网络层(OSI 第三层):它要读 IP 包头、判断目的地址是否落在本子网、决定转发还是丢弃——这也是为什么「网关」和「路由器」在很多语境下几乎是同义词。子网划分与掩码运算是计算机网络课程里最基础的位运算应用之一:IP 地址和掩码逐位做 <strong>AND</strong>,结果相同即为同一子网;这也是路由查找、CIDR 路由汇聚的数学基础。完整的五层 / OSI 体系会在 <a href="10-networking.html">第 10 章</a> 里系统展开。</p>
+  </div>
+
+  <h2 id="roles">三、三种角色:主路由 / AP / 旁路由,到底谁在管什么</h2>
+
+  <p>有了网关、DHCP、NAT 这几块积木,家庭网络里常见的三种设备角色就能一句话说清楚——区别只在于「这几块积木它拿了几块」。</p>
+
+  <p><strong>主路由</strong>一头接光猫的 LAN 口(拿运营商分配的地址),另一头做 DHCP 服务器、做 NAT、也是全屋默认网关——网络的三份核心职责它一肩挑,一秒都不能停机。<strong>AP</strong>(无线接入点,又叫「哑终端」/ Dumb AP)只负责扩展 WiFi 信号覆盖,不参与三层转发:标准做法是关掉它的 WAN 口定义,把 WAN 口也当 LAN 口用、直接桥接进主路由所在的局域网(OpenWrt 官方文档称之为「Dumb AP」)——它没有网关身份,通常也不开 DHCP,纯粹是一台「带 WiFi 天线的交换机」。<strong>旁路由</strong>则是局域网里一台普通设备,拥有自己的固定 IP,但是否接管网关完全是可选项:如果目标是让全部流量都经过它(比如透明代理),就需要把它也设成网关;如果目标只是提供某种局域网服务(广告过滤、NAS、自建 DNS、离线下载),完全不需要动网关——这也是「旁」路由这个名字的来历:蹭一条已有的路,而不是自己修一条新路。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>角色</th><th>默认网关</th><th>DHCP 服务器</th><th>NAT</th><th>典型职责</th></tr></thead>
+      <tbody>
+        <tr><td><strong>主路由</strong></td><td>是(几乎总是)</td><td>开(默认)</td><td>是,唯一出口</td><td>连接光猫,网络能不能用全靠它</td></tr>
+        <tr><td><strong>AP / 哑终端</strong></td><td>否(桥接进 LAN)</td><td>关(交给主路由)</td><td>否</td><td>纯扩展 WiFi 覆盖,相当于「带天线的交换机」</td></tr>
+        <tr><td><strong>旁路由</strong></td><td>可选(通常不开)</td><td>建议关(避免冲突)</td><td>具备能力但通常不用</td><td>广告过滤 / 自建 DNS / NAS / 离线下载——借道而非接管</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">深挖 · 如果旁路由也想当网关</div>
+    <p>有些场景(比如用旁路由跑透明代理做科学上网)确实需要它也接管网关——这时要把主路由的 DHCP 关掉,让旁路由的 DHCP 同时下发网关和 DNS、都指向自己。这时必须用旁路由的 <strong>LAN 口</strong>(不是 WAN 口)上联主路由,否则会在主路由的 NAT 之外再叠一层 NAT,形成<strong>双重 NAT</strong>(double NAT)——端口转发、部分 P2P 和联机游戏会直接失效。这类「全接管」配置和本章讲的「只接管 DNS」配置是两种不同的旁路由用法,路由 / 交换层面的取舍会在 <a href="10-networking.html">第 10 章</a> 继续展开。</p>
+  </div>
+
+  <h2 id="dns-not-gateway">四、题眼:旁路由如何只接管 DNS、却不当网关</h2>
+
+  <p>这是全章最容易绕晕、也是旁路由最常见玩法背后的关键一步:全屋设备的网关明明还是主路由,DNS 查询却能被旁路由接管,这是怎么做到的?</p>
+
+  <p>答案在于——「帮你把包转发到公网」和「告诉你一个域名对应哪个 IP」根本是两件不相关的事,只是家庭网络里习惯性地让同一台设备(主路由)顺手把两件事都做了。把这两件事拆开看:网关的职责由 DHCP <strong>option 3</strong> 决定,DNS 服务器的职责由 <strong>option 6</strong> 决定,两个字段各自独立——DHCP 服务器完全可以在同一份应答里,把它们指向两台不同的设备。可以把网关类比成寄信的邮局,把 DNS 类比成查号台:两件不同的事,完全可以让两个不同的机构分别负责,谁管查号台不影响谁管寄信。</p>
+
+  <figure>
+    <svg viewBox="0 0 640 464" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="fig2title">
+      <title id="fig2title">主路由继续当网关,旁路由只接管 DNS 查询的流量走向</title>
+      <defs>
+        <marker id="ah-neutral" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--ink-soft)"/></marker>
+        <marker id="ah-brand" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--brand)"/></marker>
+        <marker id="ah-practice" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--practice)"/></marker>
+        <marker id="ah-accent" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent)"/></marker>
+      </defs>
+
+      <rect x="250" y="14" width="140" height="38" rx="19" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="320" y="38" text-anchor="middle" font-size="13" fill="var(--ink)">上游 / 互联网</text>
+
+      <line x1="320" y1="52" x2="320" y2="76" stroke="var(--ink-soft)" stroke-width="1.5" marker-end="url(#ah-neutral)"/>
+
+      <rect x="250" y="76" width="140" height="40" rx="8" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="320" y="100" text-anchor="middle" font-size="13" fill="var(--ink)">光猫(Modem)</text>
+
+      <line x1="320" y1="116" x2="320" y2="148" stroke="var(--ink-soft)" stroke-width="1.5" marker-end="url(#ah-neutral)"/>
+
+      <rect x="190" y="148" width="260" height="64" rx="10" fill="var(--theory-bg)" stroke="var(--brand)" stroke-width="2"/>
+      <text x="320" y="174" text-anchor="middle" font-size="14" font-weight="700" fill="var(--brand)">主路由 · 192.168.1.1</text>
+      <text x="320" y="196" text-anchor="middle" font-size="12" fill="var(--ink-soft)">DHCP · NAT · 默认网关(全都不变)</text>
+
+      <line x1="320" y1="212" x2="320" y2="262" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <line x1="60" y1="262" x2="560" y2="262" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="150" y="245" font-size="11" fill="var(--ink-soft)">同一子网 / 同一台交换机(LAN)</text>
+
+      <line x1="160" y1="262" x2="160" y2="300" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <line x1="460" y1="262" x2="460" y2="300" stroke="var(--ink-soft)" stroke-width="1.5"/>
+
+      <rect x="70" y="300" width="180" height="64" rx="10" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="2"/>
+      <text x="160" y="326" text-anchor="middle" font-size="14" font-weight="700" fill="var(--practice)">旁路由(iStoreOS)</text>
+      <text x="160" y="348" text-anchor="middle" font-size="12" fill="var(--ink-soft)">192.168.1.2 · 自身 DHCP 已关闭</text>
+
+      <rect x="370" y="300" width="180" height="64" rx="10" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <text x="460" y="326" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">客户端设备</text>
+      <text x="460" y="348" text-anchor="middle" font-size="12" fill="var(--ink-soft)">笔记本 / 手机 / 电视盒子…</text>
+
+      <path d="M 448 300 C 440 250, 400 220, 360 214" fill="none" stroke="var(--brand)" stroke-width="2.5" marker-end="url(#ah-brand)"/>
+      <text x="466" y="256" font-size="12" font-weight="700" fill="var(--brand)">① 默认网关 + NAT</text>
+      <text x="466" y="271" font-size="11" fill="var(--ink-soft)">(全部照旧,不受影响)</text>
+
+      <path d="M 388 302 C 350 280, 290 280, 233 302" fill="none" stroke="var(--practice)" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#ah-practice)"/>
+      <text x="243" y="288" font-size="12" font-weight="700" fill="var(--practice)">② DNS 查询(UDP 53)</text>
+
+      <path d="M 95 300 C 40 240, 60 170, 195 172" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="2 5" marker-end="url(#ah-accent)"/>
+      <text x="8" y="228" font-size="12" font-weight="700" fill="var(--accent)">③ 旁路由自己出网</text>
+      <text x="8" y="243" font-size="11" fill="var(--ink-soft)">也靠主路由当网关</text>
+
+      <line x1="40" y1="400" x2="70" y2="400" stroke="var(--brand)" stroke-width="3"/>
+      <text x="78" y="404" font-size="12" fill="var(--ink)">= 默认网关 / NAT(全屋出公网通道,始终是主路由)</text>
+
+      <line x1="40" y1="422" x2="70" y2="422" stroke="var(--practice)" stroke-width="3" stroke-dasharray="6 5"/>
+      <text x="78" y="426" font-size="12" fill="var(--ink)">= 仅 DNS 查询被旁路由接管(option 6)</text>
+
+      <line x1="40" y1="444" x2="70" y2="444" stroke="var(--accent)" stroke-width="3" stroke-dasharray="2 5"/>
+      <text x="78" y="448" font-size="12" fill="var(--ink)">= 旁路由本身作为 LAN 客户端,也要靠主路由出网</text>
+    </svg>
+    <figcaption>图 2 · 主路由继续做网关 + NAT,旁路由只接管 DNS(option 6)——两条职责线互不干扰,对应正文①②③。</figcaption>
+  </figure>
+
+  <h3>worked example · 一次真实的配置</h3>
+  <ol>
+    <li><strong>①</strong> 主路由(<code>192.168.1.1</code>)继续通过 DHCP 下发「默认网关 = 192.168.1.1」——所有设备访问公网的转发路径、NAT 出口完全不变。</li>
+    <li><strong>②</strong> 同一份 DHCP 应答里,把「DNS 服务器」(option 6)改成 <code>192.168.1.2</code>,也就是旁路由的 IP。设备的 DNS 查询(UDP/TCP 53 端口)会转而发给旁路由。</li>
+    <li><strong>③</strong> 旁路由本身也是这个局域网里的一台普通客户端,它自己联网、拉软件源更新,靠的网关同样是 <code>192.168.1.1</code>——它并没有变成「网络的中心」,只是多接了一份 DNS 查询的活。</li>
+  </ol>
+
+  <p>在旁路由这台机器上,<strong>AdGuard Home</strong> 直接监听 53 端口,作为客户端 DNS 查询的实际入口并执行广告过滤;<strong>dnsmasq</strong> 让出 53 端口、改监听到别的端口(具体数字随发行版 / 版本而定),仅在 AdGuard Home 需要解析局域网内部主机名时被回查——完整的端口配置与内部转发细节属于 <a href="03-dns-adblock.html">第 03 章</a> 的范围,这里只需要知道:从「网关」的视角看,旁路由从始至终都只是 LAN 里一个普通的 IP,<code>192.168.1.1</code> 才是唯一的网关。</p>
+
+  <pre><code># 主路由(或谁在管 DHCP)的 dnsmasq 高级设置里追加一行:
+dhcp-option=6,192.168.1.2
+# 6 = DNS 服务器选项,只改这一项;网关(3 号选项)保持默认,不用重复声明</code></pre>
+
+  <h2 id="setup">五、动手:旁路由怎么接、怎么配</h2>
+
+  <p>把上面的原理落地成一份可以照着做的清单。</p>
+
+  <ol>
+    <li>接线:旁路由的网口插到主路由或同一交换机的 <strong>LAN 口</strong>,不是 WAN 口(插错会变成双重 NAT,见上一节深挖框)。</li>
+    <li>给旁路由一个子网内的固定 IP,比如 <code>192.168.1.2</code>,并且刻意避开主路由 DHCP 的自动分配池(比如分配池是 <code>192.168.1.100–200</code>,<code>192.168.1.2</code> 就不会被后来新加入的设备意外抢用)。</li>
+    <li>旁路由自己的「网关」设置(它作为一个客户端,自己出网走哪)填主路由的 IP <code>192.168.1.1</code>——这是它自己联网、拉取软件源更新的必要条件,和它「是否要给别人当网关」是两回事。</li>
+    <li>确认旁路由的 DHCP 服务器功能是<strong>关闭</strong>的(除非你明确要它接管 DHCP)。</li>
+    <li>只在主路由(当前的 DHCP 服务器)的高级设置里加一条 <code>dhcp-option=6,192.168.1.2</code>,把 DNS 服务器改成旁路由;网关保持默认不动。</li>
+    <li>让客户端重新走一次 DHCP 租约——断开 WiFi 重连,或者在 Windows 上执行:
+      <pre><code>ipconfig /release
+ipconfig /renew</code></pre>
+    </li>
+    <li>用 <code>ipconfig /all</code>(Windows)或路由器后台的客户端列表确认:网关仍显示 <code>192.168.1.1</code>,DNS 服务器显示为 <code>192.168.1.2</code>——两个字段不一样,才说明配置生效。</li>
+  </ol>
+
+  <h2 id="pitfalls">六、常见坑</h2>
+
+  <p>旁路由不是标准网络拓扑,「能跑起来」和「跑得稳」之间常常隔着这几个坑。</p>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">避坑 · 三个最容易踩的坑</div>
+    <ul>
+      <li><strong>两台 DHCP 服务器同时开着</strong>:如果旁路由的 DHCP 忘了关,同一网段里两台服务器都会抢着应答,设备随机拿到不同的网关 / DNS 组合,时好时坏、极难复现——这是「旁路由不稳定」投诉里最常见的根因,永远先检查这一条。</li>
+      <li><strong>接错网口形成双重 NAT</strong>:旁路由如果用自己的 WAN 口(而不是 LAN 口)接到主路由,会在主路由的 NAT 之外再叠一层 NAT,端口转发、部分 P2P / 联机游戏会直接失效,而且现象往往是「能上网但某些功能莫名不工作」,很难联想到网络拓扑上。</li>
+      <li><strong>IPv6 不吃这一套</strong>:DHCP 的 option 3 / 6 机制只管 IPv4;IPv6 的默认网关和 DNS 地址通常来自<strong>路由器通告</strong>(Router Advertisement, RA)而不是 DHCP。如果客户端拿到了 IPv6 地址,它的 IPv6 流量和 DNS 查询会绕开这整套旁路由设计、直接走主路由——这也是很多人干脆在主路由上关掉 IPv6 的原因,细节见 <a href="03-dns-adblock.html">第 03 章</a>。</li>
+    </ul>
+  </div>
+
+  <h2 id="summary">本章要点</h2>
+
+  <div class="cx cx-key">
+    <div class="cx-t">本章要点</div>
+    <ul>
+      <li><strong>OpenWrt</strong> 是跑在嵌入式设备(也能跑在 x86 迷你主机)上的 Linux 发行版,自带完整可写文件系统和包管理;<strong>iStoreOS</strong> 是基于 OpenWrt、面向「路由 + 轻 NAS」场景做了易用性改造的分支。</li>
+      <li>家庭网络的四块地基积木:<strong>网关</strong>(出公网的门)、<strong>子网 / 掩码</strong>(多大范围算「自己人」)、<strong>DHCP</strong>(自动派发 IP / 网关 / DNS 的 DORA 四步握手)、<strong>NAT</strong>(多台私网设备共用一个公网 IP)。</li>
+      <li>主路由 / AP / 旁路由的区别,本质是「网关 + DHCP + NAT 这三份职责,谁拿了几份」——主路由三份全拿,AP 一份都不拿,旁路由按需自选。</li>
+      <li>旁路由的核心技巧:网关(DHCP option 3)和 DNS 服务器(DHCP option 6)是两个独立字段,可以分别指向不同设备——这让「接管 DNS 做广告过滤」完全不需要「接管网关」。</li>
+      <li>接旁路由记住三件事:插 LAN 口不插 WAN 口(否则双重 NAT)、旁路由自己的 DHCP 服务器要关掉(否则两台 DHCP 打架)、改完配置客户端要重新走一次租约才生效。</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    <div class="foot-nav">
+      <a href="01-flashing-firmware.html">← 上一章:从 Chromebox 到 UEFI</a>
+      <a href="../index.html">回首页</a>
+      <a href="03-dns-adblock.html">下一章:DNS 与去广告 →</a>
+    </div>
+    <div class="sources">
+      <b>本章来源(MCP 联网取证)</b>
+      <ol>
+        <li>OpenWrt Wiki — Welcome to the OpenWrt Project — <a href="https://openwrt.org/">https://openwrt.org/</a></li>
+        <li>OpenWrt Wiki — OpenWrt on x86 hardware (PC / VM / server) — <a href="https://openwrt.org/docs/guide-user/installation/openwrt_x86">https://openwrt.org/docs/guide-user/installation/openwrt_x86</a></li>
+        <li>OpenWrt Wiki — Wireless Access Point (aka "Dumb" Access Point) — <a href="https://openwrt.org/docs/guide-user/network/wifi/dumbap">https://openwrt.org/docs/guide-user/network/wifi/dumbap</a></li>
+        <li>iStoreOS 官方仓库 README — <a href="https://github.com/istoreos/istoreos">https://github.com/istoreos/istoreos</a></li>
+        <li>Wikipedia — Dynamic Host Configuration Protocol — <a href="https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol">https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol</a></li>
+        <li>Wikipedia — Network address translation — <a href="https://en.wikipedia.org/wiki/Network_address_translation">https://en.wikipedia.org/wiki/Network_address_translation</a></li>
+        <li>旁路由新手配置指南(dnsmasq 网关 / DNS 分离实操) — <a href="https://bulianglin.com/archives/pangluyou.html">https://bulianglin.com/archives/pangluyou.html</a></li>
+      </ol>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>14 信号与系统</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --hero-grad-1:#0a5ab1; --hero-grad-2:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--hero-grad-1),var(--hero-grad-2));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<script>(function(){var r=document.documentElement;if(!r.dataset.theme){r.dataset.theme=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}})();</script>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 14 章</p>
+    <h1>信号与系统</h1>
+    <p>Wi-Fi 网卡怎么把一串 0/1 变成天线能辐射出去的无线电波、一条 20MHz 信道里怎么塞进上百个互不打架的子载波、-31dBm 的微弱信号为什么还能稳定跑出上百 Mbit/s——这些问题背后是同一门学科在起作用:信号与系统。</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+<p class="crumbs"><a href="../index.html">← 返回首页</a> · 计算机知识手册 · 第 14 章 / 共 16 章 · Part III 深化拓展</p>
+
+<p class="lead"><a href="04-wifi-radio.html">第 04 章</a>讲了 WiFi 的频段和信道,<a href="05-dbm-signal.html">第 05 章</a>讲了 dBm 这把度量信号强弱的尺子——但两章都在同一个地方刻意留白:子载波为什么能挤在同一条信道里却不互相打架?接收端信号弱到 -31dBm 时,系统怎么判断还配不配用更密的调制方式?这一章把公式摆出来,把 04、05 两章的实战现象重新过一遍,顺带打通「信号与系统」这门课最核心的几个概念。</p>
+
+<div class="toc">
+<b>目录</b>
+<ol>
+<li><a href="#why">为什么要学信号与系统</a></li>
+<li><a href="#signal">连续信号与离散信号</a></li>
+<li><a href="#lti">LTI 系统:一个"黑盒"怎么被彻底看穿</a></li>
+<li><a href="#fourier">傅里叶:时域与频域是同一件事的两种讲法</a></li>
+<li><a href="#sampling">采样定理:连续变离散,什么时候会失真</a></li>
+<li><a href="#filter">滤波器:LTI 系统的"专业用法"</a></li>
+<li><a href="#modulation">调制:把 0/1 搬到无线电波上</a></li>
+<li><a href="#qam">QAM:一个符号能装多少比特</a></li>
+<li><a href="#ofdm">OFDM:一条信道里的上百条"车道"</a></li>
+<li><a href="#capacity">频谱、带宽与香农极限</a></li>
+<li><a href="#worked-example">综合实战:从 22dBm 算到 Mbit/s</a></li>
+<li><a href="#key">本章要点</a></li>
+</ol>
+</div>
+
+<h2 id="why">为什么要学信号与系统</h2>
+<p><a href="04-wifi-radio.html">04 章</a>讲 Wi-Fi6 的 OFDMA 时留了一句话没展开:它在频率维度上"同时塞进好几个客户端的小包"——子载波为什么能挤在一起却不用互相避让?<a href="05-dbm-signal.html">05 章</a>量出来的每一个 dBm 数字,又是怎么决定路由器"敢不敢"用更密的调制方式发数据的?这两个问题没法只靠"网络"或"电子电路"的知识回答——它们共同的答案,在<strong>信号与系统</strong>(Signals and Systems)这门学科里:研究"信号"(随时间变化、携带信息的量,比如电压、声压、无线电波)如何被"系统"(能对输入信号做加工的任何装置,小到一个电阻,大到一整条 Wi-Fi 信道)接收、变换,又如何在失真之后被尽量恢复。</p>
+<p>这门课在电子/通信工程专业几乎是必修基础课,收进这本手册,是因为一旦缺了它,04/05 两章里"OFDMA 具体怎么做到""调制阶数怎么选"这些问题就只能死记结论,没法真正理解原因。这一章要做的事情很直接:把 04/05 两章看到的现象,一路用公式和图解重新推导一遍。</p>
+
+<div class="cx cx-practice">
+<div class="cx-t">实战锚点 · 04/05 两章欠下的账</div>
+<p>04 章的 hostapd 日志里那句 <code>channel disabled for use in AP mode</code>,背后是发射端在决定拿哪些频率资源发射;05 章量出来的每一个 dBm 读数,决定的正是接收端能不能撑住更高阶的调制。这一章要把这两笔账一次结清——章末的综合实战会直接拿 05 章那种真实的 dBm 读数(22dBm 发射、−31dBm 接收),一路算到"这条链路理论上能跑多快"。</p>
+</div>
+
+<h2 id="signal">连续信号与离散信号</h2>
+<p><strong>信号</strong>最朴素的定义:一个把"时间"(或空间等自变量)映射到"某个物理量取值"的函数。工程上最常打交道的两大类:</p>
+<ul>
+<li><strong>连续时间信号 x(t)</strong>:自变量 t 取遍实数,任意时刻都有定义——麦克风振膜的电压波形、天线上感应出的电流,都是连续时间信号。</li>
+<li><strong>离散时间信号 x[n]</strong>:自变量 n 只取整数,只在一串离散的时刻上有定义——内存里存的一串采样数值、屏幕每一帧的像素值,都是离散时间信号。</li>
+</ul>
+<p>类比:连续信号像水龙头里的水流——任何一个瞬间都有一个流速,不会"跳着"变化;离散信号像水表每隔一段时间打印出的读数——两次打印之间发生了什么,读数本身完全不知道。</p>
+<p>容易和"时间轴离散不离散"搞混的另一个独立维度是:数值本身是否也被限定在有限个刻度上(<strong>量化</strong>,quantization)。模拟信号在这两个维度上都是连续的,数字信号在这两个维度上都是离散的——但"采样"(时间离散化)和"量化"(数值离散化)是两件独立的事,下一节的采样定理只处理前者。</p>
+
+<figure>
+<svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="连续时间信号波形图与离散时间信号棒棒糖图对照">
+<style>text{font-family:var(--font)}</style>
+<text x="380" y="22" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">连续时间信号 x(t)</text>
+<path d="M40,75 C120,30 200,30 280,75 C360,120 440,120 520,75 C600,30 680,30 720,75" fill="none" stroke="var(--brand)" stroke-width="3"/>
+<text x="730" y="80" font-size="13" fill="var(--ink-soft)">t →</text>
+<line x1="20" y1="128" x2="740" y2="128" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="380" y="150" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">离散时间信号 x[n]</text>
+<line x1="30" y1="230" x2="730" y2="230" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="60" y1="230" x2="60" y2="200" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="60" cy="200" r="4" fill="var(--brand-2)"/>
+<line x1="140" y1="230" x2="140" y2="160" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="140" cy="160" r="4" fill="var(--brand-2)"/>
+<line x1="220" y1="230" x2="220" y2="180" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="220" cy="180" r="4" fill="var(--brand-2)"/>
+<line x1="300" y1="230" x2="300" y2="150" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="300" cy="150" r="4" fill="var(--brand-2)"/>
+<line x1="380" y1="230" x2="380" y2="190" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="380" cy="190" r="4" fill="var(--brand-2)"/>
+<line x1="460" y1="230" x2="460" y2="165" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="460" cy="165" r="4" fill="var(--brand-2)"/>
+<line x1="540" y1="230" x2="540" y2="195" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="540" cy="195" r="4" fill="var(--brand-2)"/>
+<line x1="620" y1="230" x2="620" y2="175" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="620" cy="175" r="4" fill="var(--brand-2)"/>
+<line x1="700" y1="230" x2="700" y2="185" stroke="var(--brand-2)" stroke-width="2.5"/><circle cx="700" cy="185" r="4" fill="var(--brand-2)"/>
+<text x="60" y="245" font-size="12" text-anchor="middle" fill="var(--ink-soft)">n=0</text>
+<text x="700" y="245" font-size="12" text-anchor="middle" fill="var(--ink-soft)">n=8</text>
+<text x="730" y="225" font-size="13" fill="var(--ink-soft)">n →</text>
+</svg>
+<figcaption>上:连续时间信号 x(t) 在任意时刻都有定义;下:离散时间信号 x[n] 只在整数点 n 上有定义——通常就是每隔固定间隔 T 对上面这类连续信号采一次样得到的。采样这一步什么时候安全、什么时候会丢信息,见下文「采样定理」。</figcaption>
+</figure>
+
+<h2 id="lti">LTI 系统:一个"黑盒"怎么被彻底看穿</h2>
+<p>"系统"在这门课里的定义很宽:任何"输入一个信号、输出另一个信号"的装置或过程都算——一段电线、一间会产生回声的房间、一条 Wi-Fi 信道,都是系统。系统的种类无穷无尽,但工程上绝大部分分析工具都精确适用于一类系统:<strong>线性时不变系统</strong>(Linear Time-Invariant,LTI)。</p>
+<p>两个条件缺一不可<sup>[1]</sup>:</p>
+<ul>
+<li><strong>线性(linearity)</strong>:输入 x₁(t) 产生输出 y₁(t)、输入 x₂(t) 产生输出 y₂(t),那么输入 a·x₁(t)+b·x₂(t) 一定产生输出 a·y₁(t)+b·y₂(t)——严格按比例叠加,不多不少。</li>
+<li><strong>时不变(time-invariance)</strong>:今天中午送一个信号进系统,和明天同一时间送同样的信号,除了整体往后挪了一天,系统的反应完全一样——系统本身的"性格"不随时间改变。</li>
+</ul>
+<p>LTI 系统之所以在整个学科里占据核心位置,是因为一条极强的结论:只要知道这个系统对"单位冲激"(一个理想化、只在 t=0 有值、别处都是 0 的极窄脉冲)的响应——叫<strong>冲激响应(impulse response)h(t)</strong>——就能用一种叫<strong>卷积(convolution)</strong>的运算,算出系统对任意输入 x(t) 的输出<sup>[1]</sup>:</p>
+<p style="text-align:center"><code>y(t) = x(t) * h(t) = ∫ x(τ)·h(t−τ) dτ</code></p>
+<p>类比:h(t) 就是这个系统独一无二的"指纹"。不管后面塞给它什么输入,拿输入信号和这份"指纹"卷一遍,就能精确预测输出——不需要重新去理解系统内部到底是电阻电容,还是电磁波在空气里反弹。</p>
+<p>worked example(离散卷积,逐点展开到具体数字):连续积分不好徒手算,但离散版本 y[n]=Σₖ x[k]·h[n−k] 只是有限项相乘再相加。设输入 x[n]={1,1}(即 x[0]=1,x[1]=1)、冲激响应 h[n]={1,2,1}(即 h[0]=1,h[1]=2,h[2]=1),逐项代入:y[0]=x[0]h[0]=1·1=1;y[1]=x[0]h[1]+x[1]h[0]=1·2+1·1=3;y[2]=x[0]h[2]+x[1]h[1]=1·1+1·2=3;y[3]=x[1]h[2]=1·1=1。输出 y[n]={1,3,3,1}——长度是 2+3−1=4,比 x[n]、h[n]任何一个都长,这正是卷积"把两段序列的形状揉到一起、又互相拖长"的具体样子。</p>
+
+<figure>
+<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LTI系统输入输出框图:输入x(t)经过系统h(t)得到输出y(t)">
+<style>text{font-family:var(--font)}</style>
+<defs><marker id="arrow-lti" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-soft)"/></marker></defs>
+<text x="55" y="95" font-size="17" font-weight="700" text-anchor="middle" fill="var(--ink)">x(t)</text>
+<text x="55" y="115" font-size="11" text-anchor="middle" fill="var(--ink-soft)">输入信号</text>
+<line x1="95" y1="100" x2="263" y2="100" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrow-lti)"/>
+<rect x="270" y="55" width="160" height="90" rx="10" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="2"/>
+<text x="350" y="95" font-size="15" font-weight="700" text-anchor="middle" fill="var(--theory)">LTI 系统</text>
+<text x="350" y="118" font-size="12" text-anchor="middle" fill="var(--theory)">h(t)(冲激响应)</text>
+<line x1="430" y1="100" x2="598" y2="100" stroke="var(--ink-soft)" stroke-width="2" marker-end="url(#arrow-lti)"/>
+<text x="645" y="95" font-size="17" font-weight="700" text-anchor="middle" fill="var(--ink)">y(t)</text>
+<text x="645" y="115" font-size="11" text-anchor="middle" fill="var(--ink-soft)">输出信号</text>
+<text x="350" y="178" font-size="13" text-anchor="middle" fill="var(--ink-soft)">y(t) = x(t) * h(t)</text>
+</svg>
+<figcaption>LTI 系统的全部"性格"都压缩在冲激响应 h(t) 里——任意输入 x(t) 经过系统后的输出 y(t),都等于 x(t) 和 h(t) 做卷积,不需要知道系统内部的具体物理实现。</figcaption>
+</figure>
+
+<div class="cx cx-theory">
+<div class="cx-t">原理 · 卷积在另一个视角下变成了乘法</div>
+<p>上面这条卷积积分看着抽象、算起来也麻烦——但换一个角度看待信号后,这个运算会变成简单的逐点相乘:两个信号在时域里做卷积,等价于它们在频域里的表示直接相乘。这条性质是"频域分析"能大幅简化系统分析的根本原因,下一节展开这个"换角度"的工具。</p>
+</div>
+
+<h2 id="fourier">傅里叶:时域与频域是同一件事的两种讲法</h2>
+<p>直接看一段电压-时间波形,很难一眼看出"这里面有没有 60Hz 的电流声、有没有某个频率的干扰";把同一个信号换个角度——按"频率成分的强弱"重新摆一遍——很多问题一眼就能看穿。这个"换角度"的工具,就是傅里叶级数与傅里叶变换。</p>
+<p><strong>傅里叶级数(周期信号)</strong>:任何(满足一定条件的)周期信号,都可以写成一系列不同频率的正弦波、余弦波按不同权重叠加的和<sup>[2]</sup>:</p>
+<p style="text-align:center"><code>x(t) = a₀/2 + Σ [aₙ·cos(nω₀t) + bₙ·sin(nω₀t)]</code>&nbsp;&nbsp;(n = 1, 2, 3, …;ω₀=2π/T 为基频角频率,T 为信号周期)</p>
+<p>n=1 对应"基频",n=2,3,4… 对应基频的整数倍——"谐波(harmonics)"。每个 aₙ、bₙ 系数,就是这个信号里"这个频率成分"占多大权重。</p>
+<p><strong>傅里叶变换(非周期信号的推广)</strong>:把这个思想从"周期信号"推广到任意信号,就是傅里叶变换,定义为<sup>[3]</sup>:</p>
+<p style="text-align:center"><code>X(f) = ∫ x(t)·e^(−i2πft) dt</code></p>
+<p>输出 X(f) 是"频率"的函数——工程上把这份输出叫这个信号的<strong>频域(frequency domain)</strong>表示,与原来按时间排列的<strong>时域(time domain)</strong>表示相对。两者信息完全等价,傅里叶变换和它的逆变换能无损地在两者之间来回转换,只是换了一个更适合看清"频率成分"的角度<sup>[3]</sup>。</p>
+<p>类比:同一份公司账本,时域视角像"按日期流水记账"——每天发生了什么一清二楚,但要看"全年餐饮到底花了多少钱"很费劲;频域视角像"按支出类别汇总"——一眼看到每个类别占多大比例,但具体哪天花的这笔钱反而不直接可见。两份表格记录的是同一批交易,只是分类维度不同。</p>
+
+<figure>
+<svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="时域波形与频域频谱对照图:左侧复杂时域波形,右侧对应的三条频谱竖线">
+<style>text{font-family:var(--font)}</style>
+<defs>
+<marker id="arrow-ft-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-soft)"/></marker>
+<marker id="arrow-ft-l" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="var(--ink-soft)"/></marker>
+</defs>
+<text x="230" y="26" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">时域 x(t)</text>
+<text x="50" y="50" font-size="12" fill="var(--ink-soft)">幅度</text>
+<line x1="30" y1="150" x2="410" y2="150" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4"/>
+<path d="M50,150 C80,90 100,210 130,150 C160,90 180,210 210,150 C240,110 260,190 290,150 C320,100 340,200 370,150 C390,130 400,170 410,150" fill="none" stroke="var(--brand)" stroke-width="3"/>
+<text x="395" y="275" font-size="13" fill="var(--ink-soft)">t →</text>
+<line x1="440" y1="20" x2="440" y2="280" stroke="var(--line)" stroke-width="1" stroke-dasharray="5 5"/>
+<line x1="420" y1="135" x2="468" y2="135" stroke="var(--ink-soft)" stroke-width="1.8" marker-end="url(#arrow-ft-r)"/>
+<text x="444" y="122" font-size="11" text-anchor="middle" fill="var(--ink-soft)">傅里叶变换</text>
+<line x1="468" y1="167" x2="420" y2="167" stroke="var(--ink-soft)" stroke-width="1.8" marker-end="url(#arrow-ft-l)"/>
+<text x="444" y="188" font-size="11" text-anchor="middle" fill="var(--ink-soft)">傅里叶逆变换</text>
+<text x="675" y="26" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">频域 X(f)</text>
+<text x="495" y="50" font-size="12" fill="var(--ink-soft)">|X(f)|</text>
+<line x1="480" y1="260" x2="870" y2="260" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<rect x="553" y="120" width="14" height="140" fill="var(--brand)"/>
+<rect x="643" y="170" width="14" height="90" fill="var(--brand)"/>
+<rect x="733" y="205" width="14" height="55" fill="var(--brand)"/>
+<text x="560" y="278" font-size="12" text-anchor="middle" fill="var(--ink-soft)">f₁</text>
+<text x="650" y="278" font-size="12" text-anchor="middle" fill="var(--ink-soft)">f₂</text>
+<text x="740" y="278" font-size="12" text-anchor="middle" fill="var(--ink-soft)">f₃</text>
+<text x="835" y="278" font-size="13" fill="var(--ink-soft)">f →</text>
+</svg>
+<figcaption>左:三个不同频率的正弦波叠加成的时域波形——直接看很难分辨里面到底有几个频率成分;右:同一个信号换到频域后,只剩三条竖线,直接标出了每个频率成分的强弱。傅里叶变换和它的逆变换,能在这两种等价表示之间无损来回转换<sup>[2][3]</sup>。</figcaption>
+</figure>
+
+<details style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin:16px 0">
+<summary style="cursor:pointer;font-weight:600;color:var(--brand)">折叠 · 一个具体例子:方波是怎么"拼"出来的</summary>
+<div style="margin-top:8px">
+<p>一个理想方波(在 +1 和 −1 之间跳变)的傅里叶级数展开,是一列只含奇次谐波、幅度按 1/n 衰减的正弦波之和<sup>[2]</sup>:</p>
+<p style="text-align:center"><code>x(t) = (4/π)·[ sin(ω₀t) + sin(3ω₀t)/3 + sin(5ω₀t)/5 + sin(7ω₀t)/7 + … ]</code></p>
+<p>只叠加前几项,波形还带着明显的圆角和"鼓包";叠加的谐波项越多,波形就越接近方波的直上直下——但即使叠加无穷多项,在方波的跳变点附近仍会残留一个大约 9% 的过冲,这个现象叫<strong>吉布斯现象(Gibbs phenomenon)</strong>,是数字音频/图像处理里"方块状"振铃伪影的理论根源之一。</p>
+</div>
+</details>
+
+<h2 id="sampling">采样定理:连续变离散,什么时候会失真</h2>
+<p>要把连续时间信号存进电脑、送进数字电路处理,第一步必须先<strong>采样(sampling)</strong>——按固定的时间间隔 T(采样周期)取一串数值 x[n]=x(nT),把连续信号变成离散信号。问题是:采样这么"粗暴"的操作,会不会把信号里的信息丢掉?</p>
+<p><strong>Nyquist–Shannon 采样定理</strong>给出了准确答案:如果原始信号的最高频率成分不超过 B(信号"带限"于 B),那么只要采样率 fs 严格大于 2B,就能从采样序列<strong>完全无损</strong>地重建出原始连续信号——这个门槛 2B 叫<strong>奈奎斯特速率(Nyquist rate)</strong><sup>[4]</sup>。反过来,采样率的一半 fs/2 叫<strong>奈奎斯特频率(Nyquist frequency)</strong>——它是这套采样系统能够正确表示的最高频率上限<sup>[5]</sup>。</p>
+<p>worked example:音频 CD 的采样率定死在 44100 次/秒(44.1kHz),对应的奈奎斯特频率是 22050Hz——这个数字不是拍脑袋定的,而是刚好盖过公认的人耳听觉上限(约 20kHz),再留一点余量给抗混叠滤波器不够理想的过渡带<sup>[5]</sup>。</p>
+<p>一旦采样率不够(低于奈奎斯特速率),会发生<strong>混叠(aliasing)</strong>:一个高于 fs/2 的频率成分,采样之后会"伪装"成另一个低于 fs/2 的频率,拿这份采样序列去重建,得到的是一个错误但看起来完全合理的信号——而且这个错误没法事后修复,因为采样这一步已经把"这个值到底来自哪个频率"的信息永久抹掉了<sup>[4]</sup>。</p>
+
+<figure>
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="混叠现象示意图:两条不同频率的正弦波在相同的采样点上取值完全一致">
+<style>text{font-family:var(--font)}</style>
+<line x1="20" y1="130" x2="860" y2="130" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="40" y1="30" x2="40" y2="230" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"/>
+<line x1="240" y1="30" x2="240" y2="230" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"/>
+<line x1="440" y1="30" x2="440" y2="230" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"/>
+<line x1="640" y1="30" x2="640" y2="230" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"/>
+<line x1="840" y1="30" x2="840" y2="230" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"/>
+<path d="M40,60 C170,60 310,200 440,200 C570,200 710,60 840,60" fill="none" stroke="var(--brand)" stroke-width="3.5"/>
+<path d="M40,60 L90,103.2 L140,179.5 L190,194.7 L240,130 L290,65.3 L340,80.5 L390,156.8 L440,200 L490,156.8 L540,80.5 L590,65.3 L640,130 L690,194.7 L740,179.5 L790,103.2 L840,60" fill="none" stroke="var(--dig)" stroke-width="2.2"/>
+<circle cx="40" cy="60" r="6" fill="var(--ink)" stroke="var(--panel)" stroke-width="2"/>
+<circle cx="240" cy="130" r="6" fill="var(--ink)" stroke="var(--panel)" stroke-width="2"/>
+<circle cx="440" cy="200" r="6" fill="var(--ink)" stroke="var(--panel)" stroke-width="2"/>
+<circle cx="640" cy="130" r="6" fill="var(--ink)" stroke="var(--panel)" stroke-width="2"/>
+<circle cx="840" cy="60" r="6" fill="var(--ink)" stroke="var(--panel)" stroke-width="2"/>
+<text x="440" y="252" font-size="13" text-anchor="middle" fill="var(--ink)">↑ 采样点(五次采样,取值完全相同)</text>
+<rect x="30" y="270" width="18" height="4" fill="var(--brand)"/><text x="56" y="277" font-size="12" fill="var(--ink)" text-anchor="start">真实信号(低频)</text>
+<rect x="230" y="270" width="18" height="4" fill="var(--dig)"/><text x="256" y="277" font-size="12" fill="var(--ink)" text-anchor="start">若以更高频率发送,采样后与左侧完全无法区分</text>
+<text x="855" y="125" font-size="13" fill="var(--ink-soft)">t →</text>
+</svg>
+<figcaption>两条频率完全不同的正弦波(蓝色是低频"真实信号",紫色是频率高出不少的另一条曲线),在图中标出的 5 个采样时刻上取值完全相同——如果采样率只有这么稀,接收端拿到采样序列后根本无法分辨发送的到底是哪一条,只能默认是最低频的那个版本。这就是混叠:采样率不够时,高频信号会"伪装"成低频信号,而且没法在事后分辨出来<sup>[4]</sup>。</figcaption>
+</figure>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · 采样前必须先"堵嘴"</div>
+<p>混叠是采样之后没法挽回的损伤,唯一的解法是在采样<strong>之前</strong>,先用一个模拟低通滤波器(anti-aliasing filter)把频率超过 fs/2 的成分统统滤掉——录音设备、示波器、任何 ADC(模数转换器)前级电路里都少不了这一级。这也是为什么"采样"和下一节的"滤波"在实际系统里从来都是绑在一起的两件事。</p>
+</div>
+
+<div class="cx cx-dig">
+<div class="cx-t">深挖 · 20MHz 信道为什么只需要 20MHz 采样率(不是 40MHz)</div>
+<p>802.11a 的接收机确实是把 20MHz 宽的信道,以 20MHz 的采样率采样后直接做快速傅里叶变换(FFT)还原出 52 条子载波<sup>[6]</sup>——乍看和"采样率要不低于 2 倍最高频率"的结论矛盾,其实不然:射频前端先把信号从高频载波"下变频"搬到以 0Hz 为中心的<strong>复数基带</strong>(同时产生互为正交的 I、Q 两路实数信号),对复数信号,采样定理的形式是 fs 不低于 B(B 是单边带宽,不用再乘 2)——因为每一次"复采样"本身就同时包含 I、Q 两个独立的实数读数,信息量已经相当于实数情形下的两个样本。经典的"fs 不低于 2B"针对的是单路实数信号,复数基带(I/Q,软件无线电 SDR 里最常见的做法)是数学上等价但形式不同的另一半故事。</p>
+</div>
+
+<h2 id="filter">滤波器:LTI 系统的"专业用法"</h2>
+<p>LTI 系统那条抽象结论有一个极实用的推论:既然卷积在频域会变成乘法,那么一个 LTI 系统对输入信号的作用,换个角度看就是"把输入信号的频谱,逐个频率乘上一个增益"——这个"频率→增益"的对应关系叫这个系统的<strong>频率响应(frequency response)H(f)</strong>。工程上专门设计 H(f) 形状、用来"留下"或"滤掉"特定频段的 LTI 系统,就叫<strong>滤波器(filter)</strong>。</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>类型</th><th>放行的频段</th><th>常见例子</th></tr>
+<tr><td>低通(low-pass)</td><td>低于截止频率</td><td>上一节的抗混叠滤波器</td></tr>
+<tr><td>高通(high-pass)</td><td>高于截止频率</td><td>音响电路里的"隔直流"电容</td></tr>
+<tr><td>带通(band-pass)</td><td>某个频率区间</td><td>收音机调台、手机基带挑出某个信道</td></tr>
+<tr><td>带阻/陷波(band-stop/notch)</td><td>除某个窄频段外全部放行</td><td>掐掉某个固定频率的干扰源</td></tr>
+</table>
+</div>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · 两种"过滤",别搞混</div>
+<p><a href="03-dns-adblock.html">第 03 章</a>里 AdGuard 做的"过滤"是在应用层按域名黑白名单挡广告请求,判断依据是这个域名字符串在不在名单里;这一节讲的"滤波"是在物理/信号层按频率取舍能量,判断依据是这个频率成分落在 H(f) 的通带还是阻带里。两者都叫 filter,但一个是逻辑判断,一个是物理/数学运算,完全不是一回事。</p>
+</div>
+
+<h2 id="modulation">调制:把 0/1 搬到无线电波上</h2>
+<p>网卡送出来的原始比特流是一串低频方波脉冲——直接拿天线辐射这种信号效率极低(天线尺寸要跟信号波长同量级,频率太低意味着波长太长,天线得做到几十甚至上百米才有效率),而且低频段频谱资源本来就极度拥挤。<strong>调制(modulation)</strong>的思路是:找一个频率高得多、适合天线辐射和频谱规划的正弦波,叫<strong>载波(carrier)</strong>,把要传的信息"驮"在载波的某个参数上一起发出去。</p>
+<p>载波只有三个参数可以拿来编码信息——振幅、频率、相位,对应三种最基础的调制方式:</p>
+<ul>
+<li><strong>AM</strong>(调幅,Amplitude Modulation):信息改变载波的振幅</li>
+<li><strong>FM</strong>(调频,Frequency Modulation):信息改变载波的频率</li>
+<li><strong>PM</strong>(调相,Phase Modulation):信息改变载波的相位</li>
+</ul>
+<p>类比:载波是一辆固定在路上跑的车,信息是要运的货;调制就是"把货绑在车的哪个部位"——绑在车身高度上(振幅)、绑在车速上(频率)、还是绑在车身倾斜角度上(相位),决定了这辆车能装多少货、跑多稳、多抗颠簸(噪声)。</p>
+<p>现代数字通信(包括 Wi-Fi)几乎都不满足于只用振幅或只用相位——而是把两者一起利用,这就是下一节的 QAM。</p>
+
+<h2 id="qam">QAM:一个符号能装多少比特</h2>
+<p><strong>QAM</strong>(Quadrature Amplitude Modulation,正交幅度调制)同时驱动两路频率相同、但相位相差 90°(正交)的载波——习惯上分别叫 <strong>I 路</strong>(In-phase,同相)和 <strong>Q 路</strong>(Quadrature,正交)<sup>[7]</sup>。把这两路信号各自的振幅独立调节后叠加发送,合成信号就同时带上了振幅和相位的变化——一次能编码的信息量比单独调幅或调相都大得多。</p>
+<p><strong>星座图(constellation diagram)</strong>:把每一个可能发送的 (I,Q) 取值组合画在一张以 I 为横轴、Q 为纵轴的平面图上,每一个点叫一个<strong>符号(symbol)</strong>。如果一共有 M 个可能的符号,每个符号能装的比特数是<sup>[8]</sup>:</p>
+<p style="text-align:center"><code>bits/symbol = log₂(M)</code></p>
+<p>worked example(直接对上 04 章表格):4-QAM(即 QPSK)有 4 个符号,log₂4=2,每符号 2 bit;16-QAM 有 16 个符号,4 bit/symbol;64-QAM,6 bit/symbol;256-QAM(Wi-Fi5 引入),8 bit/symbol;1024-QAM(Wi-Fi6 引入),10 bit/symbol;4096-QAM(Wi-Fi7),12 bit/symbol<sup>[7][8]</sup>——这正是 <a href="04-wifi-radio.html">04 章</a>那张世代表格里"Wi-Fi6=1024-QAM""Wi-Fi7=4096-QAM"两行数字的来处:星座图上塞的点越密,同一个符号周期能装的比特就越多。</p>
+
+<figure>
+<svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QPSK与16QAM星座图对比:QPSK只有4个稀疏的点,16QAM有16个密集排列的点">
+<style>text{font-family:var(--font)}</style>
+<text x="220" y="50" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">QPSK / 4-QAM</text>
+<line x1="60" y1="170" x2="380" y2="170" stroke="var(--ink-soft)" stroke-width="1.3"/>
+<line x1="220" y1="40" x2="220" y2="300" stroke="var(--ink-soft)" stroke-width="1.3"/>
+<text x="388" y="175" font-size="13" fill="var(--ink-soft)">I</text>
+<text x="215" y="35" font-size="13" fill="var(--ink-soft)">Q</text>
+<circle cx="150" cy="100" r="7" fill="var(--brand)"/><text x="150" y="85" font-size="12" text-anchor="middle" fill="var(--ink)">00</text>
+<circle cx="290" cy="100" r="7" fill="var(--brand)"/><text x="290" y="85" font-size="12" text-anchor="middle" fill="var(--ink)">01</text>
+<circle cx="150" cy="240" r="7" fill="var(--brand)"/><text x="150" y="262" font-size="12" text-anchor="middle" fill="var(--ink)">10</text>
+<circle cx="290" cy="240" r="7" fill="var(--brand)"/><text x="290" y="262" font-size="12" text-anchor="middle" fill="var(--ink)">11</text>
+<text x="220" y="322" font-size="13" text-anchor="middle" fill="var(--ink-soft)">log₂4 = 2 bit/符号</text>
+<line x1="440" y1="20" x2="440" y2="320" stroke="var(--line)" stroke-width="1" stroke-dasharray="5 5"/>
+<text x="650" y="50" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">16-QAM</text>
+<line x1="490" y1="170" x2="810" y2="170" stroke="var(--ink-soft)" stroke-width="1.3"/>
+<line x1="650" y1="40" x2="650" y2="300" stroke="var(--ink-soft)" stroke-width="1.3"/>
+<text x="818" y="175" font-size="13" fill="var(--ink-soft)">I</text>
+<text x="645" y="35" font-size="13" fill="var(--ink-soft)">Q</text>
+<g fill="var(--dig)">
+<circle cx="545" cy="65" r="6"/><circle cx="615" cy="65" r="6"/><circle cx="685" cy="65" r="6"/><circle cx="755" cy="65" r="6"/>
+<circle cx="545" cy="135" r="6"/><circle cx="615" cy="135" r="6"/><circle cx="685" cy="135" r="6"/><circle cx="755" cy="135" r="6"/>
+<circle cx="545" cy="205" r="6"/><circle cx="615" cy="205" r="6"/><circle cx="685" cy="205" r="6"/><circle cx="755" cy="205" r="6"/>
+<circle cx="545" cy="275" r="6"/><circle cx="615" cy="275" r="6"/><circle cx="685" cy="275" r="6"/><circle cx="755" cy="275" r="6"/>
+</g>
+<text x="650" y="322" font-size="13" text-anchor="middle" fill="var(--ink-soft)">log₂16 = 4 bit/符号</text>
+</svg>
+<figcaption>左:QPSK(4-QAM)只有 4 个合法取值点,点间距大,抗噪声能力强,但每个符号只能装 2 bit;右:16-QAM 塞进 16 个点,每个符号能装 4 bit,但相邻点之间的几何距离明显变小——同样大小的噪声,更容易把接收到的点"推"到相邻格子,判决出错。图中比特标注为示意,实际标准的具体映射见 IEEE 802.11 标准文本<sup>[7][8]</sup>。</figcaption>
+</figure>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · 点越密,越怕吵</div>
+<p>星座图上塞进更多点,意味着相邻两个合法取值点之间的几何距离变小——接收端只要有一点点噪声,就可能把本该落在这个点上的信号误判成隔壁那个点,产生比特错误。这就是为什么手机/路由器信号变差(dBm 变小、信噪比下降)时,连接速度会自动往下掉:系统在实时切换到点更稀疏、更抗噪但每符号装得更少的低阶 QAM——业内把这套机制叫<strong>自适应调制(rate adaptation)</strong>。章末的综合实战会具体算一遍"够不够格用高阶 QAM"这道门槛。</p>
+</div>
+
+<h2 id="ofdm">OFDM:一条信道里的上百条"车道"</h2>
+<p>如果只用一路载波,在整条信道带宽上用很高的符号速率发送(单载波传输),遇到<strong>多径效应</strong>——同一个信号经不同反射路径、带着不同延迟到达接收端并叠加——非常容易产生码间串扰(ISI):前一个符号的"尾巴"拖到下一个符号的时间窗里互相污染,信道越宽、符号速率越高,这个问题越严重。</p>
+<p><strong>OFDM</strong>(Orthogonal Frequency-Division Multiplexing,正交频分复用)换了个思路:把一条宽信道拆成几十上百条并排的窄<strong>子载波(subcarrier)</strong>,每条子载波各自用低得多的符号速率发送一份 QAM 符号——单条子载波变窄、变慢,但子载波数量足够多,总吞吐并不吃亏;而符号周期被拉长之后,多径延迟相对符号周期的比例大幅缩小,抗多径能力明显改善。</p>
+<p><strong>"正交"到底是什么意思</strong>:OFDM 要求相邻子载波的中心频率间隔恰好是 Δf=1/Tᵤ(Tᵤ 是一个 OFDM 符号的有效持续时间)<sup>[9]</sup>——数学上,两个频率相差 Δf=k/Tᵤ(k 为正整数)的正弦波,在长度为 Tᵤ 的时间窗内积分(相乘再求和),结果严格等于零。也就是说,尽管每条子载波在频域上的能量会"泄漏"到邻居的地盘,但只要在邻居的中心频率处采样,泄漏进来的这部分贡献恰好是 0——各条子载波才能挤在同一条信道里而互不干扰。</p>
+
+<figure>
+<svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OFDM六条子载波频谱包络示意图:每条子载波在自己中心频率取峰值,在相邻子载波中心频率处恰好为零">
+<style>text{font-family:var(--font)}</style>
+<text x="40" y="18" font-size="12" fill="var(--ink-soft)">各条子载波的频谱包络(简化示意)</text>
+<line x1="30" y1="230" x2="830" y2="230" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<path d="M40,230 Q150,50 260,230" fill="var(--brand)" fill-opacity="0.16" stroke="var(--brand)" stroke-width="2"/>
+<path d="M150,230 Q260,50 370,230" fill="var(--dig)" fill-opacity="0.16" stroke="var(--dig)" stroke-width="2"/>
+<path d="M260,230 Q370,50 480,230" fill="var(--practice)" fill-opacity="0.16" stroke="var(--practice)" stroke-width="2"/>
+<path d="M370,230 Q480,50 590,230" fill="var(--warn)" fill-opacity="0.16" stroke="var(--warn)" stroke-width="2"/>
+<path d="M480,230 Q590,50 700,230" fill="var(--theory)" fill-opacity="0.16" stroke="var(--theory)" stroke-width="2"/>
+<path d="M590,230 Q700,50 810,230" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)" stroke-width="2"/>
+<line x1="260" y1="20" x2="260" y2="250" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="260" y="25" font-size="12" text-anchor="middle" fill="var(--ink)">在子载波2的中心频率</text>
+<text x="260" y="42" font-size="12" text-anchor="middle" fill="var(--ink-soft)">子载波1、3的曲线都恰好为0</text>
+<text x="150" y="250" font-size="12" text-anchor="middle" fill="var(--ink-soft)">1</text>
+<text x="260" y="250" font-size="12" text-anchor="middle" fill="var(--ink-soft)">2</text>
+<text x="370" y="250" font-size="12" text-anchor="middle" fill="var(--ink-soft)">3</text>
+<text x="480" y="250" font-size="12" text-anchor="middle" fill="var(--ink-soft)">4</text>
+<text x="590" y="250" font-size="12" text-anchor="middle" fill="var(--ink-soft)">5</text>
+<text x="700" y="250" font-size="12" text-anchor="middle" fill="var(--ink-soft)">6</text>
+<text x="800" y="270" font-size="13" fill="var(--ink-soft)">f(频率) →</text>
+</svg>
+<figcaption>六条子载波的频谱包络示意图(用平滑凸包简化了真实的 sinc 波形——真实频谱在更远处还有一连串小旁瓣,但保留了正交性的核心几何关系):每条子载波在自己的中心频率上取得峰值,同时在所有相邻子载波的中心频率上曲线恰好压在 0 这条基线上——这就是"正交"在频谱图上的直观含义,也是许多条子载波能挤在同一条信道里却互不干扰的根本原因<sup>[9]</sup>。</figcaption>
+</figure>
+
+<div class="cx cx-theory">
+<div class="cx-t">原理 · 子载波的正交,补上 04 章留的账</div>
+<p><a href="04-wifi-radio.html">04 章</a>讲 OFDMA 时留了一句话:"子载波为什么能正交共存、频域与时域怎么互相转换,属于信号与系统的范畴"——就是上面这条 Δf=1/Tᵤ。反过来看同样成立:Tᵤ=1/Δf,子载波间隔越窄,每个 OFDM 符号就必须拖得越长。这正是 Wi-Fi6(802.11ax)把子载波间隔从 legacy 的 312.5kHz(20MHz÷64 点 FFT)收窄到 78.125kHz(四分之一)的原因<sup>[6][10]</sup>:20MHz÷78.125kHz=256,FFT 点数从 64 扩到 256(四倍),子载波变窄、数量变多,单条子载波扛的符号速率降低,换来长四倍的符号周期与更强的抗多径/抗时延扩展能力——这正是 Wi-Fi6 主打"密集设备场景更稳"的物理层根基,而不只是参数表数字更大。</p>
+</div>
+
+<p>worked example(802.11a 真实数字):802.11a 把一条 20MHz 信道送进 64 点 FFT,子载波间隔 Δf=20MHz/64=312.5kHz<sup>[6]</sup>;代入 Tᵤ=1/Δf,有效符号周期 Tᵤ=1/312.5kHz=3.2μs,再加上 0.8μs 的保护间隔(guard interval,专门用来吸收多径延迟),完整一个 OFDM 符号占用 4μs<sup>[6]</sup>——64 个子载波里,48 条真正装数据,4 条是导频(pilot,帮接收端做信道估计和同步),中心那一条不用(直流分量),实际占用带宽 16.6MHz,略小于标称的 20MHz 信道宽度<sup>[6]</sup>。</p>
+
+<h2 id="capacity">频谱、带宽与香农极限</h2>
+<p>先把两个词钉死:<strong>频谱(spectrum)</strong>是一个信号在频域下的完整分布——横轴频率、纵轴该频率成分的强弱;<strong>带宽(bandwidth)</strong>就是这份频谱铺开的宽度,单位是 Hz。前面几节分别讲了"调制阶数决定每符号装多少比特"(QAM)、"多少条子载波并行跑"(OFDM),但这两者能拉多高,最终都被一条物理定律死死摁住上限——不管用多聪明的调制/编码方案,都不能突破。</p>
+<p><strong>Shannon–Hartley 定理</strong>:一条带宽为 B(单位 Hz)、信噪比为 S/N(线性值,不是 dB)的信道,理论上能无差错传输的最高速率上限是<sup>[11]</sup>:</p>
+<p style="text-align:center"><code>C = B · log₂(1 + S/N)</code></p>
+<p>直觉:B(带宽)相当于"车道数量",S/N(信噪比)相当于"能见度"——车道越多、能见度越好,单位时间能安全通过的车流量就越大;这条公式把两个独立因素捏合成一个绝对上限,任何调制方式的设计空间都只能在这条线以下打转,只能不断逼近,不能突破。</p>
+<p>和 dBm(<a href="05-dbm-signal.html">05 章</a>)的连接:S、N 通常直接用功率的 dBm 读数表示;由于 dBm 本身是对数单位,两个 dBm 数字相减,直接就是它们比值的 dB 数——不用先分别换算回瓦特再相除。也就是说,"信号功率(dBm)− 噪声功率(dBm)"直接等于"信噪比(dB)",这是 05 章讲的"dB 用减法代替除法"在这里最直接的用武之地;拿到这个 SNR(dB)后,再换算成线性值 10^(SNR(dB)/10) 代入上面的公式。</p>
+<p><strong>热噪声底(thermal noise floor)</strong>:信道里的噪声不是凭空捏造的数字——室温下(参考温度 290K),电子热运动带来的本底噪声功率密度是一个物理常数,约为 kT ≈ −174dBm/Hz<sup>[12]</sup>;一条带宽 B(Hz)的信道,理想情形下(不考虑接收机自身电路引入的额外噪声)热噪声总功率就是:</p>
+<p style="text-align:center"><code>N(dBm) = −174 + 10·log₁₀(B)</code></p>
+<p>这条公式是下面综合实战计算的起点。</p>
+
+<h2 id="worked-example">综合实战:从 22dBm 算到 Mbit/s</h2>
+<p>把前面几节串成一条线,拿 04/05 两章的真实数字走一遍完整流程。</p>
+<p><strong>已知条件</strong>(呼应 <a href="05-dbm-signal.html">05 章</a>的真实链路预算):AP 发射 EIRP 22dBm;经墙体、楼层等路径衰减,到接收端实测 RSSI(接收信号强度)为 −31dBm;信道宽度沿用 <a href="04-wifi-radio.html">04 章</a>的 20MHz。</p>
+<p><strong>第一步 —— 算噪声底</strong>:代入上面的公式,N = −174 + 10·log₁₀(20×10⁶) = −174 + 73.0 ≈ −101dBm(这是理想值,只计入热噪声,不含接收机电路自身的噪声系数、也不含其它 AP 的同频干扰——真实噪声底通常比这个数字高出几个 dB)。</p>
+<p><strong>第二步 —— 算信噪比</strong>:SNR(dB) = RSSI − N = −31 − (−101) = 70dB,换算成线性值 S/N=10⁷=10,000,000。</p>
+<p><strong>第三步 —— 代入香农极限</strong>:C = 20×10⁶ × log₂(1+10⁷) ≈ 20×10⁶ × 23.25 ≈ 465Mbit/s——这是这条链路在这个信噪比下,理论上限能跑到的速率。</p>
+<p><strong>第四步 —— 反推调制阶数</strong>:70dB 的信噪比余量相当充裕——作为参照,64-QAM(5/6 编码率)实测大约需要 31dB 信噪比才能稳定工作<sup>[13]</sup>;门槛不是固定的,星座点越密、需要的信噪比也越高——Wi-Fi6 顶格的 1024-QAM(MCS10/MCS11),按芯片厂商公开的接收灵敏度数据换算(20MHz 信道下最低灵敏度约 −52~−54dBm,减去前面同一份资料给出的 20MHz 热噪声底 −101dBm,与第一步算出的理想值一致),信噪比门槛约在 47~49dB<sup>[14]</sup>——比 64-QAM 高出十几 dB,印证了"调制阶数越高、门槛越高"的直觉,但仍比这条链路实测的 70dB 低了 20 多 dB;70dB 对 1024-QAM 同样留有余量,系统没理由自降调制阶数。</p>
+
+<figure>
+<svg viewBox="0 0 460 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="链路预算数轴示意图:22dBm发射功率经约53dB路径衰减降到-31dBm接收信号,再往下约70dB是-101dBm的热噪声底">
+<style>text{font-family:var(--font)}</style>
+<defs><marker id="arrow-link" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-soft)"/></marker></defs>
+<text x="230" y="14" font-size="12" text-anchor="middle" fill="var(--ink-soft)">dBm ↑ 更强</text>
+<line x1="230" y1="20" x2="230" y2="380" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="230" y="398" font-size="12" text-anchor="middle" fill="var(--ink-soft)">↓ 更弱</text>
+
+<line x1="220" y1="41" x2="240" y2="41" stroke="var(--brand)" stroke-width="2.5"/>
+<circle cx="230" cy="41" r="5" fill="var(--brand)"/>
+<text x="250" y="37" font-size="13" font-weight="600" fill="var(--ink)">22 dBm — 发射 EIRP</text>
+<text x="250" y="52" font-size="11" fill="var(--ink-soft)">(呼应 04 章信道设置)</text>
+
+<line x1="220" y1="177" x2="240" y2="177" stroke="var(--practice)" stroke-width="2.5"/>
+<circle cx="230" cy="177" r="5" fill="var(--practice)"/>
+<text x="250" y="173" font-size="13" font-weight="600" fill="var(--ink)">−31 dBm — 接收端 RSSI</text>
+<text x="250" y="188" font-size="11" fill="var(--ink-soft)">(本机实测,呼应 05 章链路预算)</text>
+
+<line x1="220" y1="357" x2="240" y2="357" stroke="var(--warn)" stroke-width="2.5"/>
+<circle cx="230" cy="357" r="5" fill="var(--warn)"/>
+<text x="250" y="353" font-size="13" font-weight="600" fill="var(--ink)">≈ −101 dBm — 热噪声底</text>
+<text x="250" y="368" font-size="11" fill="var(--ink-soft)">N = −174 + 10·log₁₀(20MHz),理想值</text>
+
+<line x1="185" y1="41" x2="195" y2="41" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="190" y1="41" x2="190" y2="177" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="185" y1="177" x2="195" y2="177" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="168" y="109" font-size="12" text-anchor="middle" fill="var(--ink-soft)" transform="rotate(-90 168 109)">路径衰减 ≈53dB</text>
+
+<line x1="185" y1="177" x2="195" y2="177" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="190" y1="177" x2="190" y2="357" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="185" y1="357" x2="195" y2="357" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="168" y="267" font-size="12" text-anchor="middle" fill="var(--ink-soft)" transform="rotate(-90 168 267)">信噪比 SNR ≈70dB</text>
+</svg>
+<figcaption>把 04/05 两章的真实数字和这一章的公式串成一条链路预算(link budget):发射 EIRP 22dBm,经路径衰减约 53dB,到接收端只剩 −31dBm;这条 20MHz 信道理想状态下的热噪声底约 −101dBm,两者相减得到信噪比约 70dB——足够支撑 Wi-Fi6 顶格的 1024-QAM。具体推导过程见正文。</figcaption>
+</figure>
+
+<div class="cx cx-practice">
+<div class="cx-t">实战锚点 · 一个数字,串起两章</div>
+<p>−31dBm 这一个读数,经过"减去噪声底 → 算信噪比 → 代入香农公式 → 对照 QAM 门槛"这四步,就能一路解释到"这个位置能不能跑满速"——这正是信号与系统把 <a href="04-wifi-radio.html">04 章</a>(信道带宽)和 <a href="05-dbm-signal.html">05 章</a>(dBm)焊接在一起的地方:04/05 两章看到的都是现象,这一章给的是能一路推导下去的机制。</p>
+</div>
+
+<h2 id="key">本章要点</h2>
+<div class="cx cx-key">
+<div class="cx-t">本章要点</div>
+<ul>
+<li>连续信号 x(t) 对任意时刻有定义;离散信号 x[n] 只在整数点有定义,通常来自对连续信号的采样。</li>
+<li>LTI 系统(线性 + 时不变)由冲激响应 h(t) 完全刻画,输出 = 输入卷积 h(t);卷积在频域等价于乘法。</li>
+<li>傅里叶级数/变换把信号从时域搬到频域,两者信息等价,只是看的角度不同——周期信号是谐波叠加,任意信号是连续频谱。</li>
+<li>采样定理:fs 必须超过 2 倍信号最高频率(奈奎斯特速率),否则发生不可逆的混叠;采样前必须先做抗混叠低通滤波。</li>
+<li>滤波器就是专门设计频率响应 H(f) 的 LTI 系统:低通/高通/带通/带阻四种基本类型。</li>
+<li>调制把信息搭载到高频载波上;QAM 同时利用振幅+相位,一个符号装 log₂(M) 比特;OFDM 把宽信道拆成正交子载波(间隔 Δf=1/Tᵤ),兼顾高吞吐与抗多径。</li>
+<li>Shannon–Hartley 定理 C=B·log₂(1+S/N) 是任何调制方案都无法突破的理论速率天花板;dBm 相减直接得到 SNR(dB),把 <a href="05-dbm-signal.html">05 章</a>的 dBm 和这里的容量公式连在一起。</li>
+</ul>
+</div>
+
+<div class="foot">
+  <div class="foot-nav">
+    <a href="13-dsa.html">← 13 数据结构与算法</a>
+    <a href="../index.html">回首页</a>
+    <a href="15-crypto-security.html">15 密码学与网络安全 →</a>
+  </div>
+  <p><b>本章来源</b></p>
+  <ol class="sources">
+    <li>Wikipedia,《Linear time-invariant system》— LTI 系统的线性/时不变定义、冲激响应与卷积积分。<a href="https://en.wikipedia.org/wiki/Linear_time-invariant_system">https://en.wikipedia.org/wiki/Linear_time-invariant_system</a></li>
+    <li>Wikipedia,《Fourier series》— 周期信号的傅里叶级数展开、方波谐波分解。<a href="https://en.wikipedia.org/wiki/Fourier_series">https://en.wikipedia.org/wiki/Fourier_series</a></li>
+    <li>Wikipedia,《Fourier transform》— 傅里叶变换定义、时域与频域的对偶关系。<a href="https://en.wikipedia.org/wiki/Fourier_transform">https://en.wikipedia.org/wiki/Fourier_transform</a></li>
+    <li>Wikipedia,《Nyquist–Shannon sampling theorem》— 采样定理陈述、奈奎斯特速率、混叠不可逆性。<a href="https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem">https://en.wikipedia.org/wiki/Nyquist–Shannon_sampling_theorem</a></li>
+    <li>Wikipedia,《Nyquist frequency》— 奈奎斯特频率定义、音频 CD 44.1kHz/22050Hz 实例。<a href="https://en.wikipedia.org/wiki/Nyquist_frequency">https://en.wikipedia.org/wiki/Nyquist_frequency</a></li>
+    <li>Wikipedia,《IEEE 802.11a-1999》— 64 点 FFT、52 条子载波(48 数据+4 导频)、312.5kHz 间隔、20MHz 采样、16.6MHz 占用带宽。<a href="https://en.wikipedia.org/wiki/IEEE_802.11a-1999">https://en.wikipedia.org/wiki/IEEE_802.11a-1999</a></li>
+    <li>Wikipedia,《Quadrature amplitude modulation》— QAM 定义、I/Q 两路正交载波、星座图。<a href="https://en.wikipedia.org/wiki/Quadrature_amplitude_modulation">https://en.wikipedia.org/wiki/Quadrature_amplitude_modulation</a></li>
+    <li>CWNP,《QAM: The Basics and Beyond》— bits/symbol=log₂M 公式、IEEE 802.11-2020 标准星座图。<a href="https://www.cwnp.com/qam-basics/">https://www.cwnp.com/qam-basics/</a></li>
+    <li>Wikipedia,《Orthogonal frequency-division multiplexing》— 子载波正交性条件 Δf=k/Tᵤ 的数学定义。<a href="https://en.wikipedia.org/wiki/Orthogonal_frequency-division_multiplexing">https://en.wikipedia.org/wiki/Orthogonal_frequency-division_multiplexing</a></li>
+    <li>Qorvo,《Wi-Fi 6 (802.11ax): 5 Things to Know》— 802.11ax 子载波间隔收窄至 78.125kHz(legacy 的四分之一)、符号周期变长四倍。<a href="https://www.qorvo.com/design-hub/blog/80211ax-5-things-to-know">https://www.qorvo.com/design-hub/blog/80211ax-5-things-to-know</a></li>
+    <li>Wikipedia,《Shannon–Hartley theorem》— 信道容量公式 C=B·log₂(1+S/N)。<a href="https://en.wikipedia.org/wiki/Shannon%E2%80%93Hartley_theorem">https://en.wikipedia.org/wiki/Shannon–Hartley_theorem</a></li>
+    <li>ScienceDirect Topics,《Thermal Noise》— 室温热噪声功率密度 kT≈−174dBm/Hz 的推导。<a href="https://www.sciencedirect.com/topics/engineering/thermal-noise">https://www.sciencedirect.com/topics/engineering/thermal-noise</a></li>
+    <li>NetBeez,《What is the MCS Index?》— 64-QAM(5/6 编码)实测所需最低信噪比约 31dB、RSSI 约 −58dBm 的 MCS 表实例。<a href="https://netbeez.net/blog/what-is-mcs-index/">https://netbeez.net/blog/what-is-mcs-index/</a></li>
+    <li>Troy Martin(Trogen Consulting),《Short story of 802.11ax, SNR & 1024-QAM》,WLPC Prague 2019 — 1024-QAM(MCS10/MCS11)20MHz 信道下最低接收灵敏度约 −52~−54dBm,以及 20MHz 热噪声底 −101dBm 的数据表。<a href="https://d2cpnw0u24fjm4.cloudfront.net/wp-content/uploads/11ax-SNR.pdf">https://d2cpnw0u24fjm4.cloudfront.net/wp-content/uploads/11ax-SNR.pdf</a></li>
+  </ol>
+</div>
+
+</div>
+</body>
+</html>

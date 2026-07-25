@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>08 Windows 系统管理与提权</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 08 章</p>
+    <h1>Windows 系统管理与提权</h1>
+    <p>风扇狂转却找不到真凶、软件删了但开机还在自启、共享盘三天两头要求重新登录——这些麻烦的根子都在 Windows 后台那套服务、权限、电源管控机制里,本章把它们逐一拆开,并练一遍怎么揪出真正吃 CPU 的进程。</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="crumbs">← <a href="../index.html">返回首页</a></p>
+
+  <p class="lead">把 Windows 想成一栋写字楼:服务是电梯、水泵这类不需要你天天开关的"物业后台";UAC 是每层楼的门禁,默认收起你的门禁卡;powercfg 是给电梯装的限速表;任务管理器则是大堂电表的读数——读数准不准,取决于电表怎么算。四件事合起来,才是"这台电脑后台到底在干什么"的完整答案。</p>
+
+  <div class="toc">
+    <b>本章目录</b>
+    <ol>
+      <li><a href="#why">为什么要懂这些</a></li>
+      <li><a href="#services">服务:后台常驻的"物业"</a></li>
+      <li><a href="#uac">UAC 与提权</a></li>
+      <li><a href="#creds">net use / cmdkey:记住"你是谁"</a></li>
+      <li><a href="#power">powercfg:给处理器装限速表</a></li>
+      <li><a href="#diagnose">揪出真正吃 CPU 的进程</a></li>
+    </ol>
+  </div>
+
+  <h2 id="why">为什么要懂这些</h2>
+  <p>这几件事表面上互不相关,实际上是同一套"谁在后台跑、谁说了算、跑得多快、跑得对不对"的系统管控框架,拆开看是四条独立的线:</p>
+  <ul>
+    <li><strong>服务</strong>:像 Corplink 这类软件,开机自己拉起来占后台,想让它"别自动跑",得先知道 Windows 是按什么规则决定谁开机自启的。</li>
+    <li><strong>提权</strong>:很多"删不掉的文件夹""改不了的注册表""被拒绝的操作",本质是权限问题——懂 UAC 才知道该在哪一步"验明正身"。</li>
+    <li><strong>电源</strong>:风扇狂转、笔记本发烫,很多时候操作系统这一层就能直接压住,不必先跟驱动、BIOS 较劲。</li>
+    <li><strong>CPU 诊断</strong>:任务管理器那个百分比经常"看着很唬人",不懂它背后的计数器口径,很容易冤枉错的进程。</li>
+  </ul>
+  <p>本章沿用真实场景:一台 Dell 笔记本,风扇狂转、Corplink 开机自己蹦出来占后台——下面每一节都会回到这台机器上。</p>
+
+  <h2 id="services">服务:后台常驻的"物业"</h2>
+  <p>Windows 启动后,桌面上看到的只是冰山一角。真正撑着这栋楼日常运转的,是几十上百个不显示窗口、随系统起停的后台程序——Windows 把它们叫做<strong>服务(service)</strong>。类比物业:电梯、二次供水泵这类东西,你不会每天亲自去启动——它们要么一直开着,要么有人按了呼叫按钮才启动,要么干脆被物业锁死不让用。这三种情况,恰好对应服务的三种<strong>启动类型(startup type)</strong>。</p>
+
+  <h3>三种启动类型,谁说了算</h3>
+  <p><strong>Service Control Manager(SCM,对应进程 services.exe)</strong>是这栋楼的"物业总管"。系统启动阶段,SCM 会读取注册表 <code>HKLM\SYSTEM\CurrentControlSet\Services</code> 下每个服务项的 <code>Start</code> 值,决定谁开机自启、谁按需启动、谁被彻底锁死。官方 PowerShell 文档给出的定义很直白:</p>
+  <ul>
+    <li><strong>Automatic(自动)</strong>:系统启动时自动启动;如果一个自动启动的服务依赖另一个手动启动的服务,那个手动服务也会被一并带起来。</li>
+    <li><strong>Manual(手动)</strong>:只有用户、SCM,或另一个应用显式调用时才会启动。</li>
+    <li><strong>Disabled(已禁用)</strong>:被禁用,任何用户或程序都无法再启动它。</li>
+  </ul>
+  <p>还有一个变体常被忽略:<strong>Automatic(延迟启动)</strong>。很多服务(如 Windows Search、Microsoft Edge 更新服务)用这个模式,避开开机瞬间大家一起抢跑、挤爆磁盘和 CPU 的情况,等系统"喘口气"之后再悄悄起来。</p>
+
+  <figure>
+    <svg viewBox="0 0 760 300" role="img" aria-label="Windows 服务启动流程图" style="color:var(--ink)">
+      <defs>
+        <marker id="svc-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+
+      <rect x="290" y="14" width="180" height="40" rx="8" fill="var(--code-bg)" stroke="var(--ink-soft)" stroke-width="1.6"/>
+      <text x="380" y="38" text-anchor="middle" font-size="13" fill="currentColor">系统启动(Boot)</text>
+
+      <path d="M380,54 L380,84" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#svc-arrow)"/>
+
+      <rect x="190" y="84" width="380" height="58" rx="8" fill="color-mix(in srgb, var(--brand) 8%, var(--panel))" stroke="var(--brand)" stroke-width="1.6"/>
+      <text x="380" y="106" text-anchor="middle" font-size="12.5" fill="currentColor">Service Control Manager(SCM)</text>
+      <text x="380" y="126" text-anchor="middle" font-size="11" fill="var(--ink-soft)">读取注册表里每个服务的 Start 值</text>
+
+      <path d="M380,142 L380,162 L140,162 L140,182" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#svc-arrow)"/>
+      <path d="M380,142 L380,182" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#svc-arrow)"/>
+      <path d="M380,142 L380,162 L620,162 L620,182" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#svc-arrow)"/>
+
+      <rect x="30" y="182" width="220" height="56" rx="8" fill="color-mix(in srgb, var(--theory) 10%, var(--panel))" stroke="var(--theory)" stroke-width="1.6"/>
+      <text x="140" y="204" text-anchor="middle" font-size="12.5" fill="currentColor">Automatic 自动</text>
+      <text x="140" y="222" text-anchor="middle" font-size="11" fill="var(--ink-soft)">开机随系统启动</text>
+
+      <rect x="270" y="182" width="220" height="56" rx="8" fill="color-mix(in srgb, var(--practice) 10%, var(--panel))" stroke="var(--practice)" stroke-width="1.6"/>
+      <text x="380" y="204" text-anchor="middle" font-size="12.5" fill="currentColor">Manual 手动</text>
+      <text x="380" y="222" text-anchor="middle" font-size="11" fill="var(--ink-soft)">等待显式调用</text>
+
+      <rect x="510" y="182" width="220" height="56" rx="8" fill="color-mix(in srgb, var(--warn) 10%, var(--panel))" stroke="var(--warn)" stroke-width="1.6"/>
+      <text x="620" y="204" text-anchor="middle" font-size="12.5" fill="currentColor">Disabled 已禁用</text>
+      <text x="620" y="222" text-anchor="middle" font-size="11" fill="var(--ink-soft)">锁死,禁止启动</text>
+
+      <path d="M140,238 L140,256" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#svc-arrow)"/>
+      <path d="M380,238 L380,256" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#svc-arrow)"/>
+      <path d="M620,238 L620,256" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#svc-arrow)"/>
+
+      <text x="140" y="272" text-anchor="middle" font-size="11" fill="currentColor">开机即进入 Running</text>
+      <text x="380" y="272" text-anchor="middle" font-size="11" fill="currentColor">调用时才进入 Running</text>
+      <text x="620" y="272" text-anchor="middle" font-size="11" fill="currentColor">StartService 请求被拒绝</text>
+    </svg>
+    <figcaption>图 1:Windows 启动时,SCM 读取每个服务在注册表里的 Start 类型,分流到自动启动、按需启动、禁止启动三条路径。</figcaption>
+  </figure>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>启动类型</th><th>何时启动</th><th>典型例子</th><th>关掉的风险</th></tr></thead>
+      <tbody>
+        <tr><td>Automatic</td><td>系统一开机就启动,不用人管</td><td>Workstation(SMB 客户端)、Windows 事件日志</td><td>依赖它的服务全部起不来,新装机器直接懵</td></tr>
+        <tr><td>Automatic(延迟启动)</td><td>开机几十秒、系统"喘口气"后才启动</td><td>Windows Search、Edge 更新服务</td><td>拖慢首次索引/更新检测,风险较低</td></tr>
+        <tr><td>Manual</td><td>只有用户操作或别的服务/程序显式调用才启动</td><td>Print Spooler、后台智能传输服务(BITS)</td><td>用到时(如打印)才发现"服务没在跑"</td></tr>
+        <tr><td>Disabled</td><td>谁都叫不动,包括依赖它的服务</td><td>被手动关闭的服务</td><td>依赖它的一切连锁报错,常见坑是排障时前置服务被关掉了</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <details>
+    <summary>展开:一份更完整的服务清单参考(节选自官方 Windows IoT Enterprise 精简指南)</summary>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>服务(内部名)</th><th>默认启动类型</th><th>官方建议</th><th>用途摘要</th></tr></thead>
+        <tbody>
+          <tr><td>Windows Defender 防病毒服务(WinDefend)</td><td>Automatic</td><td>不要禁用</td><td>防护恶意软件与潜在有害程序</td></tr>
+          <tr><td>远程过程调用(RpcSs)</td><td>Automatic</td><td>不要禁用</td><td>COM/DCOM 对象激活与分布式垃圾回收,几乎所有程序间通信都靠它</td></tr>
+          <tr><td>DCOM Server Process Launcher(DcomLaunch)</td><td>Automatic</td><td>不要禁用</td><td>响应对象激活请求,启动 COM/DCOM 服务器</td></tr>
+          <tr><td>DHCP 客户端(Dhcp)</td><td>Automatic</td><td>不要禁用</td><td>注册和更新本机 IP 地址与 DNS 记录</td></tr>
+          <tr><td>DNS 客户端(Dnscache)</td><td>Automatic</td><td>不要禁用</td><td>缓存并解析域名,许多服务显式依赖它</td></tr>
+          <tr><td>组策略客户端(gpsvc)</td><td>Automatic</td><td>不要禁用</td><td>应用管理员通过组策略下发的配置</td></tr>
+          <tr><td>Windows 事件日志(EventLog)</td><td>Automatic</td><td>不要禁用</td><td>记录/查询系统事件,关掉会影响故障排查与安全审计</td></tr>
+          <tr><td>Windows Management Instrumentation(Winmgmt)</td><td>Automatic</td><td>不要禁用</td><td>提供系统管理信息的统一接口,大量软件依赖</td></tr>
+          <tr><td>Print Spooler(Spooler)</td><td>Automatic</td><td>可以禁用</td><td>不打印、没接打印机可关;要打印时必须开</td></tr>
+          <tr><td>后台智能传输服务(BITS)</td><td>Manual</td><td>可以禁用</td><td>Windows Update 等用它做后台限速下载</td></tr>
+          <tr><td>主题(Themes)</td><td>Automatic</td><td>可以禁用</td><td>提供视觉主题;关掉会退回基础外观</td></tr>
+          <tr><td>Windows 搜索(WSearch)</td><td>Manual</td><td>可以禁用</td><td>文件/邮件内容索引;关掉后"开始菜单搜索"变慢或搜不到内容</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--ink-soft);margin:8px 2px 0">注:以上"默认启动类型"整理自 Windows IoT Enterprise 精简指南——这份指南面向的是嵌入式/定制场景的精简 SKU,不等于主流桌面版 Windows 10/11 的出厂默认值。表里 Windows 搜索(WSearch)是两者不一致的一个例子:主流桌面版默认是 <strong>Automatic(延迟启动)</strong>(即前文举例的那个模式),这份精简指南把它进一步降级成 Manual,用来削减嵌入式设备上不必要的索引开销。</p>
+  </details>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">实战锚点 · 本会话做过的</div>
+    <p>关闭 Corplink 开机自启动。最快的路是任务管理器 →「启动应用」标签页,找到 Corplink → 禁用;如果它是以服务方式常驻(而不是登录启动项),就走 <code>services.msc</code>,把 Startup type 从 Automatic 改成 Manual——不建议直接改 Disabled,除非确定以后完全不用。命令行等价写法:</p>
+    <pre><code>Get-Service Corplink | Set-Service -StartupType Manual
+
+# 或者用最老牌的 sc.exe(注意 start= 后面必须有一个空格,这是 sc 命令出了名的坑)
+sc config Corplink start= demand</code></pre>
+  </div>
+
+  <h3>看门狗:失败后自动恢复</h3>
+  <p>SCM 还兼职当"看门狗"。每个服务都能配置<strong>故障恢复(Recovery)</strong>动作,官方命令是 <code>sc failure</code>:失败后可以指定「跑一个程序 / 重启服务 / 重启电脑」,第一次、第二次、第三次失败还能配不同的应对。</p>
+  <pre><code>sc failure Corplink reset= 60 actions= restart/5000
+:: 60 秒内没再失败就把失败计数清零;失败后等 5000ms(5 秒)自动重启该服务</code></pre>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">原理 · 服务的本质</div>
+    <p>一个 Windows 服务,本质上是"随内核态启动流程一起被拉起、但自己跑在用户态、并被特别授予了一些普通程序拿不到的权限"的常驻进程。它和你双击打开的普通 App 是同一种"进程"概念,只是生命周期、权限、有没有窗口不一样。这个"用户态常驻进程+特殊权限"的说法,会在 <a href="11-os.html">[[11]] 操作系统</a> 一章里,和进程、内核态/用户态、系统调用这些更底层的概念对上号。</p>
+  </div>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">避坑</div>
+    <p>不要看到不认识的服务名字就一律 Disabled。前面表格里带"不要禁用"标记的几个(RpcSs、DcomLaunch、Dhcp、Dnscache、gpsvc、EventLog、Winmgmt 等)是几乎所有其它服务和程序间通信的地基,连锁依赖一断,轻则联网、打印、开始菜单搜索失效,重则系统再也起不来登录界面——这份"红黑名单"来自官方文档,不是经验之谈。</p>
+  </div>
+
+  <h2 id="uac">UAC 与提权:钥匙不常挂在腰上</h2>
+  <p>类比:如果你家钥匙一直挂在门口,任何溜进屋里的东西(包括病毒、恶意脚本)都能直接开车、开保险箱。<strong>UAC(User Account Control,用户账户控制)</strong>做的事,是让"你是管理员"这件事默认收起来——哪怕登录账户在 Administrators 组里,日常操作时手上其实拿的是一把"削了权的钥匙",真要动系统级的东西,得再刷一次卡确认。官方文档的表述是:UAC 通过限制恶意代码以管理员权限静默执行的能力,来降低恶意软件的风险。</p>
+
+  <h3>两个令牌,一次确认</h3>
+  <p>登录时,如果账户属于管理员组,系统会生成<strong>两个访问令牌(access token)</strong>:一个标准用户令牌(去掉了管理员 SID 和特权),一个完整管理员令牌。桌面外壳 <code>explorer.exe</code> 永远只用标准令牌启动——你双击打开的绝大多数程序,都是从这个"标准用户"进程里长出来的子进程,天生就是普通权限。</p>
+  <p>当某个程序在自己的清单(manifest)里声明"我需要管理员权限",会触发下面这条链路(对应图 2 下半部分的方框):</p>
+  <ol>
+    <li>程序清单要求的执行等级,和当前令牌(标准用户令牌)不匹配。</li>
+    <li><code>CreateProcess</code> 拒绝这次调用,返回 <code>ERROR_ELEVATION_REQUIRED</code>。</li>
+    <li><code>ShellExecute</code> 捕获这个错误,转交给专门处理提权请求的系统服务——<strong>Application Information 服务</strong>(内部服务名 Appinfo,常被简称 AIS)。</li>
+    <li>AIS 在安全桌面(secure desktop,屏幕会变暗)上弹出提示,确认后才用早先存好的那份管理员令牌,创建一个全新的、独立的提权进程。</li>
+  </ol>
+  <p>管理员账户看到的是「同意」按钮,标准用户账户看到的则是必须真正输入一次管理员密码的「凭据」提示——这也是"给家人开标准账户、自己留一个管理员账户"这套推荐做法背后的真实机制。</p>
+
+  <figure>
+    <svg viewBox="0 0 760 530" role="img" aria-label="UAC 双令牌与提权流程图" style="color:var(--ink)">
+      <defs>
+        <marker id="uac-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+
+      <rect x="250" y="10" width="260" height="40" rx="8" fill="var(--code-bg)" stroke="var(--ink-soft)" stroke-width="1.6"/>
+      <text x="380" y="27" text-anchor="middle" font-size="12" fill="currentColor">用户登录</text>
+      <text x="380" y="43" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">(账户属于 Administrators 组)</text>
+
+      <path d="M380,50 L380,62 L200,62 L200,74" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#uac-arrow)"/>
+      <path d="M380,50 L380,62 L560,62 L560,74" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#uac-arrow)"/>
+      <text x="290" y="58" text-anchor="middle" font-size="10">多数应用走这条</text>
+      <text x="470" y="58" text-anchor="middle" font-size="10">提权时才启用</text>
+
+      <rect x="40" y="74" width="320" height="56" rx="8" fill="color-mix(in srgb, var(--brand) 9%, var(--panel))" stroke="var(--brand)" stroke-width="1.6"/>
+      <text x="200" y="97" text-anchor="middle" font-size="12" fill="currentColor">标准用户 Token</text>
+      <text x="200" y="114" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">(移除管理员 SID / 特权)</text>
+
+      <rect x="400" y="74" width="320" height="56" rx="8" fill="color-mix(in srgb, var(--accent) 10%, var(--panel))" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="560" y="97" text-anchor="middle" font-size="12" fill="currentColor">管理员 Token</text>
+      <text x="560" y="114" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">(暂存备用,先不使用)</text>
+
+      <path d="M200,130 L200,154" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#uac-arrow)"/>
+      <rect x="40" y="154" width="320" height="48" rx="8" fill="color-mix(in srgb, var(--brand) 6%, var(--panel))" stroke="var(--brand)" stroke-width="1.6"/>
+      <text x="200" y="174" text-anchor="middle" font-size="11.5" fill="currentColor">explorer.exe 桌面</text>
+      <text x="200" y="190" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">双击打开的日常程序(标准 Token,无提示)</text>
+
+      <path d="M200,202 L200,226" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#uac-arrow)"/>
+      <rect x="40" y="226" width="320" height="48" rx="8" fill="color-mix(in srgb, var(--warn) 10%, var(--panel))" stroke="var(--warn)" stroke-width="1.6"/>
+      <text x="200" y="246" text-anchor="middle" font-size="11.5" fill="currentColor">程序要求管理员权限</text>
+      <text x="200" y="262" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">触发 ERROR_ELEVATION_REQUIRED</text>
+
+      <path d="M200,274 L200,298" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#uac-arrow)"/>
+      <rect x="40" y="298" width="320" height="48" rx="8" fill="color-mix(in srgb, var(--accent) 8%, var(--panel))" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="200" y="318" text-anchor="middle" font-size="11.5" fill="currentColor">ShellExecute 转交</text>
+      <text x="200" y="334" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">Application Information Service</text>
+
+      <path d="M200,346 L200,370" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#uac-arrow)"/>
+      <rect x="40" y="370" width="320" height="56" rx="8" fill="color-mix(in srgb, var(--warn) 10%, var(--panel))" stroke="var(--warn)" stroke-width="1.6"/>
+      <text x="200" y="393" text-anchor="middle" font-size="11.5" fill="currentColor">安全桌面弹出提权提示</text>
+      <text x="200" y="410" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">管理员→同意提示 / 标准用户→凭据提示</text>
+
+      <path d="M200,426 L200,439 L280,439 L280,452" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#uac-arrow)"/>
+      <path d="M560,130 L560,291 L480,291 L480,452" stroke="var(--ink-soft)" stroke-width="2" stroke-dasharray="5,4" fill="none" marker-end="url(#uac-arrow)"/>
+      <text x="600" y="200" text-anchor="middle" font-size="10" fill="var(--ink-soft)">确认后才启用</text>
+
+      <rect x="180" y="452" width="400" height="56" rx="8" fill="color-mix(in srgb, var(--practice) 10%, var(--panel))" stroke="var(--practice)" stroke-width="1.6"/>
+      <text x="380" y="475" text-anchor="middle" font-size="12" fill="currentColor">用户确认后:</text>
+      <text x="380" y="492" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)">AIS 用暂存的管理员 Token 创建全新的提权进程</text>
+    </svg>
+    <figcaption>图 2:登录时生成两个令牌,日常程序沿用标准令牌无提示;一旦某程序清单要求管理员权限,才会经 AIS 弹窗确认,再用暂存的管理员令牌另起一个全新进程。</figcaption>
+  </figure>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>设置</th><th>注册表键</th><th>默认值</th><th>含义</th></tr></thead>
+      <tbody>
+        <tr><td>内置 Administrator 账户的 Admin Approval Mode</td><td><code>FilterAdministratorToken</code></td><td>0(关)</td><td>是否连内置 Administrator 账户也要走两令牌模式</td></tr>
+        <tr><td>管理员的提示行为</td><td><code>ConsentPromptBehaviorAdmin</code></td><td>5</td><td>5 = 仅非 Windows 程序提示同意;0 = 完全静默提权(常被"关 UAC"教程改成这个,风险最高)</td></tr>
+        <tr><td>标准用户的提示行为</td><td><code>ConsentPromptBehaviorUser</code></td><td>3</td><td>3 = 提示输入凭据</td></tr>
+        <tr><td>是否切到安全桌面</td><td><code>PromptOnSecureDesktop</code></td><td>1(开)</td><td>关掉后提权窗口可能被脚本模拟点击,不建议关</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>RunAs:不提权整个 Shell,只换一个程序的身份</h3>
+  <p>提权不一定要把整个命令行窗口拉成管理员。<code>runas</code> 可以只让单个程序换个身份跑,更适合"用另一个账户"而不是"提升当前账户"的场景——比如你日常用标准账户,只想临时借一次域管理员身份开一个 MMC 控制台:</p>
+  <pre><code>runas /user:MYPC\administrator cmd
+runas /user:contoso\domainadmin "mmc %windir%\system32\compmgmt.msc"</code></pre>
+  <p>官方文档特别提醒:通过 <code>runas</code> 换身份运行的程序<strong>不会</strong>应用该用户的组策略(Group Policy)——这是白纸黑字写明的设计行为,不是 bug,却是不少人踩过的坑。</p>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">避坑</div>
+    <p>远程操作有专门的限制,但这条限制只认<strong>本地(非域)账户</strong>。如果对方账号是目标机器本地 Administrators 组里的账户(官方文档叫它 SAM 账户,不是域账户),通过 <code>net use \\对方IP\C$</code> 这类方式远程连接时,你不会以完整管理员身份连进去,没有提权空间,干不了需要管理员权限的操作——这是 <code>LocalAccountTokenFilterPolicy</code> 机制,专门防"本机恶意软件伪装成本地管理员、顺着网络打到别的机器"。换成域账户就不受这条限制:域用户远程登录时,只要在 Administrators 组里,拿到的就是完整、未过滤的管理员令牌,UAC 在这一步不生效(微软文档特别注明,这个行为从 Windows XP 起就是这样,不是新加的限制)。真要用本地账户以完整管理员身份远程管理,得走 Remote Desktop 交互式登录,或者显式把 <code>LocalAccountTokenFilterPolicy</code> 改成 1 放开这条限制。</p>
+  </div>
+
+  <div class="cx cx-theory">
+    <div class="cx-t">原理 · 摩擦层,不是权限边界</div>
+    <p>UAC 的本质是访问令牌机制上的一层"确认摩擦",不是权限边界本身——真正的边界是 SID / ACL 那套访问控制列表。UAC 挡的是"恶意代码悄悄地、静默地"拿到高权限,挡不住"你自己在提示框上点了是"。令牌、SID、内核对象的安全描述符,这些更底层的访问控制概念,<a href="11-os.html">[[11]] 操作系统</a> 一章会继续往下讲。</p>
+  </div>
+
+  <h2 id="creds">net use / cmdkey:让机器记住"你是谁"</h2>
+  <p>类比:<code>net use</code> 是"接线",<code>cmdkey</code> 是"把身份证提前塞进钱包",这样以后系统连接共享盘时,不用每次翻钱包问你要证件。</p>
+  <p><code>net use</code> 把一个盘符(或不带盘符的 UNC 路径)映射到网络共享,可以带用户名密码,也可以用 <code>/persistent:yes</code> 让这次连接在下次开机后自动恢复。<code>cmdkey</code> 直接操作 Windows 凭据管理器(Credential Manager),把"目标(某 IP 或域名)+ 用户名 + 密码"存起来,之后任何走这个目标的连接——不只是 <code>net use</code>,包括资源管理器地址栏手输的 <code>\\</code> 路径——都会自动套用这份凭据,不再弹密码框。</p>
+  <pre><code>cmdkey /add:192.168.1.2 /user:pi /pass:你的密码
+net use Z: \\192.168.1.2\share /persistent:yes
+
+:: 密码明明没错却报"用户名或密码不正确"?常见原因是缓存了一份旧凭据
+:: 先断开所有连接,再去凭据管理器/用 cmdkey 清掉旧条目,才能重新握手
+net use * /delete /y</code></pre>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">实战锚点 · 本会话做过的</div>
+    <p>给旁路由(192.168.1.2)上的共享盘配置免密访问,用的就是这套组合拳:先用 <code>cmdkey</code> 把凭据焐热,再 <code>net use</code> 映射盘符,重启电脑后不用重新输密码。<a href="06-smb-fileshare.html">[[06]] 文件共享与互传</a> 一章讲了 SMB 协议本身,这里讲的是 Windows 这一侧怎么记住身份、免得每次都重新握手。</p>
+  </div>
+
+  <h2 id="power">powercfg:给处理器装限速表</h2>
+  <p>类比:处理器的 <strong>Turbo Boost(睿频加速)</strong>像跑车的"弹射起步"——短时间内允许比铭牌标称更高的转速,换来瞬间性能,代价是更烫、更费电、风扇拉到最大声。如果你想要的是安静低温而不是跑分极限,就需要一块"限速表"把弹射起步锁死——这正是 <code>powercfg</code> 里「最大处理器状态」要做的事。</p>
+
+  <h3>最大处理器状态与 Turbo Boost</h3>
+  <p>Windows 的电源管理叫<strong>电源方案(power scheme)</strong>,每个方案下有一堆子项,处理器相关的子项叫 Processor Power Management(别名 <code>SUB_PROCESSOR</code>)。其中最关键的一个设置是「最大处理器状态」(官方 GUID 别名 <code>PROCTHROTTLEMAX</code>),取值 0–100,代表"最多允许处理器跑到额定基准频率的百分之多少"。</p>
+  <p>社区里流传很广、但直接建立在这套官方机制上的一个技巧:把这个值从 100 改成 99。100% 时,处理器被允许进入 Turbo Boost 区间(超过额定基准频率);哪怕只降到 99%,系统也会把频率摁在基准附近,不再触发 Turbo——因为"冲上 Turbo"这个动作,本身只在允许"跑满/超过 100% 额定"时才会被触发。</p>
+
+  <pre><code>:: 查看当前电源方案里,处理器子项的所有设置
+powercfg /query SCHEME_CURRENT SUB_PROCESSOR
+
+:: 插电时:把最大处理器状态限制到 99%(相当于关闭 Turbo Boost)
+powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 99
+:: 电池供电时同样设置
+powercfg /setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 99
+:: 让改动对当前方案生效
+powercfg /setactive SCHEME_CURRENT</code></pre>
+
+  <figure>
+    <svg viewBox="0 0 760 340" role="img" aria-label="最大处理器状态 100% 与 99% 的频率对比图" style="color:var(--ink)">
+      <defs>
+        <marker id="freq-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+
+      <path d="M60,290 L720,290" stroke="var(--ink-soft)" stroke-width="1.6" fill="none" marker-end="url(#freq-arrow)"/>
+      <path d="M60,290 L60,30" stroke="var(--ink-soft)" stroke-width="1.6" fill="none" marker-end="url(#freq-arrow)"/>
+      <text x="14" y="24" font-size="11" fill="var(--ink-soft)">频率(GHz)</text>
+      <text x="700" y="312" font-size="11" fill="var(--ink-soft)">时间</text>
+
+      <path d="M60,225 L720,225" stroke="var(--ink-soft)" stroke-width="1.2" stroke-dasharray="4,4" fill="none"/>
+      <text x="65" y="220" font-size="10.5" fill="var(--ink-soft)">基准频率 ~1.6GHz</text>
+
+      <polyline points="100,225 160,110 220,215 280,95 340,220 400,105 460,210 520,90 580,222 640,100 700,215" fill="none" stroke="var(--warn)" stroke-width="2.5" stroke-linejoin="round"/>
+      <polyline points="100,230 160,227 220,231 280,228 340,229 400,226 460,230 520,228 580,227 640,231 700,228" fill="none" stroke="var(--practice)" stroke-width="2.5" stroke-linejoin="round"/>
+
+      <line x1="100" y1="40" x2="130" y2="40" stroke="var(--warn)" stroke-width="3"/>
+      <text x="136" y="44" font-size="10.5" fill="currentColor">100%:允许 Turbo(更烫更响)</text>
+      <line x1="100" y1="60" x2="130" y2="60" stroke="var(--practice)" stroke-width="3"/>
+      <text x="136" y="64" font-size="10.5" fill="currentColor">99%:锁定基准附近(更凉更静)</text>
+    </svg>
+    <figcaption>图 3:同一段高负载场景下,允许 Turbo(橙色,最大处理器状态=100%)时频率反复冲高又回落,发热与风扇噪音的尖峰都在这些冲高时段;把最大处理器状态降到 99%(绿色),频率被摁在基准附近,曲线变平。</figcaption>
+  </figure>
+
+  <div class="cx cx-practice">
+    <div class="cx-t">实战锚点 · 本会话做过的</div>
+    <p>诊断这台 Dell 笔记本风扇狂转,最初怀疑是风扇曲线本身的问题、想装 DellFanCmd 手动控速,结果被 Secure Boot 拦下(详见 <a href="09-secureboot-drivers.html">[[09]] 固件安全与内核驱动</a>)。绕开驱动层面的折腾,更快见效的一步其实在操作系统这一层:把最大处理器状态压到 99%,直接从源头掐掉 Turbo 触发的功耗尖峰,风扇转速跟着降下来——这是纯软件、不需要驱动签名的路线。</p>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">深挖 · 拓展</div>
+    <p>PPM(Processor Power Management)底下还有一堆没在正文展开的旋钮:<strong>核心停靠(core parking)</strong>决定"闲的核心"是直接休眠还是保持唤醒以降低响应延迟;<strong>最小处理器状态(min processor state)</strong>和最大状态相反,是"至少不能低于多少百分比",拉满的话等于强制处理器一直高频空转,笔记本上非常费电;还有 <strong>EPP / 能效偏好(energy preference)</strong>,决定调度是偏性能还是偏省电。这些都在官方 "Processor power management options overview" 文档里,通常由硬件厂商(OEM)出厂时调好,普通用户很少需要碰,但知道它们存在,遇到奇怪的性能或温度问题时能多一条排查线索。</p>
+  </div>
+
+  <h2 id="diagnose">揪出真正吃 CPU 的进程</h2>
+  <p>风扇狂转、电脑发烫,大多数人第一反应是打开任务管理器(Task Manager)看 CPU 那一栏——可这一栏比想象中更容易骗人。</p>
+
+  <h3>两种计数器,两种"真相"</h3>
+  <p>一份延续了十几年的官方文档说得很清楚(最初编号 KB3200459):从 Windows 8 开始,任务管理器和性能监视器里显示的 CPU 使用率,对应的性能计数器从 <strong>% Processor Time</strong>(处理器忙碌的时间占比)换成了 <strong>% Processor Utility</strong>(处理器实际完成的工作量,会把 Turbo Boost 超频这部分也折算进去)。这意味着:如果处理器正顶着 Turbo 跑,折算出来的数字完全可能超过 100%——Windows 只是把它封顶显示成 100%,并不代表"满载"就是它的天花板。</p>
+  <p>举例:两颗处理器都在 100% 的时间里保持忙碌,一颗被降频到额定 50% 频率,另一颗顶着 Turbo 跑到额定 150% 频率。按老口径(% Processor Time)算,两者看起来都是"100% 忙碌";按新口径(% Processor Utility)算,前者显示 50%,后者会算出 150%(再被封顶显示成 100%)。这也是不少笔记本"任务管理器显示 100%,但看起来并没有干什么"的真实原因之一——一两个核心被 Turbo 冲上高频,折算权重就能把总体数字直接顶满。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>性能计数器</th><th>衡量什么</th><th>是否受 Turbo 影响</th><th>会不会超过 100%</th></tr></thead>
+      <tbody>
+        <tr><td>% Processor Time</td><td>处理器忙碌(非 idle)的时间占比</td><td>不受影响,纯时间片统计</td><td>不会,单核最高 100%</td></tr>
+        <tr><td>% Processor Utility</td><td>处理器实际完成的工作量,按频率折算</td><td>直接受影响,Turbo 越高折算越大</td><td>会,可能远超 100%(再被 UI 封顶显示)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cx cx-dig">
+    <div class="cx-t">深挖 · 拓展</div>
+    <p>这套算法本身也在变。2025 年前后,Windows 11(24H2 之后的更新)把任务管理器 Processes / Performance / Users 三个页面的口径,统一改回了业界标准的"时间占比"式计量——不再按频率折算,而是老老实实数每个进程实际吃到的 CPU 时间片。原来那套"频率折算"值降级成一个默认隐藏、可手动打开的 CPU Utility 列,专门留给还想看老口径的人。微软官方在 Windows Insider 博客里对这次改动的说法是:「让任务管理器在各页面之间使用一致的标准指标显示 CPU 负载,与业界标准和第三方工具对齐」——博客原文并没有给出逐字的计算公式,下面这条只是这类"时间占比"指标的通用算法示意,帮助理解,不是照抄官方定义:<strong>标准 CPU% ≈ (该进程 CPU 时间增量 ÷ (采样间隔时间 × 逻辑处理器数)) × 100%</strong>。</p>
+  </div>
+
+  <h3>怎么真的找到吃 CPU 的进程</h3>
+  <p>比只看总百分比更靠谱的排查顺序:</p>
+  <ol>
+    <li>任务管理器「详细信息」标签,按 CPU 列排序——这一列走的是不受 Turbo 折算影响的时间占比口径。</li>
+    <li>切到「性能」→ CPU,右键选「逻辑处理器」视图,看是所有核心均匀忙碌,还是一两个核心被顶到底——后者更像是单线程任务撞上了 Turbo,而不是真的"整机满载"。</li>
+    <li>需要更细粒度(按线程、按调用模块)时,上 Sysinternals 的 Process Explorer,能看到每个线程具体吃了多少 CPU、被谁调用起来的。</li>
+  </ol>
+
+  <div class="cx cx-warn">
+    <div class="cx-t">避坑</div>
+    <p>只看任务管理器总览的那根曲线来判断"电脑是不是快撑不住了",在有 Turbo Boost、又有大小核(P-core / E-core)混合调度的现代处理器上已经不太可靠——同一段真实只占 40% 出头的负载,在旧口径下就可能显示成 100%。想真正诊断问题,养成"点进详细信息按列排序 + 看逻辑处理器视图"的习惯,比死盯着总览的那一根曲线有用得多。</p>
+  </div>
+
+  <div class="cx cx-key">
+    <div class="cx-t">本章要点</div>
+    <p>SCM 按注册表里的 Start 类型(Automatic / Manual / Disabled)决定谁开机自启、谁按需启动、谁被彻底锁死,失败时还能靠 <code>sc failure</code> 配的看门狗自动挽救。UAC 靠"标准令牌常驻、管理员令牌收起来,要用再二次确认"来降低恶意代码静默提权的概率,而不是取代账户 / ACL 那层真正的权限边界。<code>net use</code> / <code>cmdkey</code> 把 SMB 连接和凭据管理串起来,一次配置、长期免密。<code>powercfg</code> 的 <code>PROCTHROTTLEMAX</code>(最大处理器状态)一个数字就能开关 Turbo Boost,是软件层面见效最快的降温、降噪手段。而任务管理器的 CPU 百分比,在 Turbo 与大小核的时代已经不是"所见即所得"——按列排序、看逻辑处理器视图,才是真正定位吃 CPU 进程的办法。这几条线分别通向 <a href="09-secureboot-drivers.html">[[09]] 固件安全与内核驱动</a>(驱动签名 / Secure Boot 为什么会拦下 DellFanCmd 这类需要内核权限的工具)和 <a href="11-os.html">[[11]] 操作系统</a>(进程、内核态 / 用户态、访问控制这些更底层的地基概念)。</p>
+  </div>
+
+  <div class="foot">
+    <div class="foot-nav">
+      <a href="07-filesystems.html">← 上一章:07 文件系统</a>
+      <a href="../index.html">回首页</a>
+      <a href="09-secureboot-drivers.html">下一章:09 固件安全与内核驱动 →</a>
+    </div>
+    <p><strong>本章来源</strong></p>
+    <ol class="sources">
+      <li><a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/set-service?view=powershell-7.6">Set-Service (Microsoft.PowerShell.Management) — Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services">Guidance on disabling system services on Windows IoT Enterprise — Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc742019(v=ws.11)">Sc failure — Microsoft Learn(previous versions)</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/application-security/application-control/user-account-control/how-it-works">How User Account Control works — Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/application-security/application-control/user-account-control/settings-and-configuration">User Account Control settings and configuration — Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows-server/security/user-account-control/how-user-account-control-works">How User Account Control Works(架构细节) — Windows Server docs, Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/troubleshoot/windows-server/windows-security/user-account-control-and-remote-restriction">User Account Control and remote restrictions — Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)">Runas — Microsoft Learn(previous versions)</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey">cmdkey — Windows Commands, Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/gg651155(v=ws.11)">Net use — Microsoft Learn(previous versions)</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/powercfg-command-line-options">Powercfg command-line options — Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options">Processor power management options overview — Microsoft Learn</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/cpu-usage-exceeds-100">CPU usage exceeds 100% in Task Manager and Performance Monitor if Intel Turbo Boost is active — Microsoft Learn(KB3200459)</a></li>
+      <li><a href="https://aloiskraus.wordpress.com/2025/02/09/windows-task-manager-shows-misleading-values/">Windows Task Manager Shows Misleading Values(含 Windows Insider 官方公告引用) — Alois Kraus</a></li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>

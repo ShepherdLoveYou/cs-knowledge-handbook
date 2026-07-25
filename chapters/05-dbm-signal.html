@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>05 dBm·分贝·信号强度</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联进每个自包含 HTML。亮/暗自适应,中文优化,可打印。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:900px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;padding:44px 20px;margin-bottom:8px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}
+.hero h1{margin:0 0 10px;font-size:30px;line-height:1.25}
+.hero p{margin:0;opacity:.92;font-size:15px;max-width:640px}
+.crumbs{font-size:13px;color:var(--ink-soft);margin:16px 0 0}
+.crumbs a{color:var(--brand);text-decoration:none}
+
+/* Typography */
+h2{font-size:22px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+.lead{font-size:17px;color:var(--ink-soft)}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin:18px 0}
+.toc b{display:block;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px}
+.toc ol{margin:0;columns:2;column-gap:24px}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx-warn{border-color:var(--warn);background:var(--warn-bg)} .cx-warn .cx-t{color:var(--warn)}
+.cx-key{border-color:var(--key);background:var(--key-bg)} .cx-key .cx-t{color:var(--key)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+
+/* Code */
+code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em;word-break:break-word}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.5}
+pre code{background:none;padding:0;font-size:13px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--brand) 10%,var(--panel));font-weight:600}
+
+/* Figures / SVG */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
+
+/* Cards (index) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700}
+.card .ttl{font-weight:600;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--ink-soft)}
+
+/* Footer nav + sources */
+.foot{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.sources{font-size:13px;color:var(--ink-soft)}
+.sources li{word-break:break-all}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="kicker">计算机知识手册 · 第 05 章</p>
+    <h1>dBm · 分贝 · 信号强度</h1>
+    <p>Wi-Fi 图标那个"−31dBm"、路由器规格表那个"22dBm"到底是多少瓦、够不够用——这一章把贯穿几乎所有无线通信的对数计量语言讲透,并用一次真实的收发实测数字,带你把信号从发射端"跌"到接收端的全过程算一遍。</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+<p class="crumbs"><a href="../index.html">← 返回首页</a> · 计算机知识手册 · 第 05 章 / 共 16 章 · Part I 实战复盘</p>
+
+<p class="lead"><a href="04-wifi-radio.html">上一章</a>结尾埋了一个数字:某个 regulatory domain 下,2.4GHz 每条信道的 <code>max_tx_power</code> 标着 20dBm。这一章要把"dBm"这个符号彻底吃透——它不是随手起的怪名字,而是工程师专门为了应付无线信号那种"发射端几百毫瓦、接收端几纳瓦"的悬殊量级,量身定做的一套对数语言。</p>
+
+<div class="toc">
+<b>目录</b>
+<ol>
+<li><a href="#why">为什么信号强度是个负数</a></li>
+<li><a href="#db">分贝:比值的对数,不是绝对量</a></li>
+<li><a href="#dbm">dBm:把参考点钉死在 1 毫瓦</a></li>
+<li><a href="#rule">速算规则:+3dB≈×2,+10dB=×10</a></li>
+<li><a href="#fspl">路径损耗:从发射到接收,信号去哪了</a></li>
+<li><a href="#rssi">RSSI 与信号强度分级</a></li>
+<li><a href="#eirp">EIRP:发射功率 + 天线增益</a></li>
+<li><a href="#sensitivity">接收灵敏度与动态范围</a></li>
+<li><a href="#key">本章要点</a></li>
+</ol>
+</div>
+
+<h2 id="why">为什么信号强度是个负数</h2>
+<p>系统托盘里的 Wi-Fi 图标切换到"详细信息",经常能看到一行奇怪的读数,比如 <strong>−31dBm</strong>——不是格数、不是百分比,而是一个负数,还越接近 0 反而信号越好。与此同时,路由器规格书或者 <code>iw</code>/<code>netsh</code> 这类工具报出的发射功率却常常是正数,比如 <strong>22dBm</strong>。同一个字母组合"dBm",一会儿是接收端的负数,一会儿是发射端的正数,直觉上很难对上号。</p>
+<p>根子在于无线信号从天线发出去到被另一端天线收到,功率要经历极端悬殊的跨度:发射端动辄上百毫瓦,几米开外的接收端往往只剩几十亿分之一瓦——直接写成瓦特,不是一长串 0,就是科学计数法,既难读也难心算。工程师的解法是一套三件套语言:<strong>dB</strong>(比值的对数单位)、<strong>dBm</strong>(把参考点钉死在 1 毫瓦上的绝对功率单位),以及建立在它们之上的 <strong>RSSI 信号分级</strong>、<strong>路径损耗</strong>、<strong>EIRP</strong> 几个配套概念。这一章把这套语言从头拆开,并用一组真实测到的数字——AP 发射 22dBm、笔记本收到 −31dBm——带着从头走一遍。</p>
+
+<h2 id="db">分贝:比值的对数,不是绝对量</h2>
+<p><strong>分贝</strong>(decibel,dB)的定义只有一件事:两个功率之比,取以 10 为底的对数,再乘以 10:</p>
+<pre><code>dB = 10 · log10( P1 / P2 )</code></pre>
+<p>注意这里没有配一个单位——分贝表示的永远是<strong>比值</strong>,P1 比 P2 大多少倍,而不是某个绝对的"多少瓦"。这个设计对通信工程极其顺手:一条信号链路往往要串联好几级放大器、衰减器、天线、馈线,每一级都是把功率乘上一个倍数;换成分贝后,<strong>级联相乘变成了级联相加</strong>——总增益的 dB 数,就是每一级 dB 数直接加总,不用再算连乘。</p>
+
+<div class="cx cx-dig">
+<div class="cx-t">深挖 · "dB"这个名字从哪来</div>
+<p>分贝最早不是拿来量声音的,而是电话工程师在 1920 年代发明的线路衰减单位。贝尔实验室 1924 年提出"传输单元"(Transmission Unit,TU)描述电话线信号每传输一段标准距离衰减多少,1928 年正式改名为 <strong>decibel</strong>——十分之一个 <strong>bel</strong>,以贝尔实验室的技术命脉、电话发明人 <strong>Alexander Graham Bell</strong> 命名<sup>[5][6]</sup>。后来这套对数记法被声学借用去表示声压级,才有了"分贝=音量"的日常印象;但它的本行,一直是工程上的"比值"。</p>
+<p>这个类比可以再钉实一层:音响工程里常见的经验法则是,声压级每提高约 <strong>10dB</strong>,人耳感觉到的响度大致翻一倍<sup>[15]</sup>——这跟本章"+10dB=功率×10"用的是同一套对数运算,却是两件不同的事:后者量的是客观功率比值,是精确恒等式;前者量的是人耳主观感知的响度,是心理声学的经验规律,数值上并不相等,只是恰好都落在"10 这个量级"。音量旋钮拧过同样的角度,响度听起来的变化却一点不"线性",正是因为人耳对声音强弱的感知本身就是压缩的(近似对数式的)——分贝这套刻度当初能从电话工程"出圈"变成日常语言里的"音量",靠的就是这份天生合拍。</p>
+</div>
+
+<div class="cx cx-theory">
+<div class="cx-t">原理 · 级联系统为什么能直接加分贝</div>
+<p>一条信号链路——比如天线接收 → 馈线衰减 → 低噪放大器 → 混频器——数学上是好几个环节的功率倍数连乘:P_out = P_in × G1 × G2 × G3 × …。两边取 10·log10 后,乘法按对数法则拆成加法:10log(G1×G2×G3)=10logG1+10logG2+10logG3。于是工程师分析整条链路时,只要把每一级的 dB 值直接加减,不用先还原成线性倍数再连乘、算完再取一次对数——这正是<strong>信号与系统</strong>里分析级联 LTI(线性时不变)系统最常用的手法,见 <a href="14-signals-systems.html">14 信号与系统</a>。</p>
+</div>
+
+<h2 id="dbm">dBm:把参考点钉死在 1 毫瓦</h2>
+<p>dB 只能表示"谁比谁大多少倍",要变成一个能直接读数的绝对功率单位,还差一步:钉死一个参考功率。<strong>dBm</strong> 就是把这个参考点定在 <strong>1 毫瓦(1mW)</strong> 上——m 就是 milliwatt<sup>[1]</sup>:</p>
+<pre><code>dBm = 10 · log10( P / 1mW )
+P   = 1mW · 10^(dBm/10)</code></pre>
+<p>反过来推,记住几个常用锚点就够用日常读数:</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>dBm</th><th>功率(mW)</th><th>常见场景</th></tr>
+<tr><td>0dBm</td><td>1mW</td><td>参考零点</td></tr>
+<tr><td>10dBm</td><td>10mW</td><td>低功耗蓝牙 / IoT 芯片常见发射功率</td></tr>
+<tr><td>20dBm</td><td>100mW</td><td>不少地区 2.4GHz Wi-Fi 单信道功率上限<sup>[11]</sup></td></tr>
+<tr><td>22dBm</td><td>≈158mW</td><td>本章例子:AP 实测发射功率</td></tr>
+<tr><td>30dBm</td><td>1000mW(1W)</td><td>点对点专用无线网桥常见量级</td></tr>
+</table>
+</div>
+
+<figure>
+<svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="dBm与毫瓦对照速算尺示意图:横轴每格dBm相同,毫瓦数却指数增长,标出0dBm对应1毫瓦、10dBm对应10毫瓦、20dBm对应100毫瓦,并标注加10dB等于乘10、加3dB约等于乘2两条速算规则,以及本章22dBm例子的位置">
+<style>text{font-family:var(--font)}</style>
+<defs>
+<marker id="arrow05a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M0,0 L10,5 L0,10 z" fill="var(--ink-soft)"/>
+</marker>
+</defs>
+<line x1="60" y1="170" x2="850" y2="170" stroke="var(--ink-soft)" stroke-width="1.5" marker-end="url(#arrow05a)"/>
+<text x="862" y="175" font-size="12" text-anchor="middle" fill="var(--ink-soft)">dBm</text>
+
+<line x1="60" y1="163" x2="60" y2="177" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="138" y1="165" x2="138" y2="175" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="320" y1="163" x2="320" y2="177" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="398" y1="165" x2="398" y2="175" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="580" y1="163" x2="580" y2="177" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="632" y1="160" x2="632" y2="180" stroke="var(--practice)" stroke-width="2.5"/>
+<line x1="658" y1="165" x2="658" y2="175" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<line x1="840" y1="163" x2="840" y2="177" stroke="var(--ink-soft)" stroke-width="1.5"/>
+
+<text x="60" y="150" font-size="13" text-anchor="middle" fill="var(--ink)" font-weight="700">0dBm</text>
+<text x="138" y="150" font-size="12" text-anchor="middle" fill="var(--dig)">3dBm</text>
+<text x="320" y="150" font-size="13" text-anchor="middle" fill="var(--ink)" font-weight="700">10dBm</text>
+<text x="398" y="150" font-size="12" text-anchor="middle" fill="var(--dig)">13dBm</text>
+<text x="580" y="150" font-size="13" text-anchor="middle" fill="var(--ink)" font-weight="700">20dBm</text>
+<text x="658" y="150" font-size="12" text-anchor="middle" fill="var(--dig)">23dBm</text>
+<text x="840" y="150" font-size="13" text-anchor="middle" fill="var(--ink)" font-weight="700">30dBm</text>
+
+<text x="60" y="195" font-size="12" text-anchor="middle" fill="var(--ink-soft)">1mW</text>
+<text x="138" y="195" font-size="11" text-anchor="middle" fill="var(--ink-soft)">2mW</text>
+<text x="320" y="195" font-size="12" text-anchor="middle" fill="var(--ink-soft)">10mW</text>
+<text x="398" y="195" font-size="11" text-anchor="middle" fill="var(--ink-soft)">20mW</text>
+<text x="580" y="195" font-size="12" text-anchor="middle" fill="var(--ink-soft)">100mW</text>
+<text x="658" y="195" font-size="11" text-anchor="middle" fill="var(--ink-soft)">200mW</text>
+<text x="840" y="195" font-size="12" text-anchor="middle" fill="var(--ink-soft)">1000mW=1W</text>
+
+<path d="M60,160 Q190,92 320,160" fill="none" stroke="var(--theory)" stroke-width="2"/>
+<text x="190" y="80" font-size="13" text-anchor="middle" fill="var(--theory)" font-weight="700">+10dB → ×10</text>
+
+<path d="M580,160 Q619,122 658,160" fill="none" stroke="var(--dig)" stroke-width="2"/>
+<text x="619" y="110" font-size="12" text-anchor="middle" fill="var(--dig)" font-weight="700">+3dB ≈ ×2</text>
+
+<circle cx="632" cy="170" r="5" fill="var(--practice)"/>
+<line x1="632" y1="183" x2="632" y2="205" stroke="var(--practice)" stroke-width="1.5" stroke-dasharray="2 2"/>
+<text x="632" y="222" font-size="12" text-anchor="middle" fill="var(--practice)" font-weight="700">本例 Tx</text>
+<text x="632" y="238" font-size="12" text-anchor="middle" fill="var(--practice)" font-weight="700">≈22dBm(≈158mW)</text>
+</svg>
+<figcaption>dBm 与毫瓦对照速算尺:横轴每一格 dBm 数值相同,对应的毫瓦数却是指数增长——这正是对数刻度的意义。<strong>+10dB → 功率 ×10</strong>(蓝色),<strong>+3dB → 功率 ×2</strong>(紫色,精确值 ×1.995)。本章 worked example 里 AP 的 22dBm(约 158mW)已用绿色标出。</figcaption>
+</figure>
+
+<h2 id="rule">速算规则:+3dB ≈ ×2,+10dB = ×10</h2>
+<p>把 P2=2×P1 代入定义:10·log10(2) ≈ 10×0.301 = <strong>3.01</strong>,所以功率翻一倍约等于 +3dB;把 P2=10×P1 代入:10·log10(10) = <strong>10</strong>,不多不少刚好 +10dB<sup>[4]</sup>。这两条是无线电工程师随口就能心算的规则:</p>
+<ul>
+<li><strong>+3dB ≈ ×2</strong>(精确值 ×1.995,工程上直接当 2 用)</li>
+<li><strong>+10dB = ×10</strong>(精确)</li>
+<li>组合起来:+13dB≈×20,+20dB=×100,+23dB≈×200……</li>
+</ul>
+<p>拿本章的例子练一遍心算:AP 报的发射功率是 <strong>22dBm</strong>。拆成 20+2:20dBm 已知是 100mW;剩下的 2dB 比 0dB(×1)多一点、比 3dB(×2)少一点,估个"接近但不到两倍",毛估 150~160mW——精确计算是 10^2.2≈158.5mW,估算相当准。这种"先拆成整十 + 零头"的心算法,是读硬件规格书最常用的手感。</p>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · dBm 能相减,不能直接相加</div>
+<p>两个 dBm 值<strong>相减</strong>没问题,结果是合法的 dB(比值)——因为两边共同的"1mW 参考点"在减法里正好相互抵消,比如下一节要算的"发射(dBm) − 接收(dBm) = 路径损耗(dB)"。但两个 dBm 值<strong>相加</strong>没有物理意义:两路信号功率要合并,必须先各自换算回 mW 相加,再把和转换回 dBm——不能拿 dBm 数字直接相加当结果,那样算出来的数字没有对应的物理量。</p>
+</div>
+
+<h2 id="fspl">路径损耗:从发射到接收,信号去哪了</h2>
+<p>电磁波离开天线之后,能量按球面向四面八方扩散——距离越远,同样的总功率摊到的球面积越大,单位面积上的功率密度就越低,这是纯几何上的反平方规律。工程师 Harald Friis 在 1946 年给出的 <strong>Friis 传输公式</strong>,把这条几何规律和收发天线增益放在一起,推出了接收功率与发射功率之比同距离、波长的关系;只考虑纯真空、无任何障碍物、天线均为理想全向的情况,这个比值取倒数就是<strong>自由空间路径损耗</strong>(Free-Space Path Loss,<strong>FSPL</strong>)<sup>[2]</sup>。换算成分贝、距离单位用公里、频率单位用 GHz 后,是一个很好记的形式:</p>
+<pre><code>FSPL(dB) = 20·log10(d_km) + 20·log10(f_GHz) + 92.45</code></pre>
+<p>距离和频率前面都是 <strong>20</strong> 倍而不是 10 倍,因为功率损耗正比于距离和频率的<strong>平方</strong>——距离翻倍,损耗多 +6dB(两个 +3dB);频率翻倍,损耗同样多 +6dB。同一条公式换个角度看:距离变成 <strong>10 倍</strong>,20·log10(10)=20,损耗就多 <strong>+20dB</strong>——这正是天线工程里"距离每变 10 倍,路径损耗多 20dB"这条经验法则的来历,和前面"+10dB=×10"是同一个数、不同的物理量。</p>
+
+<div class="cx cx-practice">
+<div class="cx-t">实战锚点 · 22dBm → −31dBm,53dB 去哪了</div>
+<p>回到本章开头的真实读数:<a href="02-router-bypass.html">旁路由</a>这台 AP 报的发射功率是 <strong>22dBm</strong>,笔记本站在附近测到的 RSSI 是 <strong>−31dBm</strong>。跟着算一遍:</p>
+<pre><code>总衰减 = 发射(dBm) − 接收(dBm) = 22 − (−31) = 53dB
+
+换算成线性倍数:10^(53/10) = 10^5.3 ≈ 199,500 倍
+→ 接收到的功率只有发射功率的约 1/20万
+
+若这 53dB 全部记在自由空间路径损耗头上,2.4GHz 频段代入 FSPL 公式反推距离:
+  53 = 20·log10(d_km) + 20·log10(2.4) + 92.45
+  53 = 20·log10(d_km) + 100.05
+  d_km ≈ 10^((53−100.05)/20) ≈ 0.0044km ≈ 4.4米</code></pre>
+</div>
+
+<p>理想自由空间模型下,53dB 只对应约 4~5 米——但现实中的房间有墙体、家具、人体,这些都会叠加<strong>额外</strong>损耗,实际路径损耗几乎总是比同等距离下的 FSPL 理论值更大。这也是为什么 <strong>FSPL 只能当理论下限,不能直接当"预测实际覆盖"的公式</strong>用:它告诉你"最好情况下"信号能有多强,真实环境只会更差、不会更好。</p>
+
+<h2 id="rssi">RSSI 与信号强度分级</h2>
+<p><strong>RSSI</strong>(Received Signal Strength Indicator,接收信号强度指示)就是网卡收到信号后报出的那个 dBm 数字。行业里没有一份全球统一的"多少 dBm 算好"标准,但综合多份工程参考,大致的经验分级是<sup>[7][8]</sup>:</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>RSSI(约)</th><th>分级</th><th>典型体验</th></tr>
+<tr><td>≥ −50dBm</td><td>极好 Excellent</td><td>几乎不受任何应用限制,通常离 AP 很近</td></tr>
+<tr><td>−50 ~ −60dBm</td><td>良好 Good</td><td>视频会议、云应用等大多数场景稳定</td></tr>
+<tr><td>−60 ~ −70dBm</td><td>一般 Fair</td><td>网页、邮件够用,高带宽应用开始吃力</td></tr>
+<tr><td>−70 ~ −80dBm</td><td>较差 Poor</td><td>速度明显下降,丢包概率上升</td></tr>
+<tr><td>&lt; −80dBm</td><td>不可用 Unusable</td><td>逼近噪声地板,连接大概率不稳定</td></tr>
+</table>
+</div>
+
+<p>本章例子里的 <strong>−31dBm</strong>,妥妥落在"极好"这一档——和前面反推出的"约 4~5 米近距离"的结论完全对得上。</p>
+
+<figure>
+<svg viewBox="0 0 720 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="RSSI信号强度分级梯形图与链路预算示意图:纵轴为dBm从上到下递减,下半段划出极好/良好/一般/较差/不可用五个色带,标出发射端22dBm与接收端负31dBm两个点,并用箭头标注两者之间53dB的路径损耗">
+<style>text{font-family:var(--font)}</style>
+<defs>
+<marker id="arrow05b" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M0,0 L10,0 L5,10 z" fill="var(--brand-2)"/>
+</marker>
+</defs>
+
+<text x="140" y="16" font-size="12" text-anchor="middle" fill="var(--ink-soft)">dBm</text>
+<line x1="140" y1="22" x2="140" y2="475" stroke="var(--ink-soft)" stroke-width="1.5"/>
+
+<line x1="132" y1="118" x2="140" y2="118" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="126" y="122" font-size="11" text-anchor="end" fill="var(--ink-soft)">0</text>
+<line x1="132" y1="224" x2="140" y2="224" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="126" y="228" font-size="11" text-anchor="end" fill="var(--ink-soft)">−30</text>
+<line x1="132" y1="294" x2="140" y2="294" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="126" y="298" font-size="11" text-anchor="end" fill="var(--ink-soft)">−50</text>
+<line x1="132" y1="329" x2="140" y2="329" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="126" y="333" font-size="11" text-anchor="end" fill="var(--ink-soft)">−60</text>
+<line x1="132" y1="364" x2="140" y2="364" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="126" y="368" font-size="11" text-anchor="end" fill="var(--ink-soft)">−70</text>
+<line x1="132" y1="400" x2="140" y2="400" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="126" y="404" font-size="11" text-anchor="end" fill="var(--ink-soft)">−80</text>
+<line x1="132" y1="470" x2="140" y2="470" stroke="var(--ink-soft)" stroke-width="1.5"/>
+<text x="126" y="474" font-size="11" text-anchor="end" fill="var(--ink-soft)">−100</text>
+
+<rect x="160" y="224" width="220" height="70" fill="var(--practice-bg)" stroke="var(--practice)" stroke-width="1.5"/>
+<rect x="160" y="294" width="220" height="35" fill="var(--theory-bg)" stroke="var(--theory)" stroke-width="1.5"/>
+<rect x="160" y="329" width="220" height="35" fill="var(--key-bg)" stroke="var(--key)" stroke-width="1.5"/>
+<rect x="160" y="364" width="220" height="36" fill="var(--warn-bg)" stroke="var(--warn)" stroke-width="1.5"/>
+<rect x="160" y="400" width="220" height="70" fill="var(--warn)" fill-opacity="0.28" stroke="var(--warn)" stroke-width="2.5"/>
+
+<text x="395" y="263" font-size="13" fill="var(--practice)" font-weight="700">极好</text>
+<text x="395" y="315" font-size="13" fill="var(--theory)" font-weight="700">良好</text>
+<text x="395" y="350" font-size="13" fill="var(--key)" font-weight="700">一般</text>
+<text x="395" y="386" font-size="13" fill="var(--warn)" font-weight="700">较差</text>
+<text x="395" y="439" font-size="13" fill="var(--warn)" font-weight="700">不可用</text>
+
+<line x1="380" y1="41" x2="545" y2="41" stroke="var(--brand-2)" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="380" y1="227" x2="545" y2="227" stroke="var(--brand-2)" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="560" y1="45" x2="560" y2="219" stroke="var(--brand-2)" stroke-width="2.5" marker-end="url(#arrow05b)"/>
+<text x="580" y="123" font-size="13" font-weight="700" fill="var(--brand-2)">路径损耗</text>
+<text x="580" y="142" font-size="16" font-weight="700" fill="var(--brand-2)">53dB</text>
+<text x="580" y="160" font-size="11" fill="var(--ink-soft)">≈20万倍衰减</text>
+
+<circle cx="270" cy="41" r="6" fill="var(--brand-2)" stroke="var(--panel)" stroke-width="2"/>
+<text x="288" y="37" font-size="12" fill="var(--brand-2)" font-weight="700">Tx ≈22dBm</text>
+<text x="288" y="52" font-size="10.5" fill="var(--ink-soft)">(发射端,超出 RSSI 量程)</text>
+
+<circle cx="270" cy="227" r="6" fill="var(--practice)" stroke="var(--panel)" stroke-width="2"/>
+<text x="288" y="223" font-size="12" fill="var(--practice)" font-weight="700">RSSI ≈−31dBm</text>
+<text x="288" y="238" font-size="10.5" fill="var(--ink-soft)">→ 落在"极好"区间</text>
+</svg>
+<figcaption>RSSI 信号强度分级 + 链路预算示意图:纵轴自上而下 dBm 递减,下半段是常见的五级 RSSI 分级色带。橙色点是本章例子的发射功率(22dBm,超出典型 RSSI 量程,单独标出),绿色点是实测接收 RSSI(−31dBm),落在"极好"色带里;两者之间 53dB 的落差即路径损耗。</figcaption>
+</figure>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · RSSI 不是跨厂商标准化的数值</div>
+<p>IEEE 802.11 标准里,RSSI 严格来说只定义成一个 0~255 的<strong>任意整数量程</strong>,具体每一格对应多少 dBm、量程上限(RSSI_Max)是多少,标准并不强制统一,而是留给每家芯片厂商自己定,不同厂商网卡之间 RSSI 数值的换算方式也不一样<sup>[9]</sup>。换句话说,一块网卡报的 −31dBm 和另一块不同芯片网卡报的 −31dBm,底层原始量程和换算公式可能完全不同——同一台设备前后对比、或者同芯片型号的设备互相比较是可靠的,但拿两个不同厂商的"信号格数"或 RSSI 数字直接比大小,并不严谨。</p>
+</div>
+
+<h2 id="eirp">EIRP:发射功率 + 天线增益</h2>
+<p>前面算的 22dBm,是发射机送进天线之前的功率;天线本身还会把这些功率往某个方向"聚拢",聚拢的效果就是<strong>天线增益</strong>(单位 <strong>dBi</strong>,相对理想全向天线的倍数)。把两者按 dB 直接相加,就是<strong>有效全向辐射功率</strong>(Effective Isotropic Radiated Power,<strong>EIRP</strong>)——它回答的问题是:"如果换成一个完美的、朝各个方向均匀撒能量的理想天线,得给它多大功率,才能在信号最强的那个方向做到跟现在这个真实天线一样强?"<sup>[3]</sup></p>
+<pre><code>EIRP(dBm) = 发射功率 Pt(dBm) + 天线增益 Gt(dBi)
+
+示例(引自 Ubiquiti 无线工程培训资料):
+  Pt = 20dBm(100mW) + Gt = 3dBi  →  EIRP = 23dBm(≈200mW)</code></pre>
+<p>各国无线电管理机构真正拿来画监管红线的是 EIRP,而不是芯片输出端的裸发射功率——因为决定"会不会干扰别人"的,是天线聚拢后那个最强方向上的等效功率<sup>[10]</sup>。</p>
+
+<div class="cx cx-dig">
+<div class="cx-t">深挖 · EIRP、ERP 和天线增益的两种参照系</div>
+<p>天线增益有两种常见参照系:<strong>dBi</strong> 相对理想全向天线(isotropic),<strong>dBd</strong> 相对最基础的半波偶极子天线(dipole)。因为半波偶极子本身比理想全向天线就多出约 <strong>2.15dB</strong> 的方向性增益,同一根天线标 dBd 会比标 dBi 小 2.15;类似地,<strong>ERP</strong>(相对偶极子的有效辐射功率)和 <strong>EIRP</strong>(相对全向天线)描述同一根天线时也总是差 2.15dB:EIRP(dBm) ≈ ERP(dBm) + 2.15dB<sup>[3]</sup>。规格书上看到 ERP 和 EIRP 数字对不上,先检查是不是这 2.15dB 的参照系差异,而不是先怀疑厂商标错了。</p>
+</div>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>地区/规则</th><th>2.4GHz EIRP 上限</th><th>备注</th></tr>
+<tr><td>欧盟 ETSI</td><td>100mW(20dBm)</td><td>硬上限,大多数欧洲及采用同规则地区适用<sup>[11]</sup></td></tr>
+<tr><td>美国 FCC Part 15(点对多点)</td><td>最高 4W(36dBm)</td><td>天线增益每超 6dBi,发射机裸功率需等量下调以维持该上限<sup>[11][14]</sup></td></tr>
+</table>
+</div>
+
+<div class="cx cx-warn">
+<div class="cx-t">避坑 · EIRP 受各国法规硬上限管制</div>
+<p>不是功率开得越大、天线增益堆得越高,覆盖就"越强越好"——民用 2.4GHz 频段的 EIRP 在大多数国家都有强制上限(见上表)。国内外买到的路由器、网卡出厂设置已经按所在地区法规锁好了上限,私自刷高发射功率或者换用高增益天线,很容易就超出合规范围,也可能干扰同频段的其他用户。</p>
+<p>以表中美国 FCC 规则为例还有一层容易踩错的细节:<strong>点对多点</strong>(point-to-multipoint,面向多个客户端的常规 AP)和<strong>点对点</strong>(point-to-point,专用定向链路)适用的天线增益换算规则并不相同。点对多点系统一旦天线增益超过 6dBi,裸机功率必须<strong>等量(1:1)下调</strong>以维持 36dBm 的 EIRP 硬上限;只有专用的固定点对点链路,才能享受"每超 3dB 增益只需降 1dB 功率"的更宽松例外,允许 EIRP 随高增益天线继续爬升<sup>[14]</sup>。把点对点的宽松例外套用到点对多点场景,会实打实地超出合规上限。</p>
+</div>
+
+<h2 id="sensitivity">接收灵敏度与动态范围</h2>
+<p><strong>接收灵敏度</strong>是接收机能够可靠解调出数据的最低输入功率门槛,单位同样是 dBm。这个门槛从来不是单一值,而是随调制方式和信道带宽剧烈变化:802.11 标准给 20MHz 信道定的最低接收灵敏度要求里,最稳健的 <strong>BPSK</strong>(1/2 码率)只要 <strong>−82dBm</strong> 就能工作,而追求高速率的 <strong>256-QAM</strong>(3/4 码率)需要 <strong>−59dBm</strong> 以上——同一张网卡、同一条信道,两种调制方式对信号强度的要求相差 23dB,接近 200 倍功率<sup>[12]</sup>。这就是为什么人从路由器旁边走远、信号变差时,网速是<strong>渐渐变慢</strong>而不是突然掉线:网卡在实时把调制方式往更稳健但更慢的档位切换,直到信号跌破哪怕最保守调制方式的门槛,连接才会真正断开。调制方式如何用信噪比换速率,属于<a href="14-signals-systems.html">信号与系统</a>的范畴。</p>
+<p><strong>动态范围</strong>则是接收机能处理的最强信号(再强前端就饱和失真)和最弱信号(再弱就跌破灵敏度门槛、淹没进噪声地板)之间的比值,同样用 dB 表示<sup>[13]</sup>。举个更极端的量级参照:<strong>−90dBm</strong> 这类逼近噪声地板的信号,换算成绝对功率是 1mW×10⁻⁹=10⁻¹²W,也就是约 <strong>1 皮瓦(pW)</strong>——比本章开头说的接收端"几十亿分之一瓦",还要再往下探两三个数量级。灵敏度门槛能压到这个量级,天线设计、屏蔽和前端低噪声放大器的种种讲究,为的正是这最后几个 dB。动态范围窄的接收机两头都不讨好:离 AP 太近容易"信号太强反而听不清"(前端饱和削波),离得太远又直接跌出可用范围——这也是专业 Wi-Fi 勘测通常建议别紧贴 AP 测试的原因,数据会因为前端过载而失真、参考价值反而下降。</p>
+
+<h2 id="key">本章要点</h2>
+<div class="cx cx-key">
+<div class="cx-t">本章要点</div>
+<ul>
+<li><strong>dB</strong> = 比值的对数单位(10·log10(P1/P2)),本身无量纲,级联系统的增益/损耗可以直接相加,得名于电话工程师 Alexander Graham Bell。</li>
+<li><strong>dBm</strong> = 把参考点钉在 1mW 的绝对功率单位:dBm=10·log10(P/1mW);0dBm=1mW,10dBm=10mW,20dBm=100mW。</li>
+<li>速算:<strong>+3dB≈×2,+10dB=×10</strong>(故 +13dB≈×20,+20dB=×100);两个 dBm 可以相减(得到 dB),不能直接相加。</li>
+<li><strong>FSPL</strong>(自由空间路径损耗)= 20·log10(d_km)+20·log10(f_GHz)+92.45dB,只是理想下限,真实环境损耗只会更大。</li>
+<li>实测:AP 发射 <strong>22dBm</strong>,客户端收到 <strong>−31dBm</strong>,总衰减 <strong>53dB</strong>(约 20 万倍功率跌落),对应自由空间理想距离约 4~5 米。</li>
+<li><strong>RSSI</strong> 信号分级(约):≥−50 极好,−50~−60 良好,−60~−70 一般,&lt;−70 渐差;但 RSSI 本身不是跨厂商标准化的量。</li>
+<li><strong>EIRP</strong> = 发射功率(dBm)+ 天线增益(dBi),受各国法规上限管制(如欧盟 2.4GHz 上限 100mW/20dBm)。</li>
+<li>接收灵敏度 = 可靠解调的最低功率门槛,随调制方式浮动(BPSK −82dBm ~ 256-QAM −59dBm);动态范围 = 最强可处理信号与灵敏度门槛之间的 dB 差。</li>
+</ul>
+</div>
+
+<div class="foot">
+  <div class="foot-nav">
+    <a href="04-wifi-radio.html">← 04 WiFi 与射频</a>
+    <a href="../index.html">回首页</a>
+    <a href="06-smb-fileshare.html">06 文件共享与跨平台互传 →</a>
+  </div>
+  <p><b>本章来源</b></p>
+  <ol class="sources">
+    <li>Wikipedia,《dBm》— dBm 定义公式 dBm=10log10(P/1mW)。<a href="https://en.wikipedia.org/wiki/DBm">https://en.wikipedia.org/wiki/DBm</a></li>
+    <li>Wikipedia,《Free-space path loss》— FSPL 公式推导与分贝形式(20log10(d)+20log10(f)+常数)。<a href="https://en.wikipedia.org/wiki/Free-space_path_loss">https://en.wikipedia.org/wiki/Free-space_path_loss</a></li>
+    <li>Wikipedia,《Effective radiated power》— EIRP/ERP 定义、EIRP=Gt+Pt(dB)、EIRP≈ERP+2.15dB。<a href="https://en.wikipedia.org/wiki/Effective_radiated_power">https://en.wikipedia.org/wiki/Effective_radiated_power</a></li>
+    <li>HyperPhysics(Georgia State University),《Decibels》— +3dB≈×2 / +10dB=×10 速算规则的物理推导。<a href="http://hyperphysics.phy-astr.gsu.edu/hbase/Sound/db.html">http://hyperphysics.phy-astr.gsu.edu/hbase/Sound/db.html</a></li>
+    <li>EXAIR Blog,《The Story Behind Decibels》— 分贝从电话线路衰减单位(Transmission Unit)到 1928 年更名历史。<a href="https://blog.exair.com/2025/02/07/the-story-behind-decibels/">https://blog.exair.com/2025/02/07/the-story-behind-decibels/</a></li>
+    <li>Wikipedia,《Alexander Graham Bell》— bel/decibel 命名由来(Bell Labs 纪念其创始人)。<a href="https://en.wikipedia.org/wiki/Alexander_Graham_Bell">https://en.wikipedia.org/wiki/Alexander_Graham_Bell</a></li>
+    <li>TechGrid,《The MSP Guide to Wi-Fi Signal Strength, Design, and Delivery》— RSSI 信号强度分级表。<a href="https://techgrid.com/blog/wifi-signal-strength">https://techgrid.com/blog/wifi-signal-strength</a></li>
+    <li>NetBeez,《Wi-Fi Performance Metrics for Optimal Connectivity》— RSSI 分级表与 SNR 计算示例。<a href="https://netbeez.net/blog/wifi-performance-metrics/">https://netbeez.net/blog/wifi-performance-metrics/</a></li>
+    <li>ResearchGate,《Assessing link quality in IEEE 802.11 Wireless Networks: Which is the right metric》— RSSI 数值与厂商实现相关、并非标准化跨设备可比量。<a href="https://www.researchgate.net/publication/224357426_Assessing_link_quality_in_IEEE_80211_Wireless_Networks_Which_is_the_right_metric">researchgate.net/publication/224357426</a></li>
+    <li>Ubiquiti,《UEWA Training Guide》— EIRP = 发射功率 + 天线增益的工程实例(20dBm+3dBi)。<a href="https://dl.ubnt.com/guides/training/courses/UEWA_Training_Guide_V2.1.pdf">dl.ubnt.com/guides/training/courses/UEWA_Training_Guide_V2.1.pdf</a></li>
+    <li>InFishark,《WiFi Transmit Power Limits by Region》— 欧盟/美国 2.4GHz EIRP 法规上限对比(100mW vs 4W)。<a href="https://infishark.com/blogs/learn/wifi-transmit-power-limits-by-region">infishark.com/blogs/learn/wifi-transmit-power-limits-by-region</a></li>
+    <li>National Instruments,《Introduction to Wireless LAN Measurements》— 802.11 各调制方式/带宽下的最低接收灵敏度对照表。<a href="http://download.ni.com/evaluation/rf/Introduction_to_WLAN_Testing.pdf">download.ni.com/evaluation/rf/Introduction_to_WLAN_Testing.pdf</a></li>
+    <li>Microwaves &amp; RF,《Understanding Dynamic Range》— 动态范围定义(最强可处理信号与最弱信号之比)。<a href="https://www.mwrf.com/technologies/test-measurement/article/21846555/understanding-dynamic-range">mwrf.com/.../understanding-dynamic-range</a></li>
+    <li>Cornell Law School Legal Information Institute,《47 CFR § 15.247》— 点对多点 vs 点对点天线增益/功率换算规则(6dBi 阈值、1:1 与 1:3 例外的适用范围区别)。<a href="https://www.law.cornell.edu/cfr/text/47/15.247">law.cornell.edu/cfr/text/47/15.247</a></li>
+    <li>Siemens (Community),《The Wacky World of Acoustics: Decibel "Funny" Math and Human Hearing》— "+10dB≈人耳感知响度翻倍"经验规则,与物理功率翻倍规则的区分。<a href="https://community.sw.siemens.com/s/article/the-wacky-world-of-acoustics-decibel-funny-math-and-human-hearing">community.sw.siemens.com/.../decibel-funny-math-and-human-hearing</a></li>
+  </ol>
+</div>
+
+</div>
+</body>
+</html>

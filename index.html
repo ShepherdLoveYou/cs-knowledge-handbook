@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>计算机知识手册</title>
+<style>
+/* 《计算机知识手册》设计系统 — 内联自 scratchpad/handbook_theme.css,并修复了在逐章审计中发现的
+   两处会影响本导航页视觉正确性的问题(详情见收尾报告 notes):
+   1) 暗色媒体查询块里 --brand 曾有一次误写(#5aa8f0,含空格,非法值)——此处已去掉,直接写正确值。
+   2) :root[data-theme="light"] 覆盖块原本只重置 6 个基础变量,当系统是暗色、用户手动切到"亮"时,
+      --brand/--accent 等强调色仍会因为 @media(prefers-color-scheme:dark) 命中而保持暗色取值,
+      导致标题下划线、表头、连结、四类标注框边框等出现"背景亮、强调色暗"的混色——此处补全整份重置。
+   另外沿用 01/10 两章已验证过的做法,把 hero 渐变固定在专属深色取值(--hero-grad-1/2),
+   不随暗色模式变浅,避免白字对比度不足(比如 --brand 暗色态 #5aa8f0 配白字对比度约 2.5:1,低于 WCAG AA)。 */
+:root{
+  --bg:#fbfbfd; --panel:#ffffff; --ink:#1a1d24; --ink-soft:#4a5160; --line:#e6e8ee;
+  --brand:#0a5ab1; --brand-2:#b1420a; --accent:#6d28d9;
+  --hero-grad-1:#0a5ab1; --hero-grad-2:#6d28d9;
+  --practice:#0a7d5a; --practice-bg:#e9f7f1; --theory:#0a5ab1; --theory-bg:#eaf2fb;
+  --dig:#6d28d9; --dig-bg:#f1ecfc; --warn:#b1420a; --warn-bg:#fdf3ea; --key:#8a6d00; --key-bg:#fdf9e7;
+  --code-bg:#f4f6f8; --radius:12px; --maxw:960px;
+  --font: "Microsoft YaHei","微软雅黑","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1216; --panel:#161a20; --ink:#e6e8ee; --ink-soft:#9aa3b2; --line:#262b33;
+  --brand:#5aa8f0; --brand-2:#e08a4a; --accent:#a78bfa;
+  --hero-grad-1:#0a3d7a; --hero-grad-2:#4c1d95;
+  --practice:#3ecfa0; --practice-bg:#0e2a22; --theory:#5aa8f0; --theory-bg:#0e2033;
+  --dig:#a78bfa; --dig-bg:#1b1633; --warn:#e08a4a; --warn-bg:#2a1c10; --key:#e6c84a; --key-bg:#2a2410;
+  --code-bg:#0d1014;
+}}
+:root[data-theme="dark"]{--bg:#0f1216;--panel:#161a20;--ink:#e6e8ee;--ink-soft:#9aa3b2;--line:#262b33;--brand:#5aa8f0;--brand-2:#e08a4a;--accent:#a78bfa;--hero-grad-1:#0a3d7a;--hero-grad-2:#4c1d95;--practice:#3ecfa0;--practice-bg:#0e2a22;--theory:#5aa8f0;--theory-bg:#0e2033;--dig:#a78bfa;--dig-bg:#1b1633;--warn:#e08a4a;--warn-bg:#2a1c10;--key:#e6c84a;--key-bg:#2a2410;--code-bg:#0d1014;}
+:root[data-theme="light"]{--bg:#fbfbfd;--panel:#fff;--ink:#1a1d24;--ink-soft:#4a5160;--line:#e6e8ee;--brand:#0a5ab1;--brand-2:#b1420a;--accent:#6d28d9;--hero-grad-1:#0a5ab1;--hero-grad-2:#6d28d9;--practice:#0a7d5a;--practice-bg:#e9f7f1;--theory:#0a5ab1;--theory-bg:#eaf2fb;--dig:#6d28d9;--dig-bg:#f1ecfc;--warn:#b1420a;--warn-bg:#fdf3ea;--key:#8a6d00;--key-bg:#fdf9e7;--code-bg:#f4f6f8;}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;font-size:16px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--hero-grad-1),var(--hero-grad-2));color:#fff;padding:52px 20px 44px}
+.hero .wrap{padding-bottom:0}
+.hero .kicker{opacity:.85;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px}
+.hero h1{margin:0 0 14px;font-size:36px;line-height:1.2}
+.hero p{margin:0;opacity:.94;font-size:16px;max-width:760px}
+
+/* Typography */
+h2{font-size:23px;margin:44px 0 6px;padding-bottom:6px;border-bottom:2px solid var(--line);color:var(--brand-2)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:10px 0}
+a{color:var(--brand)}
+strong{color:var(--ink)}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+.lead{font-size:17px;color:var(--ink-soft);margin-top:20px}
+.part-lead{color:var(--ink-soft);margin:6px 0 18px}
+
+/* Callout boxes */
+.cx{border-left:4px solid var(--line);border-radius:10px;padding:14px 18px;margin:16px 0;background:var(--panel)}
+.cx .cx-t{font-weight:700;font-size:13px;letter-spacing:.03em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.cx-practice{border-color:var(--practice);background:var(--practice-bg)} .cx-practice .cx-t{color:var(--practice)}
+.cx-theory{border-color:var(--theory);background:var(--theory-bg)} .cx-theory .cx-t{color:var(--theory)}
+.cx-dig{border-color:var(--dig);background:var(--dig-bg)} .cx-dig .cx-t{color:var(--dig)}
+.cx p:first-of-type{margin-top:0}.cx p:last-child{margin-bottom:0}
+.cx ol{margin:6px 0 0}
+.cx .why{color:var(--ink-soft);font-size:13.5px;margin-top:8px}
+
+/* Figures */
+figure{margin:20px 0;text-align:center}
+figure svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px}
+figcaption{font-size:13px;color:var(--ink-soft);margin-top:10px;text-align:left}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin:16px 0 8px}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-decoration:none;color:inherit;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.card .num{font-size:12px;color:var(--brand);font-weight:700;letter-spacing:.04em}
+.card .ttl{font-weight:600;margin:5px 0 6px;line-height:1.35}
+.card .desc{font-size:13px;color:var(--ink-soft);line-height:1.55}
+
+/* Footer */
+.foot{margin-top:56px;border-top:1px solid var(--line);padding-top:18px;font-size:14px}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.foot-nav a{text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.colophon{font-size:13px;color:var(--ink-soft)}
+
+/* Theme toggle */
+.tgl{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--ink)}
+
+/* Relationship map */
+.map-node{cursor:pointer}
+.map-r{fill:var(--panel);stroke-width:1.8}
+.map-r1{stroke:var(--practice)}
+.map-r2{stroke:var(--theory)}
+.map-r3{stroke:var(--dig)}
+.map-node:hover .map-r{stroke-width:3.2}
+.map-num{font-weight:700;fill:var(--ink);font-family:var(--font)}
+.map-ttl{fill:var(--ink-soft);font-family:var(--font)}
+.map-band-lbl{fill:var(--ink-soft);font-family:var(--font);font-weight:700;letter-spacing:.03em}
+.map-legend-txt{fill:var(--ink);font-family:var(--font)}
+
+@media print{
+  .hero{background:none!important;color:#000;border-bottom:2px solid #000}
+  .tgl{display:none}.card:hover{transform:none;box-shadow:none}
+  body{font-size:12px}figure,.cx{page-break-inside:avoid}
+}
+@media(max-width:640px){
+  .hero h1{font-size:28px}
+}
+</style>
+</head>
+<body>
+<script>(function(){var r=document.documentElement;if(!r.dataset.theme){r.dataset.theme=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}})();</script>
+<button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">全书导航 · 16 章 · 本会话实战 × 408 核心理论 × 深化拓展</p>
+    <h1>计算机知识手册</h1>
+    <p>把一次真实的运维会话——刷机、装旁路由、去广告、修 WiFi、给 Windows 提权、跟 Secure Boot 打交道——和计算机专业的核心理论(408:计算机网络 / 操作系统 / 组成原理 / 数据结构与算法),以及信号与系统、密码学、运维工程这几条拓展线,打通成一套图文并茂、可离线阅读的自包含手册。每章都有真实的踩坑现场、能跟着算一遍的例子,以及指回其它章节的一条线。</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<p class="lead">全部 16 章自包含、可离线双击打开、支持打印;每章开头有本章目录,结尾有交叉引用与 MCP 联网取证来源列表。右上角 🌓 可随时切换亮 / 暗主题,不受系统设置限制。</p>
+
+<h2 id="part1">Part I 实战复盘</h2>
+<p class="part-lead">这九章贴着本次会话的真实操作走:一台"过期"的 Chromebox 怎么被刷成裸机、怎么装成旁路由、怎么接管 DNS、WiFi 信道与功率怎么算、文件怎么跨平台搬、Windows 后台在忙什么、固件那几道锁到底锁住了谁。</p>
+<div class="cards">
+  <a class="card" href="chapters/01-flashing-firmware.html"><div class="num">01</div><div class="ttl">从 Chromebox 到 UEFI:刷机与固件</div><div class="desc">一台"过期"的 Chromebox 靠写保护螺丝、coreboot、UEFI Full ROM 变身普通 x86 裸机——这台机器后面会变成旁路由。</div></a>
+  <a class="card" href="chapters/02-router-bypass.html"><div class="num">02</div><div class="ttl">软路由与旁路由</div><div class="desc">网关、子网、DHCP、NAT 四块地基,拆开"只接管 DNS、不当网关"这个旁路由核心技巧。</div></a>
+  <a class="card" href="chapters/03-dns-adblock.html"><div class="num">03</div><div class="ttl">DNS 与去广告</div><div class="desc">从根域到权威服务器的分层解析,dnsmasq 接力 AdGuard Home,外加 DoH/DNSSEC 与 IPv6 泄漏两个真实的坑。</div></a>
+  <a class="card" href="chapters/04-wifi-radio.html"><div class="num">04</div><div class="ttl">WiFi 与射频</div><div class="desc">2.4/5GHz 频段与信道、802.11 世代演进,实测 Intel AX201 网卡为什么怎么也开不出 5GHz 热点。</div></a>
+  <a class="card" href="chapters/05-dbm-signal.html"><div class="num">05</div><div class="ttl">dBm · 分贝 · 信号强度</div><div class="desc">分贝与 dBm 的对数语言,从 22dBm 发射一路算到 −31dBm 接收,拆解路径损耗与 EIRP。</div></a>
+  <a class="card" href="chapters/06-smb-fileshare.html"><div class="num">06</div><div class="ttl">文件共享与跨平台互传</div><div class="desc">SMB/Samba、苹果专有 AWDL、开源 LocalSend/PairDrop——三种"把文件搬到另一台设备"的不同答案。</div></a>
+  <a class="card" href="chapters/07-filesystems.html"><div class="num">07</div><div class="ttl">文件系统</div><div class="desc">inode、日志、扩展属性三大机制,ext4/exFAT/NTFS 怎么选、go-bag U 盘为什么必须 exFAT。</div></a>
+  <a class="card" href="chapters/08-windows-admin.html"><div class="num">08</div><div class="ttl">Windows 系统管理与提权</div><div class="desc">服务启动类型、UAC 双令牌、powercfg 限速表,外加一次真正揪出吃 CPU 进程的实战排查。</div></a>
+  <a class="card" href="chapters/09-secureboot-drivers.html"><div class="num">09</div><div class="ttl">固件安全与内核驱动</div><div class="desc">Secure Boot → 驱动签名 → HVCI → SMM → BitLocker 五道门,收束到五个特权环这张统一坐标系。</div></a>
+</div>
+
+<h2 id="part2">Part II 计算机核心(408 拓展)</h2>
+<p class="part-lead">把 Part I 里散落的实战现象,归位进计算机专业最核心的四门课——这也是大多数学校 408 统考的范围:计算机网络、操作系统、计算机组成、数据结构与算法。</p>
+<div class="cards">
+  <a class="card" href="chapters/10-networking.html"><div class="num">10</div><div class="ttl">计算机网络体系(408)</div><div class="desc">五层协议栈把旁路由、DNS、WiFi、SMB 的实战串成一张地图,外加三次握手与"分层排障法"。</div></a>
+  <a class="card" href="chapters/11-os.html"><div class="num">11</div><div class="ttl">操作系统(408)</div><div class="desc">进程/线程调度、虚拟内存与分页、VFS、系统调用与中断——操作系统这位"总管"要做的四件事。</div></a>
+  <a class="card" href="chapters/12-comparch.html"><div class="num">12</div><div class="ttl">计算机组成原理 + 数电基础(408)</div><div class="desc">冯诺依曼架构、逻辑门与流水线、存储层次与总线,拆开 Turbo Boost 与散热降频的完整因果链。</div></a>
+  <a class="card" href="chapters/13-dsa.html"><div class="num">13</div><div class="ttl">数据结构与算法</div><div class="desc">Big-O、线性表/树/图/哈希表与排序——前面几章"秒回"背后,数据怎么摆、步骤怎么走。</div></a>
+</div>
+
+<h2 id="part3">Part III 深化拓展</h2>
+<p class="part-lead">再往下、往外拓展三步:信号与系统补上 WiFi/dBm 背后的数学,密码学与网络安全补上签名、加密、证书的底层机制,运维与自托管工程把前面十五章的手动操作升级成一套真正的工程化基础设施。</p>
+<div class="cards">
+  <a class="card" href="chapters/14-signals-systems.html"><div class="num">14</div><div class="ttl">信号与系统</div><div class="desc">LTI 系统、傅里叶、采样定理、QAM 与 OFDM——从 22dBm 一路算到香农极限给出的 Mbit/s 上限。</div></a>
+  <a class="card" href="chapters/15-crypto-security.html"><div class="num">15</div><div class="ttl">密码学与网络安全</div><div class="desc">对称/非对称加密、哈希、数字签名、PKI 与 TLS 1.3 握手,手算一遍教科书版 RSA。</div></a>
+  <a class="card" href="chapters/16-devops-selfhost.html"><div class="num">16</div><div class="ttl">运维与自托管工程</div><div class="desc">容器 namespace/cgroup、反向代理、监控三支柱、3-2-1 备份与 CI/CD——把整台盒子升级成工程。</div></a>
+</div>
+
+<h2 id="map">实战 ↔ 理论 关系地图</h2>
+<p class="part-lead">十六章不是十六条互不相干的线——很多实战现象在 Part II/III 里能找到"为什么会这样"的答案。下图挑了十余条最具代表性的连线做示意。</p>
+<figure>
+<svg viewBox="0 0 1000 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="maptitle mapdesc">
+<title id="maptitle">十六章实战与理论关系地图</title>
+<desc id="mapdesc">三条色带自上而下分别是 Part I 实战复盘(01-09 章)、Part II 计算机核心 408 拓展(10-13 章)、Part III 深化拓展(14-16 章)。彩色曲线标出几组代表性关系:旁路由、DNS、WiFi、SMB 通向网络体系;WiFi、dBm 通向信号与系统;文件系统、Windows 管理、固件安全通向操作系统;Windows 电源管理通向计算机组成;固件签名通向密码学;数据结构通向运维自托管;刷机通向旁路由。</desc>
+
+<!-- 三条 Part 色带(背景层) -->
+<rect x="10" y="18" width="980" height="96" rx="16" fill="var(--practice-bg)"/>
+<text x="26" y="40" font-size="13" class="map-band-lbl">Part I · 实战复盘(01–09)</text>
+
+<rect x="10" y="254" width="980" height="104" rx="16" fill="var(--theory-bg)"/>
+<text x="26" y="276" font-size="13" class="map-band-lbl">Part II · 计算机核心(408 拓展,10–13)</text>
+
+<rect x="10" y="444" width="980" height="104" rx="16" fill="var(--dig-bg)"/>
+<text x="26" y="466" font-size="13" class="map-band-lbl">Part III · 深化拓展(14–16)</text>
+
+<!-- 连线(先画,節點后画盖在上面) -->
+<g fill="none" stroke-linecap="round">
+  <path d="M185,97 C185,193.5 200,193.5 200,290" stroke="var(--brand)" stroke-width="2.4" opacity=".8"/>
+  <path d="M290,97 C290,193.5 200,193.5 200,290" stroke="var(--brand)" stroke-width="2.4" opacity=".8"/>
+  <path d="M395,97 C395,193.5 200,193.5 200,290" stroke="var(--brand)" stroke-width="2.4" opacity=".8"/>
+  <path d="M605,97 C605,193.5 200,193.5 200,290" stroke="var(--brand)" stroke-width="2.4" opacity=".8"/>
+
+  <path d="M395,97 C395,288.5 260,288.5 260,480" stroke="var(--accent)" stroke-width="2.4" opacity=".8"/>
+  <path d="M500,97 C500,288.5 260,288.5 260,480" stroke="var(--accent)" stroke-width="2.4" opacity=".8"/>
+
+  <path d="M710,97 C710,193.5 400,193.5 400,290" stroke="var(--practice)" stroke-width="2.4" opacity=".8"/>
+  <path d="M815,97 C815,193.5 400,193.5 400,290" stroke="var(--practice)" stroke-width="2.4" opacity=".8"/>
+  <path d="M920,97 C920,193.5 400,193.5 400,290" stroke="var(--practice)" stroke-width="2.4" opacity=".8"/>
+
+  <path d="M815,97 C815,193.5 600,193.5 600,290" stroke="var(--key)" stroke-width="2.4" opacity=".85"/>
+
+  <path d="M920,97 C920,288.5 500,288.5 500,480" stroke="var(--warn)" stroke-width="2.4" opacity=".85"/>
+
+  <path d="M800,338 C800,409 740,409 740,480" stroke="var(--dig)" stroke-width="2.4" opacity=".85"/>
+
+  <path d="M126,76 Q132.5,112 139,76" stroke="var(--ink-soft)" stroke-width="2.2" stroke-dasharray="3 4" opacity=".9"/>
+</g>
+
+<!-- Part I 节点(01–09) -->
+<a href="chapters/01-flashing-firmware.html" class="map-node"><rect x="34" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="80" y="72" text-anchor="middle" font-size="12.5" class="map-num">01</text><text x="80" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">刷机固件</text></a>
+<a href="chapters/02-router-bypass.html" class="map-node"><rect x="139" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="185" y="72" text-anchor="middle" font-size="12.5" class="map-num">02</text><text x="185" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">旁路由</text></a>
+<a href="chapters/03-dns-adblock.html" class="map-node"><rect x="244" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="290" y="72" text-anchor="middle" font-size="12.5" class="map-num">03</text><text x="290" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">DNS</text></a>
+<a href="chapters/04-wifi-radio.html" class="map-node"><rect x="349" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="395" y="72" text-anchor="middle" font-size="12.5" class="map-num">04</text><text x="395" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">WiFi</text></a>
+<a href="chapters/05-dbm-signal.html" class="map-node"><rect x="454" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="500" y="72" text-anchor="middle" font-size="12.5" class="map-num">05</text><text x="500" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">dBm</text></a>
+<a href="chapters/06-smb-fileshare.html" class="map-node"><rect x="559" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="605" y="72" text-anchor="middle" font-size="12.5" class="map-num">06</text><text x="605" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">SMB互传</text></a>
+<a href="chapters/07-filesystems.html" class="map-node"><rect x="664" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="710" y="72" text-anchor="middle" font-size="12.5" class="map-num">07</text><text x="710" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">文件系统</text></a>
+<a href="chapters/08-windows-admin.html" class="map-node"><rect x="769" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="815" y="72" text-anchor="middle" font-size="12.5" class="map-num">08</text><text x="815" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">Win管理</text></a>
+<a href="chapters/09-secureboot-drivers.html" class="map-node"><rect x="874" y="55" width="92" height="42" rx="9" class="map-r map-r1"/><text x="920" y="72" text-anchor="middle" font-size="12.5" class="map-num">09</text><text x="920" y="88" text-anchor="middle" font-size="10.5" class="map-ttl">固件安全</text></a>
+
+<!-- Part II 节点(10–13) -->
+<a href="chapters/10-networking.html" class="map-node"><rect x="115" y="290" width="170" height="48" rx="10" class="map-r map-r2"/><text x="200" y="310" text-anchor="middle" font-size="14" class="map-num">10</text><text x="200" y="328" text-anchor="middle" font-size="11.5" class="map-ttl">网络体系</text></a>
+<a href="chapters/11-os.html" class="map-node"><rect x="315" y="290" width="170" height="48" rx="10" class="map-r map-r2"/><text x="400" y="310" text-anchor="middle" font-size="14" class="map-num">11</text><text x="400" y="328" text-anchor="middle" font-size="11.5" class="map-ttl">操作系统</text></a>
+<a href="chapters/12-comparch.html" class="map-node"><rect x="515" y="290" width="170" height="48" rx="10" class="map-r map-r2"/><text x="600" y="310" text-anchor="middle" font-size="14" class="map-num">12</text><text x="600" y="328" text-anchor="middle" font-size="11.5" class="map-ttl">计算机组成</text></a>
+<a href="chapters/13-dsa.html" class="map-node"><rect x="715" y="290" width="170" height="48" rx="10" class="map-r map-r2"/><text x="800" y="310" text-anchor="middle" font-size="14" class="map-num">13</text><text x="800" y="328" text-anchor="middle" font-size="11.5" class="map-ttl">数据结构</text></a>
+
+<!-- Part III 节点(14–16) -->
+<a href="chapters/14-signals-systems.html" class="map-node"><rect x="160" y="480" width="200" height="48" rx="10" class="map-r map-r3"/><text x="260" y="500" text-anchor="middle" font-size="14" class="map-num">14</text><text x="260" y="518" text-anchor="middle" font-size="11.5" class="map-ttl">信号系统</text></a>
+<a href="chapters/15-crypto-security.html" class="map-node"><rect x="400" y="480" width="200" height="48" rx="10" class="map-r map-r3"/><text x="500" y="500" text-anchor="middle" font-size="14" class="map-num">15</text><text x="500" y="518" text-anchor="middle" font-size="11.5" class="map-ttl">密码学</text></a>
+<a href="chapters/16-devops-selfhost.html" class="map-node"><rect x="640" y="480" width="200" height="48" rx="10" class="map-r map-r3"/><text x="740" y="500" text-anchor="middle" font-size="14" class="map-num">16</text><text x="740" y="518" text-anchor="middle" font-size="11.5" class="map-ttl">运维自托管</text></a>
+
+<!-- 图例 -->
+<line x1="30" y1="578" x2="56" y2="578" stroke="var(--brand)" stroke-width="3"/><text x="62" y="582" font-size="11" class="map-legend-txt">网络:02/03/04/06 → 10</text>
+<line x1="520" y1="578" x2="546" y2="578" stroke="var(--accent)" stroke-width="3"/><text x="552" y="582" font-size="11" class="map-legend-txt">信号:04/05 → 14</text>
+<line x1="30" y1="598" x2="56" y2="598" stroke="var(--practice)" stroke-width="3"/><text x="62" y="602" font-size="11" class="map-legend-txt">系统:07/08/09 → 11</text>
+<line x1="520" y1="598" x2="546" y2="598" stroke="var(--key)" stroke-width="3"/><text x="552" y="602" font-size="11" class="map-legend-txt">组成:08 → 12</text>
+<line x1="30" y1="618" x2="56" y2="618" stroke="var(--warn)" stroke-width="3"/><text x="62" y="622" font-size="11" class="map-legend-txt">密码:09 → 15</text>
+<line x1="520" y1="618" x2="546" y2="618" stroke="var(--dig)" stroke-width="3"/><text x="552" y="622" font-size="11" class="map-legend-txt">工程:13 → 16</text>
+<line x1="30" y1="638" x2="56" y2="638" stroke="var(--ink-soft)" stroke-width="3" stroke-dasharray="3 4"/><text x="62" y="642" font-size="11" class="map-legend-txt">实战延续:01 → 02(同一台机器)</text>
+</svg>
+<figcaption>图:三条色带自上而下是 Part I(浅绿)/ Part II(浅蓝)/ Part III(浅紫);彩色曲线标出几组最具代表性的实战 ↔ 理论关系——为保持可读性只挑了十余条,完整交叉引用见各章正文与页脚。点击任意方块可直接跳到对应章节。</figcaption>
+</figure>
+
+<h2 id="paths">建议阅读路径</h2>
+<p class="part-lead">16 章可以顺着页码从头读到尾,也可以按下面三条路径挑着走——每条路径都只是建议顺序,链接仍旧指向同样的 16 个文件。</p>
+
+<div class="cx cx-practice">
+  <div class="cx-t">🟢 零基础:先把实战走完,再顺势进入理论</div>
+  <ol>
+    <li><a href="chapters/01-flashing-firmware.html">01 刷机与固件</a></li>
+    <li><a href="chapters/02-router-bypass.html">02 软路由与旁路由</a></li>
+    <li><a href="chapters/03-dns-adblock.html">03 DNS 与去广告</a></li>
+    <li><a href="chapters/06-smb-fileshare.html">06 文件共享与跨平台互传</a></li>
+    <li><a href="chapters/07-filesystems.html">07 文件系统</a></li>
+    <li><a href="chapters/08-windows-admin.html">08 Windows 系统管理与提权</a></li>
+    <li><a href="chapters/09-secureboot-drivers.html">09 固件安全与内核驱动</a></li>
+    <li><a href="chapters/13-dsa.html">13 数据结构与算法</a></li>
+    <li><a href="chapters/10-networking.html">10 计算机网络体系</a></li>
+    <li><a href="chapters/11-os.html">11 操作系统</a></li>
+  </ol>
+  <p class="why">先吃透贴着真实操作走的这几章(04/05 的射频数学可以先跳过,回头再看),用 13 章的数据结构练出复杂度直觉,最后用 10/11 把前面的实战串成两张系统性地图——12/14/15 留到有了这层地基后再看会轻松很多。</p>
+</div>
+
+<div class="cx cx-theory">
+  <div class="cx-t">🔵 想学网络:把这条线一次性走透</div>
+  <ol>
+    <li><a href="chapters/02-router-bypass.html">02 软路由与旁路由</a></li>
+    <li><a href="chapters/03-dns-adblock.html">03 DNS 与去广告</a></li>
+    <li><a href="chapters/04-wifi-radio.html">04 WiFi 与射频</a></li>
+    <li><a href="chapters/05-dbm-signal.html">05 dBm·分贝·信号强度</a></li>
+    <li><a href="chapters/10-networking.html">10 计算机网络体系</a></li>
+    <li><a href="chapters/14-signals-systems.html">14 信号与系统</a></li>
+    <li><a href="chapters/15-crypto-security.html">15 密码学与网络安全</a></li>
+    <li><a href="chapters/06-smb-fileshare.html">06 文件共享与跨平台互传</a></li>
+  </ol>
+  <p class="why">先按实战顺序把旁路由/DNS/WiFi/dBm 走一遍建立直觉,再用 10 章把五层协议栈系统化;14 章补上 WiFi 物理层的傅里叶/调制数学,15 章补上 TLS/DoH 的加密细节,最后用 06 章看一个完整的应用层协议案例收尾。</p>
+</div>
+
+<div class="cx cx-dig">
+  <div class="cx-t">🟣 想学底层:搞懂"电脑到底怎么跑起来的"</div>
+  <ol>
+    <li><a href="chapters/01-flashing-firmware.html">01 从 Chromebox 到 UEFI</a></li>
+    <li><a href="chapters/09-secureboot-drivers.html">09 固件安全与内核驱动</a></li>
+    <li><a href="chapters/12-comparch.html">12 计算机组成原理 + 数电基础</a></li>
+    <li><a href="chapters/11-os.html">11 操作系统</a></li>
+    <li><a href="chapters/07-filesystems.html">07 文件系统</a></li>
+    <li><a href="chapters/08-windows-admin.html">08 Windows 系统管理与提权</a></li>
+    <li><a href="chapters/13-dsa.html">13 数据结构与算法</a></li>
+    <li><a href="chapters/16-devops-selfhost.html">16 运维与自托管工程</a></li>
+  </ol>
+  <p class="why">从固件(01)到 Secure Boot/内核驱动(09),再到组成原理(12)和操作系统(11),把"一条指令怎么被执行、怎么被信任"讲透;07/08 回头看两个真实的操作系统落地案例,13 章补上编程地基,16 章把这些底层知识升级成能长期运维的工程。</p>
+</div>
+
+<footer class="foot">
+  <div class="foot-nav">
+    <a href="chapters/01-flashing-firmware.html">从第一章开始 →</a>
+    <a href="chapters/16-devops-selfhost.html">直接看最后一章 →</a>
+  </div>
+  <p class="colophon">16 章 · 本会话实战复盘 + 408 核心理论 + 深化拓展 · 全部经 MCP 联网取证(官方文档 / RFC / 标准 / 维基)· 每章自包含,可离线浏览、可打印。</p>
+</footer>
+
+</div>
+</body>
+</html>
