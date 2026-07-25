@@ -107,8 +107,10 @@ figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px}
   body{font-size:12px}pre,table,figure,.cx{page-break-inside:avoid}
 }
 </style>
+<link rel="stylesheet" href="../assets/vendor/jsxgraph.css">
+<script src="../assets/vendor/jsxgraphcore.js"></script>
 </head>
-<body>
+<body data-chapter="05">
 <button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
 
 <div class="hero">
@@ -386,6 +388,84 @@ P   = 1mW · 10^(dBm/10)</code></pre>
 </ul>
 </div>
 
+<h2 class="hb-course-h"><span class="hb-tag">互动</span>动手练一练</h2>
+
+<h3>交互控件:接收功率随距离衰减</h3>
+<div class="hb-widget">
+<p style="margin-top:0">拖动下面两个滑块——<strong>发射功率 Ptx</strong>和<strong>频率 f</strong>——看接收功率曲线怎样随距离 d 往下掉。绿色点固定标在 <strong>d = 4.4m</strong> 处,呼应正文"实战锚点"里 22dBm → −31dBm 的实测例子。</p>
+<div id="jxg05" style="width:100%;height:360px"></div>
+<div class="hb-out">当前设置:Ptx = <b id="jxg05-ptx">22</b> dBm ≈ <b id="jxg05-mw">158.5</b> mW,f = <b id="jxg05-f">2.4</b> GHz　→　d = 4.4m 处 Prx ≈ <b id="jxg05-p44">−30.9</b> dBm</div>
+</div>
+<script>
+(function(){
+  var C_LIGHT = 299792458;
+  function fspl(d_m, f_ghz){
+    var f_hz = f_ghz * 1e9;
+    return 20*Math.log10(d_m) + 20*Math.log10(f_hz) + 20*Math.log10(4*Math.PI/C_LIGHT);
+  }
+  function fmt1(n){ var s = n.toFixed(1); return s.replace('-', '−'); }
+
+  var board05 = JXG.JSXGraph.initBoard('jxg05', {
+    boundingbox: [-4, 12, 54, -92],
+    axis: true,
+    showCopyright: false,
+    showNavigation: true,
+    defaultAxes: {
+      x: { name: 'd (米)', withLabel: true, label: { position: 'rt', offset: [-10, 15], cssStyle: 'color:#4a5160;font-family:inherit;font-size:13px' } },
+      y: { name: 'Prx (dBm)', withLabel: true, label: { position: 'rt', offset: [10, -10], cssStyle: 'color:#4a5160;font-family:inherit;font-size:13px' } }
+    }
+  });
+
+  var sPtx = board05.create('slider', [[2, 4], [26, 4], [0, 22, 30]], {
+    name: 'Ptx(dBm)', snapWidth: 1, precision: 0,
+    strokeColor: '#b1420a', fillColor: '#b1420a',
+    highlightStrokeColor: '#b1420a', highlightFillColor: '#b1420a'
+  });
+  var sFreq = board05.create('slider', [[2, -4], [26, -4], [2.4, 2.4, 5.8]], {
+    name: 'f(GHz)', snapWidth: 0.1, precision: 1,
+    strokeColor: '#6d28d9', fillColor: '#6d28d9',
+    highlightStrokeColor: '#6d28d9', highlightFillColor: '#6d28d9'
+  });
+
+  board05.create('functiongraph', [function(d){ return sPtx.Value() - fspl(d, sFreq.Value()); }, 0.3, 50], {
+    strokeColor: '#0a5ab1', strokeWidth: 2.5
+  });
+
+  board05.create('segment', [[4.4, -92], [4.4, function(){ return sPtx.Value() - fspl(4.4, sFreq.Value()); }]], {
+    strokeColor: '#9aa3b2', strokeWidth: 1, dash: 2, fixed: true, highlight: false
+  });
+
+  board05.create('point', [
+    function(){ return 4.4; },
+    function(){ return sPtx.Value() - fspl(4.4, sFreq.Value()); }
+  ], { name: '', face: 'o', size: 4, strokeColor: '#0a7d5a', fillColor: '#0a7d5a', fixed: true, highlight: false, showInfobox: false });
+
+  board05.create('text', [
+    function(){ return 4.4 + 1; },
+    function(){ return sPtx.Value() - fspl(4.4, sFreq.Value()) + 4; },
+    function(){ return 'd=4.4m: ' + fmt1(sPtx.Value() - fspl(4.4, sFreq.Value())) + 'dBm'; }
+  ], { fixed: true, highlight: false, fontSize: 13, cssStyle: 'color:#0a7d5a;font-weight:700;font-family:inherit' });
+
+  function updateReadout05(){
+    var ptx = sPtx.Value(), f = sFreq.Value();
+    var mw = Math.pow(10, ptx/10);
+    var p44 = ptx - fspl(4.4, f);
+    document.getElementById('jxg05-ptx').textContent = ptx.toFixed(0);
+    document.getElementById('jxg05-mw').textContent = mw.toFixed(1);
+    document.getElementById('jxg05-f').textContent = f.toFixed(1);
+    document.getElementById('jxg05-p44').textContent = fmt1(p44);
+  }
+  board05.on('update', updateReadout05);
+  updateReadout05();
+})();
+</script>
+
+<h3>自测题</h3>
+<div id="quiz05"></div>
+
+<h3>闪卡复习</h3>
+<div id="fc05"></div>
+
 <div class="foot">
   <div class="foot-nav">
     <a href="04-wifi-radio.html">← 04 WiFi 与射频</a>
@@ -413,5 +493,118 @@ P   = 1mW · 10^(dBm/10)</code></pre>
 </div>
 
 </div>
+
+<style id="hb-course-css">
+.hb-course-h{display:flex;align-items:center;gap:10px;margin:34px 0 6px}
+.hb-course-h .hb-tag{font-size:12px;font-weight:700;letter-spacing:.05em;color:#fff;background:var(--accent);border-radius:20px;padding:3px 12px}
+.hb-quiz,.hb-widget{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.hb-q{margin:14px 0;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.hb-q:last-of-type{border-bottom:none;padding-bottom:0}
+.hb-qtext{font-weight:600;margin-bottom:8px}
+.hb-opt{display:block;padding:8px 12px;margin:6px 0;border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.12s;user-select:none}
+.hb-opt:hover{border-color:var(--brand)}
+.hb-opt.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,transparent)}
+.hb-opt.correct{border-color:var(--practice);background:var(--practice-bg)}
+.hb-opt.wrong{border-color:var(--warn);background:var(--warn-bg)}
+.hb-opt input{margin-right:8px;pointer-events:none}
+.hb-explain{display:none;margin-top:8px;font-size:14px;color:var(--ink-soft);border-left:3px solid var(--brand);padding-left:10px}
+.hb-explain.show{display:block}
+.hb-quiz-btn,.hb-fc-ctrl button,.hb-widget button{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px;font-family:inherit}
+.hb-fc-ctrl button{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:6px 14px}
+.hb-quiz-result{margin-top:12px;font-weight:700;color:var(--brand)}
+.hb-fc{perspective:1000px;height:170px;margin:14px 0;cursor:pointer}
+.hb-fc-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.hb-fc.flip .hb-fc-inner{transform:rotateY(180deg)}
+.hb-fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:15px;line-height:1.5}
+.hb-fc-back{transform:rotateY(180deg);background:var(--theory-bg)}
+.hb-fc-ctrl{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:8px;font-size:14px;color:var(--ink-soft)}
+.hb-fc-hint{text-align:center;font-size:12px;color:var(--ink-soft);margin-top:4px}
+.hb-widget label{display:block;font-size:13px;color:var(--ink-soft);margin:10px 0 4px}
+.hb-widget input[type=number],.hb-widget input[type=text],.hb-widget select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
+.hb-widget .hb-out{margin-top:12px;font-size:15px;line-height:1.8}
+.hb-widget .hb-out b{color:var(--brand)}
+.hb-progress-pill{position:fixed;bottom:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.12);text-decoration:none}
+@media print{.hb-progress-pill{display:none}}
+</style>
+<script id="hb-course-js">
+(function(){
+  var KEY='hb-progress';
+  var P={
+    get:function(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}},
+    set:function(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}},
+    mark:function(ch,patch){var o=P.get();o[ch]=Object.assign({},o[ch]||{},patch);P.set(o);}
+  };
+  window.HBcourse={
+    progress:P,
+    TOTAL:16,
+    renderQuiz:function(id,questions,chapter){
+      var el=document.getElementById(id); if(!el) return;
+      var h='<div class="hb-quiz">';
+      questions.forEach(function(q,i){
+        h+='<div class="hb-q"><div class="hb-qtext">'+(i+1)+'. '+q.q+'</div>';
+        q.opts.forEach(function(o,j){ h+='<label class="hb-opt" data-q="'+i+'" data-o="'+j+'"><input type="radio" name="'+id+'-'+i+'">'+o+'</label>'; });
+        h+='<div class="hb-explain" data-i="'+i+'">'+(q.explain||'')+'</div></div>';
+      });
+      h+='<button class="hb-quiz-btn">提交</button><div class="hb-quiz-result"></div></div>';
+      el.innerHTML=h;
+      el.querySelectorAll('.hb-opt').forEach(function(l){ l.addEventListener('click',function(){
+        var qi=l.getAttribute('data-q');
+        el.querySelectorAll('.hb-opt[data-q="'+qi+'"]').forEach(function(x){x.classList.remove('sel')});
+        l.classList.add('sel'); var r=l.querySelector('input'); if(r) r.checked=true;
+      });});
+      el.querySelector('.hb-quiz-btn').addEventListener('click',function(){
+        var score=0;
+        questions.forEach(function(q,i){
+          el.querySelectorAll('.hb-opt[data-q="'+i+'"]').forEach(function(x){x.classList.remove('correct','wrong')});
+          var right=el.querySelector('.hb-opt[data-q="'+i+'"][data-o="'+q.answer+'"]'); if(right) right.classList.add('correct');
+          var sel=el.querySelector('.hb-opt[data-q="'+i+'"].sel');
+          if(sel){ if((+sel.getAttribute('data-o'))===q.answer){score++;} else {sel.classList.add('wrong');} }
+          var ex=el.querySelector('.hb-explain[data-i="'+i+'"]'); if(ex) ex.classList.add('show');
+        });
+        el.querySelector('.hb-quiz-result').textContent='得分 '+score+' / '+questions.length+(score===questions.length?'  🎉 满分!':'');
+        P.mark(chapter,{quiz:{score:score,total:questions.length}}); HBcourse.updatePill();
+      });
+    },
+    renderFlashcards:function(id,cards,chapter){
+      var el=document.getElementById(id); if(!el) return; var idx=0;
+      el.innerHTML='<div class="hb-fc"><div class="hb-fc-inner"><div class="hb-fc-face hb-fc-front"></div><div class="hb-fc-face hb-fc-back"></div></div></div><div class="hb-fc-ctrl"><button class="hb-prev">‹ 上一张</button><span class="hb-fc-n"></span><button class="hb-next">下一张 ›</button></div><div class="hb-fc-hint">点卡片翻面</div>';
+      var fc=el.querySelector('.hb-fc'),f=el.querySelector('.hb-fc-front'),b=el.querySelector('.hb-fc-back'),n=el.querySelector('.hb-fc-n');
+      function show(){fc.classList.remove('flip');f.textContent=cards[idx].front;b.textContent=cards[idx].back;n.textContent=(idx+1)+' / '+cards.length;}
+      fc.addEventListener('click',function(){fc.classList.toggle('flip');});
+      el.querySelector('.hb-prev').addEventListener('click',function(){idx=(idx-1+cards.length)%cards.length;show();});
+      el.querySelector('.hb-next').addEventListener('click',function(){idx=(idx+1)%cards.length;show();P.mark(chapter,{cards:cards.length});});
+      show();
+    },
+    markRead:function(ch){P.mark(ch,{read:true});HBcourse.updatePill();},
+    updatePill:function(){var o=P.get();var done=0;for(var k in o){if(o[k]&&o[k].read)done++;}var pill=document.querySelector('.hb-progress-pill');if(pill){pill.textContent='📚 学习进度 '+done+'/'+HBcourse.TOTAL+' 章';pill.href='../index.html';}}
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    var ch=document.body.getAttribute('data-chapter'); if(!ch) return;
+    var pill=document.createElement('a'); pill.className='hb-progress-pill'; pill.href='../index.html'; document.body.appendChild(pill); HBcourse.updatePill();
+    var marked=false; function mk(){if(marked)return;marked=true;HBcourse.markRead(ch);}
+    setTimeout(mk,25000);
+    window.addEventListener('scroll',function(){if(window.scrollY+window.innerHeight>document.body.scrollHeight-240)mk();});
+  });
+})();
+</script>
+<script>
+HBcourse.renderQuiz('quiz05', [
+  {q:'分贝(dB)的数学定义是什么?', opts:['两个功率之比取以 10 为底的对数、再乘以 10','功率本身取以 10 为底的对数','两个功率直接相减','功率除以 1 毫瓦'], answer:0, explain:'dB = 10·log10(P1/P2),量的是两个功率的比值,本身不带单位。第 4 项(除以 1mW)其实是 dBm 的定义,不是 dB——这也是这一章要先讲透的关键区分。'},
+  {q:'dBm 这个单位把参考功率钉在多少上?', opts:['1 瓦(1W)','1 毫瓦(1mW)','1 微瓦(1μW)','没有固定参考,随场景变化'], answer:1, explain:'dBm = 10·log10(P/1mW),0dBm 正好等于 1mW。这是 dBm 区别于纯比值单位 dB 的地方——dBm 是钉死参考点之后的绝对功率单位,能直接读数。'},
+  {q:'下列关于分贝速算规则的说法,哪一项完全正确?', opts:['+3dB 约等于功率 ×2,+10dB 精确等于功率 ×10','+3dB 精确等于功率 ×3,+10dB 约等于功率 ×10','+3dB 约等于功率 ×2,+10dB 约等于功率 ×100','+3dB 约等于功率 ×2,+10dB 约等于功率 ×20'], answer:0, explain:'10·log10(2)≈3.01,所以 +3dB≈×2(工程上直接当 2 用);10·log10(10)=10,不多不少,+10dB=×10 是精确值。组合起来还能心算 +13dB≈×20、+20dB=×100。'},
+  {q:'按自由空间路径损耗(FSPL)公式,发射与接收距离变为原来的 10 倍,路径损耗大约增加多少?', opts:['+3dB','+6dB','+10dB','+20dB'], answer:3, explain:'FSPL(dB)=20·log10(d)+20·log10(f)+常数,距离前面的系数是 20 而不是 10——因为功率损耗正比于距离的平方。距离 ×10 时 20·log10(10)=20,路径损耗多 +20dB,这正是"距离每变 10 倍、损耗多 20dB"这条经验法则的来历。'},
+  {q:'某 AP 的发射功率是 20dBm,天线增益是 3dBi,它的 EIRP 是多少?', opts:['17dBm','20dBm','23dBm','60dBm'], answer:2, explain:'EIRP(dBm) = 发射功率 Pt(dBm) + 天线增益 Gt(dBi) = 20+3 = 23dBm。各国无线电法规真正限制的正是这个 EIRP,而不是芯片裸发射功率。顺带一提:本章实测 AP 在 4.4 米外测到的 RSSI 约 −31dBm,对照分级表正落在"极好"一档。'}
+], '05');
+HBcourse.renderFlashcards('fc05', [
+  {front:'dB 的定义?', back:'10·log10(P1/P2)——两个功率之比的对数再乘以 10,本身无单位。'},
+  {front:'dBm 的参考点?', back:'1 毫瓦(1mW)。0dBm=1mW,10dBm=10mW,20dBm=100mW。'},
+  {front:'+3dB ≈ 多少倍?', back:'≈ ×2(精确值 ×1.995,工程上直接当 2 用)。'},
+  {front:'+10dB = 多少倍?', back:'= ×10(精确值,10·log10(10)=10)。'},
+  {front:'FSPL 公式(距离用 km、频率用 GHz)?', back:'FSPL(dB) = 20·log10(d_km) + 20·log10(f_GHz) + 92.45'},
+  {front:'EIRP 怎么算?', back:'EIRP(dBm) = 发射功率 Pt(dBm) + 天线增益 Gt(dBi)。'},
+  {front:'RSSI ≥ −50dBm 大致属于哪一档?', back:'极好(Excellent)——本章例子里实测的 −31dBm 就落在这一档。'},
+  {front:'为什么无线信号强度要用 dBm,不直接写瓦特?', back:'发射端(上百毫瓦)到接收端(几十亿分之一瓦)悬殊太大,直接写瓦特要么一长串 0、要么科学计数法;对数刻度把跨度压缩成好读好算的小数字,级联链路的增益/损耗还能直接相加。'}
+], '05');
+</script>
 </body>
 </html>

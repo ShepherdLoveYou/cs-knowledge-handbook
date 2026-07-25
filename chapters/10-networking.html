@@ -116,8 +116,9 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
 .steps>li::before{content:counter(step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;line-height:26px;text-align:center}
 .steps>li>strong{color:var(--brand-2)}
 </style>
+<script src="../assets/vendor/p5.min.js"></script>
 </head>
-<body>
+<body data-chapter="10">
 <button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
 
 <header class="hero">
@@ -492,6 +493,36 @@ Test-NetConnection example.com -Port 443        # L4:目标端口是否可达(Po
     <p>分层的本质是<strong>接口隔离、各层可独立演化</strong>:OSI 七层是理论坐标系,TCP/IP 五层(教材 / 408 口径)是工程实现,二者对应关系明确、只是颗粒度不同。网络层靠 <strong>IP 地址 + 子网掩码</strong>划分网段,靠<strong>路由表 + 最长前缀匹配</strong>找路,靠 <strong>NAT</strong> 让私网地址能上公网。传输层里 <strong>TCP</strong> 用三次握手换可靠交付,<strong>UDP</strong> 不握手换速度和低开销。链路层的<strong>交换机</strong>认 MAC 在同一网段内转发,<strong>路由器</strong>认 IP 能跨网段转发。一次网页请求,实际是 <strong>DHCP → ARP → DNS → NAT → TCP 三次握手 → HTTP/TLS</strong> 一整条链路——本手册 Part I 里旁路由(<a href="02-router-bypass.html">02</a>)、DNS(<a href="03-dns-adblock.html">03</a>)、WiFi(<a href="04-wifi-radio.html">04</a>)、dBm(<a href="05-dbm-signal.html">05</a>)、SMB(<a href="06-smb-fileshare.html">06</a>)的实战操作,都是这条链路上的具体节点。往下分别对应<a href="11-os.html">11 操作系统</a>(网卡中断怎么被内核处理)和<a href="14-signals-systems.html">14 信号与系统</a>(电磁波怎么被调制成比特)。</p>
   </div>
 
+  <h2 class="hb-course-h"><span class="hb-tag">互动</span>动手练一练</h2>
+  <p class="lead">把前面讲的子网计算、三次握手变成能亲手拨一拨的控件,最后用自测题和闪卡巩固记忆。</p>
+
+  <h3>CIDR 子网计算器</h3>
+  <div class="hb-widget">
+    <label for="cidrIp">IPv4 地址</label>
+    <input type="text" id="cidrIp" value="192.168.1.2" placeholder="如 192.168.1.2" autocomplete="off">
+    <label for="cidrPrefix">前缀长度 CIDR(0–32)</label>
+    <input type="number" id="cidrPrefix" value="24" min="0" max="32" step="1">
+    <div class="hb-out" id="cidrOut"></div>
+  </div>
+
+  <h3>TCP 三次握手动画</h3>
+  <div class="hb-widget">
+    <div id="p5tcp" style="width:100%"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
+      <button type="button" id="tcpNext">下一步</button>
+      <button type="button" id="tcpPlay">播放</button>
+      <button type="button" id="tcpReset">重置</button>
+      <span id="tcpStatus" style="font-size:13px;color:var(--ink-soft)">状态:CLOSED / LISTEN</span>
+    </div>
+    <div class="hb-out" id="tcpDesc">点击「下一步」或「播放」,观察 TCP 三次握手的完整过程。</div>
+  </div>
+
+  <h3>自测题</h3>
+  <div id="quiz10"></div>
+
+  <h3>闪卡复习</h3>
+  <div id="fc10"></div>
+
   <div class="foot">
     <div class="foot-nav">
       <a href="09-secureboot-drivers.html">← 上一章:09 固件安全与内核驱动</a>
@@ -513,5 +544,332 @@ Test-NetConnection example.com -Port 443        # L4:目标端口是否可达(Po
     </div>
   </div>
 </div>
+<style id="hb-course-css">
+.hb-course-h{display:flex;align-items:center;gap:10px;margin:34px 0 6px}
+.hb-course-h .hb-tag{font-size:12px;font-weight:700;letter-spacing:.05em;color:#fff;background:var(--accent);border-radius:20px;padding:3px 12px}
+.hb-quiz,.hb-widget{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.hb-q{margin:14px 0;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.hb-q:last-of-type{border-bottom:none;padding-bottom:0}
+.hb-qtext{font-weight:600;margin-bottom:8px}
+.hb-opt{display:block;padding:8px 12px;margin:6px 0;border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.12s;user-select:none}
+.hb-opt:hover{border-color:var(--brand)}
+.hb-opt.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,transparent)}
+.hb-opt.correct{border-color:var(--practice);background:var(--practice-bg)}
+.hb-opt.wrong{border-color:var(--warn);background:var(--warn-bg)}
+.hb-opt input{margin-right:8px;pointer-events:none}
+.hb-explain{display:none;margin-top:8px;font-size:14px;color:var(--ink-soft);border-left:3px solid var(--brand);padding-left:10px}
+.hb-explain.show{display:block}
+.hb-quiz-btn,.hb-fc-ctrl button,.hb-widget button{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px;font-family:inherit}
+.hb-fc-ctrl button{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:6px 14px}
+.hb-quiz-result{margin-top:12px;font-weight:700;color:var(--brand)}
+.hb-fc{perspective:1000px;height:170px;margin:14px 0;cursor:pointer}
+.hb-fc-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.hb-fc.flip .hb-fc-inner{transform:rotateY(180deg)}
+.hb-fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:15px;line-height:1.5}
+.hb-fc-back{transform:rotateY(180deg);background:var(--theory-bg)}
+.hb-fc-ctrl{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:8px;font-size:14px;color:var(--ink-soft)}
+.hb-fc-hint{text-align:center;font-size:12px;color:var(--ink-soft);margin-top:4px}
+.hb-widget label{display:block;font-size:13px;color:var(--ink-soft);margin:10px 0 4px}
+.hb-widget input[type=number],.hb-widget input[type=text],.hb-widget select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
+.hb-widget .hb-out{margin-top:12px;font-size:15px;line-height:1.8}
+.hb-widget .hb-out b{color:var(--brand)}
+.hb-progress-pill{position:fixed;bottom:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.12);text-decoration:none}
+@media print{.hb-progress-pill{display:none}}
+</style>
+<script id="hb-course-js">
+(function(){
+  var KEY='hb-progress';
+  var P={
+    get:function(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}},
+    set:function(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}},
+    mark:function(ch,patch){var o=P.get();o[ch]=Object.assign({},o[ch]||{},patch);P.set(o);}
+  };
+  window.HBcourse={
+    progress:P,
+    TOTAL:16,
+    renderQuiz:function(id,questions,chapter){
+      var el=document.getElementById(id); if(!el) return;
+      var h='<div class="hb-quiz">';
+      questions.forEach(function(q,i){
+        h+='<div class="hb-q"><div class="hb-qtext">'+(i+1)+'. '+q.q+'</div>';
+        q.opts.forEach(function(o,j){ h+='<label class="hb-opt" data-q="'+i+'" data-o="'+j+'"><input type="radio" name="'+id+'-'+i+'">'+o+'</label>'; });
+        h+='<div class="hb-explain" data-i="'+i+'">'+(q.explain||'')+'</div></div>';
+      });
+      h+='<button class="hb-quiz-btn">提交</button><div class="hb-quiz-result"></div></div>';
+      el.innerHTML=h;
+      el.querySelectorAll('.hb-opt').forEach(function(l){ l.addEventListener('click',function(){
+        var qi=l.getAttribute('data-q');
+        el.querySelectorAll('.hb-opt[data-q="'+qi+'"]').forEach(function(x){x.classList.remove('sel')});
+        l.classList.add('sel'); var r=l.querySelector('input'); if(r) r.checked=true;
+      });});
+      el.querySelector('.hb-quiz-btn').addEventListener('click',function(){
+        var score=0;
+        questions.forEach(function(q,i){
+          el.querySelectorAll('.hb-opt[data-q="'+i+'"]').forEach(function(x){x.classList.remove('correct','wrong')});
+          var right=el.querySelector('.hb-opt[data-q="'+i+'"][data-o="'+q.answer+'"]'); if(right) right.classList.add('correct');
+          var sel=el.querySelector('.hb-opt[data-q="'+i+'"].sel');
+          if(sel){ if((+sel.getAttribute('data-o'))===q.answer){score++;} else {sel.classList.add('wrong');} }
+          var ex=el.querySelector('.hb-explain[data-i="'+i+'"]'); if(ex) ex.classList.add('show');
+        });
+        el.querySelector('.hb-quiz-result').textContent='得分 '+score+' / '+questions.length+(score===questions.length?'  🎉 满分!':'');
+        P.mark(chapter,{quiz:{score:score,total:questions.length}}); HBcourse.updatePill();
+      });
+    },
+    renderFlashcards:function(id,cards,chapter){
+      var el=document.getElementById(id); if(!el) return; var idx=0;
+      el.innerHTML='<div class="hb-fc"><div class="hb-fc-inner"><div class="hb-fc-face hb-fc-front"></div><div class="hb-fc-face hb-fc-back"></div></div></div><div class="hb-fc-ctrl"><button class="hb-prev">‹ 上一张</button><span class="hb-fc-n"></span><button class="hb-next">下一张 ›</button></div><div class="hb-fc-hint">点卡片翻面</div>';
+      var fc=el.querySelector('.hb-fc'),f=el.querySelector('.hb-fc-front'),b=el.querySelector('.hb-fc-back'),n=el.querySelector('.hb-fc-n');
+      function show(){fc.classList.remove('flip');f.textContent=cards[idx].front;b.textContent=cards[idx].back;n.textContent=(idx+1)+' / '+cards.length;}
+      fc.addEventListener('click',function(){fc.classList.toggle('flip');});
+      el.querySelector('.hb-prev').addEventListener('click',function(){idx=(idx-1+cards.length)%cards.length;show();});
+      el.querySelector('.hb-next').addEventListener('click',function(){idx=(idx+1)%cards.length;show();P.mark(chapter,{cards:cards.length});});
+      show();
+    },
+    markRead:function(ch){P.mark(ch,{read:true});HBcourse.updatePill();},
+    updatePill:function(){var o=P.get();var done=0;for(var k in o){if(o[k]&&o[k].read)done++;}var pill=document.querySelector('.hb-progress-pill');if(pill){pill.textContent='📚 学习进度 '+done+'/'+HBcourse.TOTAL+' 章';pill.href='../index.html';}}
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    var ch=document.body.getAttribute('data-chapter'); if(!ch) return;
+    var pill=document.createElement('a'); pill.className='hb-progress-pill'; pill.href='../index.html'; document.body.appendChild(pill); HBcourse.updatePill();
+    var marked=false; function mk(){if(marked)return;marked=true;HBcourse.markRead(ch);}
+    setTimeout(mk,25000);
+    window.addEventListener('scroll',function(){if(window.scrollY+window.innerHeight>document.body.scrollHeight-240)mk();});
+  });
+})();
+</script>
+<script>
+/* ---- 第 10 章 · 互动控件初始化(须放在 hb-course-js 引擎与 p5 库脚本之后) ---- */
+
+/* A1. CIDR 子网计算器 —— 纯 JS,无需 p5 */
+(function(){
+  var ipEl = document.getElementById('cidrIp');
+  var pfEl = document.getElementById('cidrPrefix');
+  var outEl = document.getElementById('cidrOut');
+  if(!ipEl || !pfEl || !outEl) return;
+
+  function ipToInt(ip){
+    if(typeof ip !== 'string') return null;
+    var parts = ip.trim().split('.');
+    if(parts.length !== 4) return null;
+    var n = [];
+    for(var i=0;i<4;i++){
+      if(!/^\d{1,3}$/.test(parts[i])) return null;
+      var v = parseInt(parts[i],10);
+      if(v<0 || v>255) return null;
+      n.push(v);
+    }
+    return ((n[0]<<24) | (n[1]<<16) | (n[2]<<8) | n[3]) >>> 0;
+  }
+  function intToIp(x){
+    x = x >>> 0;
+    return [(x>>>24)&255,(x>>>16)&255,(x>>>8)&255,x&255].join('.');
+  }
+  function prefixToMask(prefix){
+    if(prefix<=0) return 0;
+    if(prefix>=32) return 0xFFFFFFFF >>> 0;
+    return (0xFFFFFFFF << (32-prefix)) >>> 0;
+  }
+
+  function render(){
+    var ipInt = ipToInt(ipEl.value);
+    var prefix = parseInt(pfEl.value,10);
+
+    if(ipInt===null){
+      outEl.innerHTML = '<span style="color:var(--warn)">⚠️ IPv4 地址格式不正确,须是 4 段 0–255 的点分十进制,如 192.168.1.2</span>';
+      return;
+    }
+    if(isNaN(prefix) || prefix<0 || prefix>32){
+      outEl.innerHTML = '<span style="color:var(--warn)">⚠️ 前缀长度须是 0–32 的整数</span>';
+      return;
+    }
+
+    var mask = prefixToMask(prefix);
+    var network = (ipInt & mask) >>> 0;
+    var broadcast = (network | (~mask >>> 0)) >>> 0;
+    var hostBits = 32 - prefix;
+    var usable, first, last, note = '';
+
+    if(prefix===32){
+      usable = 1; first = network; last = network;
+      note = '/32 是单一主机路由,可用地址即该地址本身。';
+    } else if(prefix===31){
+      usable = 2; first = network; last = broadcast;
+      note = '/31 按 RFC 3021 用于点对点链路,两个地址都可用,没有网络/广播地址之分。';
+    } else {
+      usable = Math.pow(2,hostBits) - 2;
+      first = (network+1) >>> 0;
+      last = (broadcast-1) >>> 0;
+    }
+
+    outEl.innerHTML =
+      '子网掩码:<b>'+intToIp(mask)+'</b><br>'+
+      '网络地址:<b>'+intToIp(network)+'</b><br>'+
+      '广播地址:<b>'+intToIp(broadcast)+'</b><br>'+
+      '可用主机数:<b>'+usable+'</b><br>'+
+      '地址范围:<b>'+intToIp(first)+'</b> ~ <b>'+intToIp(last)+'</b>'+
+      (note ? '<br><span style="font-size:12px;color:var(--ink-soft)">'+note+'</span>' : '');
+  }
+
+  ipEl.addEventListener('input', render);
+  pfEl.addEventListener('input', render);
+  render();
+})();
+
+/* A2. TCP 三次握手动画 —— p5.js 实例模式,严禁全局模式 */
+(function(){
+  var container = document.getElementById('p5tcp');
+  if(!container || typeof p5 === 'undefined') return;
+
+  function cssVar(name){
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+    return (v && v.trim()) || '#888888';
+  }
+
+  var STEPS = [
+    null,
+    {dir:1,  label:'① SYN',      detail:'seq=1000',          desc:'① 客户端 → 服务器:SYN,seq=1000 —— 客户端请求建立连接,携带初始序号 x=1000。'},
+    {dir:-1, label:'② SYN, ACK', detail:'seq=5000 ack=1001', desc:'② 服务器 → 客户端:SYN+ACK,seq=5000,ack=1001 —— 服务器确认收到(ack=x+1),同时携带自己的初始序号 y=5000。'},
+    {dir:1,  label:'③ ACK',      detail:'ack=5001',          desc:'③ 客户端 → 服务器:ACK,ack=5001 —— 客户端确认(ack=y+1),连接进入 ESTABLISHED,可以开始传输应用层数据。'}
+  ];
+
+  var currentStep = 0, animating = false, animStartTime = 0, playing = false, playTimer = null;
+  var ANIM_MS = 1200; /* 单段飞行动画时长(毫秒,按真实时钟计,不依赖 draw() 实际帧率) */
+
+  function updateStatus(){
+    var statusEl = document.getElementById('tcpStatus');
+    var descEl = document.getElementById('tcpDesc');
+    if(!statusEl || !descEl) return;
+    if(currentStep===0){
+      statusEl.textContent = '状态:CLOSED / LISTEN';
+      descEl.textContent = '点击「下一步」或「播放」,观察 TCP 三次握手的完整过程。';
+    } else {
+      statusEl.textContent = currentStep<3 ? ('进行中('+currentStep+'/3)') : '已完成:ESTABLISHED';
+      descEl.innerHTML = STEPS[currentStep].desc;
+    }
+  }
+
+  function scheduleNext(){
+    playTimer = setTimeout(function(){
+      playTimer = null;
+      if(playing) doNext();
+    }, 700);
+  }
+  function doNext(){
+    if(animating || currentStep>=3) return;
+    animating = true; animStartTime = performance.now();
+  }
+  function doReset(){
+    if(playTimer){ clearTimeout(playTimer); playTimer = null; }
+    currentStep = 0; animating = false; animStartTime = 0; playing = false;
+    updateStatus();
+  }
+  function doPlay(){
+    if(playTimer){ clearTimeout(playTimer); playTimer = null; }
+    if(currentStep>=3) doReset();
+    playing = true;
+    if(!animating) doNext();
+  }
+
+  document.getElementById('tcpNext').addEventListener('click', function(){
+    if(playTimer){ clearTimeout(playTimer); playTimer = null; }
+    playing = false; doNext();
+  });
+  document.getElementById('tcpReset').addEventListener('click', doReset);
+  document.getElementById('tcpPlay').addEventListener('click', doPlay);
+
+  new p5(function(p){
+    p.setup = function(){
+      var w = container.offsetWidth || 640;
+      p.createCanvas(Math.max(320,w), 300);
+      p.frameRate(30);
+      updateStatus();
+    };
+    p.windowResized = function(){
+      var w = container.offsetWidth || 640;
+      p.resizeCanvas(Math.max(320,w), 300);
+    };
+    p.draw = function(){
+      var W = p.width, H = p.height;
+      var bg = cssVar('--panel'), line = cssVar('--line'), ink = cssVar('--ink'),
+          inkSoft = cssVar('--ink-soft'), practice = cssVar('--practice'),
+          theory = cssVar('--theory'), brand = cssVar('--brand');
+
+      p.background(bg);
+      var leftX = W*0.2, rightX = W*0.8, topY = 56, botY = H-46;
+      var rowY = [0, topY+(botY-topY)*0.22, topY+(botY-topY)*0.52, topY+(botY-topY)*0.82];
+
+      p.stroke(line); p.strokeWeight(1);
+      p.line(leftX,topY,leftX,botY);
+      p.line(rightX,topY,rightX,botY);
+
+      p.noStroke(); p.textAlign(p.CENTER,p.CENTER);
+      p.textStyle(p.BOLD); p.textSize(14);
+      p.fill(practice); p.text('客户端 Client', leftX, 26);
+      p.fill(theory);   p.text('服务器 Server', rightX, 26);
+      p.textStyle(p.NORMAL); p.textSize(10.5);
+      var clientState = currentStep>=3 ? 'ESTABLISHED' : (currentStep>=1 ? 'SYN-SENT' : 'CLOSED');
+      var serverState = currentStep>=3 ? 'ESTABLISHED' : (currentStep>=1 ? 'SYN-RCVD' : 'LISTEN');
+      p.fill(inkSoft);
+      p.text(clientState, leftX, 44);
+      p.text(serverState, rightX, 44);
+
+      p.textSize(11);
+      var i, s, y;
+      for(i=1;i<=currentStep;i++){
+        s = STEPS[i]; y = rowY[i];
+        p.stroke(inkSoft); p.strokeWeight(1);
+        if(s.dir===1) p.line(leftX,y,rightX,y); else p.line(rightX,y,leftX,y);
+        p.noStroke(); p.fill(ink);
+        p.text(s.label+'  '+s.detail, W/2, y-14);
+      }
+
+      if(animating){
+        var idx = currentStep+1;
+        s = STEPS[idx]; y = rowY[idx];
+        var t = p.constrain((performance.now()-animStartTime)/ANIM_MS, 0, 1);
+        var x = s.dir===1 ? p.lerp(leftX,rightX,t) : p.lerp(rightX,leftX,t);
+        p.stroke(brand); p.strokeWeight(2);
+        if(s.dir===1) p.line(leftX,y,x,y); else p.line(rightX,y,x,y);
+        p.noStroke(); p.fill(brand);
+        p.ellipse(x,y,13,13);
+        p.fill(ink); p.textSize(11);
+        p.text(s.label+'  '+s.detail, W/2, y-14);
+
+        if(t>=1){
+          animating = false; currentStep = idx; updateStatus();
+          if(playing){ if(currentStep<3){ scheduleNext(); } else { playing=false; } }
+        }
+      }
+
+      if(currentStep>=3 && !animating){
+        p.noStroke(); p.fill(practice); p.textStyle(p.BOLD); p.textSize(13);
+        p.text('✓ ESTABLISHED —— 三次握手完成', W/2, botY+24);
+        p.textStyle(p.NORMAL);
+      }
+    };
+  }, container);
+})();
+
+/* B. 自测题 + C. 闪卡 —— 调用 hb-course-js 引擎提供的渲染器 */
+var HB10_QUESTIONS = [
+  {q:'教材 / 408 统考采用的 TCP/IP 五层模型,自上而下的正确顺序是?', opts:['应用层→传输层→网络层→链路层→物理层','应用层→网络层→传输层→链路层→物理层','物理层→链路层→网络层→传输层→应用层(自下而上)','应用层→表示层→会话层→传输层→网络层'], answer:0, explain:'五层口径自上而下为:应用层、传输层、网络层、链路层、物理层。选项 D 其实是 OSI 七层最上面几层,不是五层口径。'},
+  {q:'关于 TCP 和 UDP 的区别,下列描述正确的是?', opts:['TCP 无连接,UDP 面向连接','TCP 头部固定 8 字节,UDP 最少 20 字节','TCP 提供确认重传和按序交付,UDP 尽力而为、不保证到达顺序','UDP 有拥塞控制机制,TCP 没有'], answer:2, explain:'TCP 面向连接、可靠交付、头部至少 20 字节,并有滑动窗口和拥塞控制;UDP 无连接、尽力而为、头部固定 8 字节,一般不做拥塞控制。'},
+  {q:'TCP 三次握手中,若客户端第一步 SYN 报文的 seq=x,服务器第二步 SYN+ACK 报文里的 ack 字段应该是?', opts:['ack = x','ack = x + 1','ack = x − 1','ack 由服务器随意指定,与 x 无关'], answer:1, explain:'确认号 ack 的语义是"期望收到的下一个字节序号",服务器收到 seq=x 后要回 ack=x+1。'},
+  {q:'192.168.1.2/24 这个网段里,除去网络地址和广播地址,可用主机数是多少?', opts:['256','255','254','128'], answer:2, explain:'/24 的主机位是 32−24=8 位,可用主机数 = 2^8 − 2 = 254,减去网络地址 192.168.1.0 和广播地址 192.168.1.255。'},
+  {q:'关于交换机(switch)和路由器(router)的转发方式,下列说法正确的是?', opts:['交换机依据 IP 地址转发,路由器依据 MAC 地址转发','交换机能跨广播域转发,路由器不能','交换机依据 MAC 地址在同一网段内转发,路由器依据 IP 地址可以跨网段转发','两者转发依据完全相同,只是使用场景不同'], answer:2, explain:'交换机是链路层设备,靠 MAC 地址表在同一广播域/网段内转发;路由器是网络层设备,靠 IP 地址和路由表转发,能跨网段,自身就是广播域边界。'}
+];
+var HB10_CARDS = [
+  {front:'封装 Encapsulation', back:'每层往下传数据时,在前面加上本层自己的头部(信封);到对端后从下往上逐层拆开叫「解封装」。'},
+  {front:'OSI 七层 vs TCP/IP 五层', back:'OSI 是 ISO/IEC 7498-1 定义的理论参照系(7 层);TCP/IP 是 IETF 工程实现,RFC 1122/1123 官方定义为 4 层,教材 / 408 口径再把链路层拆出物理层,凑成 5 层。'},
+  {front:'各层 PDU 名称', back:'应用层叫「数据 Data」;传输层叫「报文段/数据报 Segment」;网络层叫「分组/包 Packet」;链路层叫「帧 Frame」;物理层叫「比特 Bits」。'},
+  {front:'TCP 三次握手', back:'① Client→Server SYN,seq=x  ② Server→Client SYN+ACK,seq=y,ack=x+1  ③ Client→Server ACK,ack=y+1 —— 完成后进入 ESTABLISHED 才能传数据。'},
+  {front:'最长前缀匹配', back:'路由器同时匹配多条路由规则时,选前缀最长(掩码位数最多)、范围最精确的那一条转发。'},
+  {front:'NAT 的本质', back:'网络地址转换,设计初衷是缓解 IPv4 地址不够用,把私网地址换成公网地址转发;不是安全机制,只是顺带让外部无法主动对内网发起连接。'},
+  {front:'CSMA/CD vs CSMA/CA', back:'以太网用 CSMA/CD(碰撞检测,边发边听);WiFi 用 CSMA/CA(碰撞避免)——无线网卡发射时听不到自己的接收信号,只能靠随机退避尽量避免碰撞。'},
+  {front:'RFC 1918 私有地址段', back:'10.0.0.0/8、172.16.0.0/12、192.168.0.0/16 三段地址不会被公网路由,可在内网随意重复使用,是家用路由器几乎都用 192.168.x.x 的原因。'}
+];
+HBcourse.renderQuiz('quiz10', HB10_QUESTIONS, '10');
+HBcourse.renderFlashcards('fc10', HB10_CARDS, '10');
+</script>
 </body>
 </html>

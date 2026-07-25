@@ -116,8 +116,9 @@ details summary::-webkit-details-marker{color:var(--brand-2)}
 .steps>li::before{content:counter(step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;line-height:26px;text-align:center}
 .steps>li>strong{color:var(--brand-2)}
 </style>
+<script src="../assets/vendor/p5.min.js"></script>
 </head>
-<body>
+<body data-chapter="13">
 <button class="tgl" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">🌓 主题</button>
 
 <header class="hero">
@@ -658,6 +659,19 @@ hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0  
     <p>复杂度(Big-O)量的是<strong>增长趋势</strong>、不是秒表读数,同一渐进复杂度下常数因子仍能差出数倍(<a href="12-comparch.html">12 章</a>缓存局部性)。<strong>数组</strong>下标访问 O(1)、插入 O(n);<strong>链表</strong>正好反过来。<strong>树</strong>靠"每步排除一半"换来 O(log n),但不平衡会退化成 O(n)(<a href="07-filesystems.html">07 章</a>文件系统靠 B 树规避)。<strong>堆</strong>只求"当前最值",O(log n) 增删换 O(1) 取值(<a href="11-os.html">11 章</a>调度器的原型)。<strong>图</strong>放宽了"只能一个父节点"的限制,邻接表 + BFS/DFS 做到 O(V+E)(<a href="16-devops-selfhost.html">16 章</a> Git 的 DAG,<a href="10-networking.html">10 章</a>路由选路)。<strong>哈希表</strong>不比较、直接算,平均 O(1),代价是要管好负载因子和哈希函数质量(<a href="15-crypto-security.html">15 章</a>安全哈希是完全不同的另一套要求)。<strong>排序</strong>没有免费午餐:比较排序理论下限是 O(n log n),非比较排序能更快但要满足"值域已知且较小"这类前提。工程上最重要的技能不是背熟每种算法的实现,而是养成"看到嵌套循环就下意识估一下复杂度"的反射弧。</p>
   </div>
 
+  <h2 class="hb-course-h"><span class="hb-tag">互动</span>动手练一练</h2>
+  <p class="lead">前面把"数据怎么摆、步骤怎么走"讲了一遍理论,这里动手验证:亲眼看几种排序算法怎么一步步把一排乱柱子理出秩序,再用自测题和闪卡巩固本章的关键概念。</p>
+
+  <h3>排序算法可视化</h3>
+  <p>选一种算法,点「开始」看它逐步比较、交换,直到整排柱子全部变绿(已就位)。留意不同算法比较次数、交换次数的差异,以及标注的平均复杂度。</p>
+  <div id="p5sort" class="hb-widget" style="width:100%"></div>
+
+  <h3>自测题</h3>
+  <div id="quiz13"></div>
+
+  <h3>闪卡复习</h3>
+  <div id="fc13"></div>
+
   <div class="foot">
     <div class="foot-nav">
       <a href="12-comparch.html">← 上一章:12 计算机组成原理 + 数电基础</a>
@@ -678,5 +692,431 @@ hash("istoreos") = (105+115+116+111+114+101+111+115)     mod 8 = 888 mod 8 = 0  
     </div>
   </div>
 </div>
+<style id="hb-course-css">
+.hb-course-h{display:flex;align-items:center;gap:10px;margin:34px 0 6px}
+.hb-course-h .hb-tag{font-size:12px;font-weight:700;letter-spacing:.05em;color:#fff;background:var(--accent);border-radius:20px;padding:3px 12px}
+.hb-quiz,.hb-widget{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.hb-q{margin:14px 0;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.hb-q:last-of-type{border-bottom:none;padding-bottom:0}
+.hb-qtext{font-weight:600;margin-bottom:8px}
+.hb-opt{display:block;padding:8px 12px;margin:6px 0;border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.12s;user-select:none}
+.hb-opt:hover{border-color:var(--brand)}
+.hb-opt.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,transparent)}
+.hb-opt.correct{border-color:var(--practice);background:var(--practice-bg)}
+.hb-opt.wrong{border-color:var(--warn);background:var(--warn-bg)}
+.hb-opt input{margin-right:8px;pointer-events:none}
+.hb-explain{display:none;margin-top:8px;font-size:14px;color:var(--ink-soft);border-left:3px solid var(--brand);padding-left:10px}
+.hb-explain.show{display:block}
+.hb-quiz-btn,.hb-fc-ctrl button,.hb-widget button{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px;font-family:inherit}
+.hb-fc-ctrl button{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:6px 14px}
+.hb-quiz-result{margin-top:12px;font-weight:700;color:var(--brand)}
+.hb-fc{perspective:1000px;height:170px;margin:14px 0;cursor:pointer}
+.hb-fc-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.hb-fc.flip .hb-fc-inner{transform:rotateY(180deg)}
+.hb-fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:15px;line-height:1.5}
+.hb-fc-back{transform:rotateY(180deg);background:var(--theory-bg)}
+.hb-fc-ctrl{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:8px;font-size:14px;color:var(--ink-soft)}
+.hb-fc-hint{text-align:center;font-size:12px;color:var(--ink-soft);margin-top:4px}
+.hb-widget label{display:block;font-size:13px;color:var(--ink-soft);margin:10px 0 4px}
+.hb-widget input[type=number],.hb-widget input[type=text],.hb-widget select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
+.hb-widget .hb-out{margin-top:12px;font-size:15px;line-height:1.8}
+.hb-widget .hb-out b{color:var(--brand)}
+.hb-progress-pill{position:fixed;bottom:14px;right:14px;z-index:9;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.12);text-decoration:none}
+@media print{.hb-progress-pill{display:none}}
+</style>
+<script id="hb-course-js">
+(function(){
+  var KEY='hb-progress';
+  var P={
+    get:function(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}},
+    set:function(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}},
+    mark:function(ch,patch){var o=P.get();o[ch]=Object.assign({},o[ch]||{},patch);P.set(o);}
+  };
+  window.HBcourse={
+    progress:P,
+    TOTAL:16,
+    renderQuiz:function(id,questions,chapter){
+      var el=document.getElementById(id); if(!el) return;
+      var h='<div class="hb-quiz">';
+      questions.forEach(function(q,i){
+        h+='<div class="hb-q"><div class="hb-qtext">'+(i+1)+'. '+q.q+'</div>';
+        q.opts.forEach(function(o,j){ h+='<label class="hb-opt" data-q="'+i+'" data-o="'+j+'"><input type="radio" name="'+id+'-'+i+'">'+o+'</label>'; });
+        h+='<div class="hb-explain" data-i="'+i+'">'+(q.explain||'')+'</div></div>';
+      });
+      h+='<button class="hb-quiz-btn">提交</button><div class="hb-quiz-result"></div></div>';
+      el.innerHTML=h;
+      el.querySelectorAll('.hb-opt').forEach(function(l){ l.addEventListener('click',function(){
+        var qi=l.getAttribute('data-q');
+        el.querySelectorAll('.hb-opt[data-q="'+qi+'"]').forEach(function(x){x.classList.remove('sel')});
+        l.classList.add('sel'); var r=l.querySelector('input'); if(r) r.checked=true;
+      });});
+      el.querySelector('.hb-quiz-btn').addEventListener('click',function(){
+        var score=0;
+        questions.forEach(function(q,i){
+          el.querySelectorAll('.hb-opt[data-q="'+i+'"]').forEach(function(x){x.classList.remove('correct','wrong')});
+          var right=el.querySelector('.hb-opt[data-q="'+i+'"][data-o="'+q.answer+'"]'); if(right) right.classList.add('correct');
+          var sel=el.querySelector('.hb-opt[data-q="'+i+'"].sel');
+          if(sel){ if((+sel.getAttribute('data-o'))===q.answer){score++;} else {sel.classList.add('wrong');} }
+          var ex=el.querySelector('.hb-explain[data-i="'+i+'"]'); if(ex) ex.classList.add('show');
+        });
+        el.querySelector('.hb-quiz-result').textContent='得分 '+score+' / '+questions.length+(score===questions.length?'  🎉 满分!':'');
+        P.mark(chapter,{quiz:{score:score,total:questions.length}}); HBcourse.updatePill();
+      });
+    },
+    renderFlashcards:function(id,cards,chapter){
+      var el=document.getElementById(id); if(!el) return; var idx=0;
+      el.innerHTML='<div class="hb-fc"><div class="hb-fc-inner"><div class="hb-fc-face hb-fc-front"></div><div class="hb-fc-face hb-fc-back"></div></div></div><div class="hb-fc-ctrl"><button class="hb-prev">‹ 上一张</button><span class="hb-fc-n"></span><button class="hb-next">下一张 ›</button></div><div class="hb-fc-hint">点卡片翻面</div>';
+      var fc=el.querySelector('.hb-fc'),f=el.querySelector('.hb-fc-front'),b=el.querySelector('.hb-fc-back'),n=el.querySelector('.hb-fc-n');
+      function show(){fc.classList.remove('flip');f.textContent=cards[idx].front;b.textContent=cards[idx].back;n.textContent=(idx+1)+' / '+cards.length;}
+      fc.addEventListener('click',function(){fc.classList.toggle('flip');});
+      el.querySelector('.hb-prev').addEventListener('click',function(){idx=(idx-1+cards.length)%cards.length;show();});
+      el.querySelector('.hb-next').addEventListener('click',function(){idx=(idx+1)%cards.length;show();P.mark(chapter,{cards:cards.length});});
+      show();
+    },
+    markRead:function(ch){P.mark(ch,{read:true});HBcourse.updatePill();},
+    updatePill:function(){var o=P.get();var done=0;for(var k in o){if(o[k]&&o[k].read)done++;}var pill=document.querySelector('.hb-progress-pill');if(pill){pill.textContent='📚 学习进度 '+done+'/'+HBcourse.TOTAL+' 章';pill.href='../index.html';}}
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    var ch=document.body.getAttribute('data-chapter'); if(!ch) return;
+    var pill=document.createElement('a'); pill.className='hb-progress-pill'; pill.href='../index.html'; document.body.appendChild(pill); HBcourse.updatePill();
+    var marked=false; function mk(){if(marked)return;marked=true;HBcourse.markRead(ch);}
+    setTimeout(mk,25000);
+    window.addEventListener('scroll',function(){if(window.scrollY+window.innerHeight>document.body.scrollHeight-240)mk();});
+  });
+})();
+</script>
+<style id="ch13-sort-css">
+.hb-sort-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px}
+.hb-sort-controls select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:13px}
+.hb-sort-controls button{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;font-family:inherit}
+.hb-sort-controls button:hover{opacity:.88}
+.hb-sort-speedlabel{font-size:13px;color:var(--ink-soft)}
+.hb-sort-stats{font-size:14px;color:var(--ink);margin:10px 0;line-height:1.8}
+.hb-sort-badge{display:inline-block;font-size:12px;color:var(--ink-soft);border:1px solid var(--line);border-radius:20px;padding:1px 10px;margin-left:4px}
+.hb-sort-done{color:var(--practice);font-weight:700}
+.hb-sort-legend{font-size:12.5px;color:var(--ink-soft);margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.hb-sort-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+#p5sort canvas{display:block;border-radius:8px}
+</style>
+<script id="ch13-sort-js">
+(function(){
+
+  var QUESTIONS_13 = [
+    { q:'在一个已经排好序、长度为 n 的数组里做二分查找,最坏情况的时间复杂度是?', opts:['O(1)','O(log n)','O(n)','O(n²)'], answer:1,
+      explain:'二分查找每比较一次就排除一半候选,最坏情况约需 log₂n 次比较,即 O(log n)——正是本章开篇「100 万条记录、约 20 步定位」那个例子。' },
+    { q:'以下四种排序算法中,哪一种平均时间复杂度是 O(n log n),并且是稳定排序(相等元素的相对顺序排序前后不变)?', opts:['快速排序 Quicksort','选择排序 Selection Sort','归并排序 Merge Sort','堆排序 Heapsort'], answer:2,
+      explain:'快速排序平均 O(n log n) 但不稳定;选择排序是 O(n²);堆排序 O(n log n) 但也不稳定;只有归并排序同时满足平均 O(n log n) 且稳定,代价是需要 O(n) 额外空间。' },
+    { q:'把 1,2,3,4,5 按顺序依次插入一棵普通二叉搜索树(BST,不做自动平衡),查找操作的最坏时间复杂度会退化成?', opts:['仍是 O(log n)','O(n)','O(1)','O(n log n)'], answer:1,
+      explain:'有序数据依次插入会让 BST 只往一侧长成一条链,退化成链表,查找也跟着退化成 O(n)。数据库索引、文件系统目录因此改用 AVL 树/红黑树/B 树等自平衡结构;堆则靠维持"完全二叉树"的形状规避了同样的问题。' },
+    { q:'哈希表里,两个不同的 key 通过哈希函数算出了同一个坑位下标,这种情况叫什么?', opts:['溢出 overflow','冲突 collision','退化 degeneration','抖动 thrashing'], answer:1,
+      explain:'这叫冲突(collision)——坑位数量有限、key 可能无限,冲突是必然会发生的常态,不是运气差。常见解法是链地址法(每个坑位挂一条链表)和开放寻址法(按探测规则找下一个空位)。' },
+    { q:'程序出错时打印的调用栈(call stack),函数调用与返回遵循的是哪种规则?', opts:['先进先出 FIFO','后进先出 LIFO','随机顺序','按优先级从高到低'], answer:1,
+      explain:'调用栈是一个真实的栈(Stack):A 调用 B、B 调用 C,最后被调用的 C 最先返回、最先出现在栈顶——这就是后进先出(LIFO)。任务队列、打印队列这类先来先服务的场景用的才是队列(FIFO)。' }
+  ];
+
+  var CARDS_13 = [
+    { front:'O(1) / O(log n) / O(n) / O(n log n) / O(n²) 分别叫什么名字?', back:'常数 / 对数 / 线性 / 线性对数 / 平方——按这个顺序从快到慢,n 越大差距越悬殊。' },
+    { front:'数组和链表,"随机访问"和"插入一个元素"哪个更快?', back:'数组按下标随机访问 O(1),插入需要搬动后续元素 O(n);链表插入(已知位置)O(1),但访问要从头顺指针走 O(n)——两者优劣正好相反。' },
+    { front:'栈(Stack)和队列(Queue)的核心区别是什么?', back:'栈是后进先出 LIFO(像叠盘子,只从最上面进出);队列是先进先出 FIFO(像排队,先来的先服务)。核心操作都是 O(1)。' },
+    { front:'二叉搜索树(BST)的核心规则是什么?', back:'对任意节点,左子树所有值都比它小、右子树所有值都比它大——这条规则让查找能像二分查找一样每次排除一半,理想情况下是 O(log n)。' },
+    { front:'堆(heap)最擅长回答什么问题?取值 / 插入 / 删除的复杂度各是多少?', back:'最擅长回答"当前最大/最小是谁"。取最大/最小值 O(1),插入、删除最大/最小值都是 O(log n)——是优先级队列的标准实现。' },
+    { front:'图(graph)比树(tree)放宽了什么限制?', back:'树规定每个节点只能有一个父节点;图不做这个限制,一个节点能连向任意多个节点。Git 的合并提交(一个提交对应两个父提交)就是图突破树限制的真实例子。' },
+    { front:'哈希表凭什么能做到平均 O(1) 查找?', back:'不靠比较,靠哈希函数把 key 直接算成一个坑位下标、直接跳过去存取——只要哈希函数分布均匀、负载因子控制得当,平均查找耗时几乎不随数据量增长。' },
+    { front:'"比较排序"(靠两两比较大小的排序)理论上最快能到多少?', back:'O(n log n) 是比较排序的理论下限(有数学证明),归并排序、堆排序已摸到这条天花板;要更快需改用计数排序/基数排序等非比较排序,但要满足"值域已知且较小"的前提。' }
+  ];
+
+  var ALGO_INFO = {
+    bubble:    { label:'冒泡排序 Bubble Sort',    complexity:'平均 O(n²)' },
+    selection: { label:'选择排序 Selection Sort', complexity:'平均 O(n²)' },
+    insertion: { label:'插入排序 Insertion Sort', complexity:'平均 O(n²)' },
+    quick:     { label:'快速排序 Quicksort',      complexity:'平均 O(n log n)' }
+  };
+
+  function bubbleSteps(a){
+    return (function*(){
+      var n = a.length, i, j, t;
+      for (i = 0; i < n - 1; i++){
+        for (j = 0; j < n - 1 - i; j++){
+          yield { type:'compare', a:j, b:j+1 };
+          if (a[j] > a[j+1]){
+            t = a[j]; a[j] = a[j+1]; a[j+1] = t;
+            yield { type:'swap', a:j, b:j+1 };
+          }
+        }
+        yield { type:'settle', i:n-1-i };
+      }
+      yield { type:'settle', i:0 };
+    })();
+  }
+
+  function selectionSteps(a){
+    return (function*(){
+      var n = a.length, i, j, min, t;
+      for (i = 0; i < n - 1; i++){
+        min = i;
+        for (j = i + 1; j < n; j++){
+          yield { type:'compare', a:min, b:j };
+          if (a[j] < a[min]) min = j;
+        }
+        if (min !== i){
+          t = a[i]; a[i] = a[min]; a[min] = t;
+          yield { type:'swap', a:i, b:min };
+        }
+        yield { type:'settle', i:i };
+      }
+      yield { type:'settle', i:n-1 };
+    })();
+  }
+
+  function insertionSteps(a){
+    return (function*(){
+      var n = a.length, i, j, key;
+      for (i = 1; i < n; i++){
+        key = a[i];
+        j = i - 1;
+        while (j >= 0){
+          yield { type:'compare', a:j, b:j+1 };
+          if (a[j] > key){
+            a[j+1] = a[j];
+            yield { type:'shift', a:j, b:j+1 };
+            j--;
+          } else break;
+        }
+        a[j+1] = key;
+      }
+    })();
+  }
+
+  function quickSteps(a){
+    function* qs(lo, hi){
+      if (lo >= hi){
+        if (lo === hi) yield { type:'settle', i:lo };
+        return;
+      }
+      var pivot = a[hi], i = lo - 1, j, t;
+      for (j = lo; j < hi; j++){
+        yield { type:'pivotcompare', a:j, pivot:hi };
+        if (a[j] < pivot){
+          i++;
+          if (i !== j){
+            t = a[i]; a[i] = a[j]; a[j] = t;
+            yield { type:'swap', a:i, b:j };
+          }
+        }
+      }
+      t = a[i+1]; a[i+1] = a[hi]; a[hi] = t;
+      yield { type:'swap', a:i+1, b:hi };
+      yield { type:'settle', i:i+1 };
+      yield* qs(lo, i);
+      yield* qs(i+2, hi);
+    }
+    return qs(0, a.length - 1);
+  }
+
+  var GEN_MAKERS = { bubble:bubbleSteps, selection:selectionSteps, insertion:insertionSteps, quick:quickSteps };
+
+  new p5(function(p){
+    var container = document.getElementById('p5sort');
+    var H = 220;
+    var bars = [];
+    var original = [];
+    var settled = [];
+    var algo = 'bubble';
+    var gen = null;
+    var running = false;
+    var finished = false;
+    var compareCount = 0;
+    var swapCount = 0;
+    var highlight = null;
+    var frameAcc = 0;
+    var framesPerStep = 10;
+    var statsEl, algoSel, speedSlider, canvas;
+    var colBar, colCompare, colSwap, colPivot, colSettled, colBg;
+
+    function cssVar(name){
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+    function refreshColors(){
+      colBar = cssVar('--brand') || '#0a5ab1';
+      colCompare = cssVar('--key') || '#8a6d00';
+      colSwap = cssVar('--warn') || '#b1420a';
+      colPivot = cssVar('--accent') || '#6d28d9';
+      colSettled = cssVar('--practice') || '#0a7d5a';
+      colBg = cssVar('--code-bg') || '#f4f6f8';
+    }
+
+    function randomBars(){
+      var n = Math.floor(p.random(30, 51));
+      var arr = [];
+      var k;
+      for (k = 0; k < n; k++) arr.push(Math.floor(p.random(8, 100)));
+      return arr;
+    }
+
+    function resetRun(keepBars){
+      if (!keepBars) original = randomBars();
+      bars = original.slice();
+      settled = bars.map(function(){ return false; });
+      gen = null;
+      running = false;
+      finished = false;
+      compareCount = 0;
+      swapCount = 0;
+      highlight = null;
+      frameAcc = 0;
+      updateStats();
+    }
+
+    function updateStats(){
+      if (!statsEl) return;
+      var info = ALGO_INFO[algo];
+      statsEl.html(
+        '<b>' + info.label + '</b>' +
+        ' <span class="hb-sort-badge">' + info.complexity + '</span>' +
+        '<br>比较次数:' + compareCount + '&nbsp;&nbsp;交换/移动次数:' + swapCount +
+        (finished ? '&nbsp;&nbsp;<span class="hb-sort-done">已排序完成</span>' : '')
+      );
+    }
+
+    p.setup = function(){
+      var w = Math.max(container.clientWidth || 0, 280);
+      refreshColors();
+
+      var legend = p.createDiv(
+        '<span class="hb-sort-dot" style="background:var(--brand)"></span>默认' +
+        '<span class="hb-sort-dot" style="background:var(--key)"></span>比较中' +
+        '<span class="hb-sort-dot" style="background:var(--warn)"></span>交换/移动' +
+        '<span class="hb-sort-dot" style="background:var(--accent)"></span>基准 pivot' +
+        '<span class="hb-sort-dot" style="background:var(--practice)"></span>已就位'
+      );
+      legend.parent(container);
+      legend.class('hb-sort-legend');
+
+      var controls = p.createDiv('');
+      controls.parent(container);
+      controls.class('hb-sort-controls');
+
+      algoSel = p.createSelect();
+      algoSel.parent(controls);
+      algoSel.option('冒泡排序','bubble');
+      algoSel.option('选择排序','selection');
+      algoSel.option('插入排序','insertion');
+      algoSel.option('快速排序','quick');
+      algoSel.selected('bubble');
+      algoSel.changed(function(){
+        algo = algoSel.value();
+        resetRun(true);
+      });
+
+      var btnStart = p.createButton('开始');
+      btnStart.parent(controls);
+      btnStart.mousePressed(function(){
+        if (!gen || finished){
+          if (finished){ bars = original.slice(); settled = bars.map(function(){ return false; }); }
+          gen = GEN_MAKERS[algo](bars);
+          compareCount = 0; swapCount = 0; finished = false; highlight = null;
+          updateStats();
+        }
+        running = true;
+      });
+
+      var btnPause = p.createButton('暂停');
+      btnPause.parent(controls);
+      btnPause.mousePressed(function(){ running = false; });
+
+      var btnShuffle = p.createButton('打乱');
+      btnShuffle.parent(controls);
+      btnShuffle.mousePressed(function(){ resetRun(false); });
+
+      var btnReset = p.createButton('重置');
+      btnReset.parent(controls);
+      btnReset.mousePressed(function(){ resetRun(true); });
+
+      var speedLabel = p.createSpan('速度');
+      speedLabel.parent(controls);
+      speedLabel.class('hb-sort-speedlabel');
+
+      speedSlider = p.createSlider(1, 20, 10, 1);
+      speedSlider.parent(controls);
+
+      statsEl = p.createDiv('');
+      statsEl.parent(container);
+      statsEl.class('hb-sort-stats');
+
+      canvas = p.createCanvas(w, H);
+      canvas.parent(container);
+
+      var themeBtn = document.querySelector('.tgl');
+      if (themeBtn) themeBtn.addEventListener('click', function(){ refreshColors(); });
+
+      resetRun(false);
+      p.frameRate(60);
+    };
+
+    p.windowResized = function(){
+      var w = Math.max(container.clientWidth || 0, 280);
+      p.resizeCanvas(w, H);
+    };
+
+    p.draw = function(){
+      p.background(colBg);
+
+      if (running && gen){
+        framesPerStep = 21 - speedSlider.value();
+        frameAcc++;
+        if (frameAcc >= framesPerStep){
+          frameAcc = 0;
+          var res = gen.next();
+          if (res.done){
+            running = false;
+            finished = true;
+            highlight = null;
+            settled = settled.map(function(){ return true; });
+          } else {
+            var step = res.value;
+            if (step.type === 'compare'){
+              compareCount++;
+              highlight = { kind:'compare', a:step.a, b:step.b };
+            } else if (step.type === 'swap'){
+              swapCount++;
+              highlight = { kind:'swap', a:step.a, b:step.b };
+            } else if (step.type === 'shift'){
+              swapCount++;
+              highlight = { kind:'swap', a:step.a, b:step.b };
+            } else if (step.type === 'pivotcompare'){
+              compareCount++;
+              highlight = { kind:'pivot', a:step.a, b:step.pivot };
+            } else if (step.type === 'settle'){
+              settled[step.i] = true;
+              highlight = null;
+            }
+          }
+          updateStats();
+        }
+      }
+
+      var n = bars.length;
+      var bw = p.width / n;
+      var i;
+      for (i = 0; i < n; i++){
+        var col = colBar;
+        if (settled[i]) col = colSettled;
+        if (highlight){
+          if (highlight.kind === 'pivot' && i === highlight.b) col = colPivot;
+          else if (i === highlight.a || i === highlight.b) col = (highlight.kind === 'swap') ? colSwap : colCompare;
+        }
+        p.fill(col);
+        p.noStroke();
+        var h = p.map(bars[i], 0, 100, 6, H - 20);
+        p.rect(i * bw + 1, H - h, Math.max(bw - 2, 1), h, 2);
+      }
+    };
+  }, document.getElementById('p5sort'));
+
+  HBcourse.renderQuiz('quiz13', QUESTIONS_13, '13');
+  HBcourse.renderFlashcards('fc13', CARDS_13, '13');
+
+})();
+</script>
 </body>
 </html>
